@@ -3,18 +3,17 @@ version: "3.7"
 
 services:
   fourget:
-    image: luuul/4get:latest
+    build: .
     restart: unless-stopped
     environment:
       - FOURGET_PROTO=http
-      - FOURGET_SERVER_NAME=4get.ca
+      - FOURGET_SERVER_NAME=Sorvx Search
       - FOURGET_INSTANCES=https://4get.ca
 
     ports:
-      - "112:112"
+      - "113:113"
       - "441:441"
-
     # volumes:
     # - /etc/letsencrypt/live/domain.tld:/etc/4get/certs # mount ssl
-    # - ./banners:/var/www/html/4get/banner # mount custom banners
-    # - ./captcha:/var/www/html/4get/data/captcha # mount captcha images
+    # - ./banner:/var/www/html/4get/banner # mount custom banners
+    # - ./data/captcha:/var/www/html/4get/data/captcha # mount captcha images
