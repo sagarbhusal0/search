@@ -33,7 +33,7 @@ COPY --from=frontend-builder /frontend/public /app/frontend/public
 RUN mkdir -p /etc/supervisor.d
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-EXPOSE 80 3000
+EXPOSE 3000
 
 ENV FOURGET_PROTO=http
 ENV NODE_ENV=production
