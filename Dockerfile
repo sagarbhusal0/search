@@ -8,8 +8,8 @@ COPY . .
 
 RUN mkdir -p icons && chmod 777 icons && chmod +x docker/docker-entrypoint.sh
 
-EXPOSE 113
-EXPOSE 441
+EXPOSE 80
+EXPOSE 443
 
 ENV FOURGET_PROTO=http
 

@@ -11,8 +11,8 @@ services:
       - FOURGET_INSTANCES=https://4get.ca
 
     ports:
-      - "113:113"
-      - "441:441"
+      - "113:80"
+      - "441:443"
     # volumes:
     # - /etc/letsencrypt/live/domain.tld:/etc/4get/certs # mount ssl
     # - ./banner:/var/www/html/4get/banner # mount custom banners
