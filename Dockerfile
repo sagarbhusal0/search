@@ -6,7 +6,7 @@ RUN apk add php apache2-ssl php84-fileinfo php84-openssl php84-iconv php84-commo
 
 COPY . .
 
-RUN mkdir -p icons && chmod 777 icons
+RUN mkdir -p icons && chmod 777 icons && chmod +x docker/docker-entrypoint.sh
 
 EXPOSE 113
 EXPOSE 441
