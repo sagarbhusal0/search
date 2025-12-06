@@ -12,7 +12,7 @@ services:
 
     ports:
       - "112:112"
-      - "443:443"
+      - "441:441"
 
     # volumes:
     # - /etc/letsencrypt/live/domain.tld:/etc/4get/certs # mount ssl
