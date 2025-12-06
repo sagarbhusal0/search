@@ -8,8 +8,8 @@ COPY . .
 
 RUN chmod 777 /var/www/html/4get/icons
 
-EXPOSE 223
-EXPOSE 444
+EXPOSE 80
+EXPOSE 443
 
 ENV FOURGET_PROTO=http
 
