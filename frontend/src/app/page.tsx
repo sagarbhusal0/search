@@ -122,15 +122,6 @@ export default function Home() {
             </div>
           )}
         </div>
-
-        {/* Tabs */}
-        <div className="flex gap-4 mt-6 text-sm">
-          <span className="text-[#e8e6e3] border-b-2 border-[#e8e6e3] pb-1">Web</span>
-          <a href="/images" className="text-[#888] hover:text-[#e8e6e3]">Images</a>
-          <a href="/videos" className="text-[#888] hover:text-[#e8e6e3]">Videos</a>
-          <a href="/news" className="text-[#888] hover:text-[#e8e6e3]">News</a>
-          <a href="/music" className="text-[#888] hover:text-[#e8e6e3]">Music</a>
-        </div>
       </div>
     </main>
   );

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
     const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
 
-    let url = `${backendUrl}/api/v1/web.php?s=${encodeURIComponent(query)}`;
+    let url = `${backendUrl}/api/v1/videos.php?s=${encodeURIComponent(query)}`;
     if (scraper) url += `&scraper=${scraper}`;
 
     try {
@@ -19,8 +19,7 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error("Error fetching from PHP backend:", error);
-        return NextResponse.json({ status: "Failed to connect to search backend" }, { status: 500 });
+        console.error("Videos API error:", error);
+        return NextResponse.json({ status: "Failed to fetch videos" }, { status: 500 });
     }
 }
-
