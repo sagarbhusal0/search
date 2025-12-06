@@ -22,7 +22,7 @@ RUN apk update && apk upgrade && \
 
 # Copy PHP backend
 COPY . .
-RUN mkdir -p icons && chmod 777 icons && chmod +x docker/docker-entrypoint.sh
+RUN mkdir -p icons && chmod 777 icons && chmod +x docker/docker-entrypoint.sh && chmod +x docker/docker-entrypoint-unified.sh
 
 # Copy Next.js frontend
 COPY --from=frontend-builder /frontend/.next/standalone /app/frontend
