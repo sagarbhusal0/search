@@ -4,59 +4,55 @@ import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-interface ImageResult {
+interface NewsResult {
+    title: string;
+    description?: string;
     url: string;
+    date?: string;
     thumb?: { url?: string } | string;
-    source?: { url?: string; title?: string };
+    source?: { name?: string; url?: string };
 }
 
-function ImagesContent() {
+function NewsContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const query = searchParams.get("s") || "";
-    const [results, setResults] = useState<ImageResult[]>([]);
+    const [results, setResults] = useState<NewsResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState(query);
-    const [scraper, setScraper] = useState("ddg");
+    const [scraper, setScraper] = useState("google");
 
     const SCRAPERS = [
-        { value: "ddg", label: "DuckDuckGo" },
         { value: "google", label: "Google" },
-        { value: "yandex", label: "Yandex" },
+        { value: "ddg", label: "DuckDuckGo" },
         { value: "brave", label: "Brave" },
     ];
 
     useEffect(() => {
         if (!query) return;
 
-        const fetchImages = async () => {
+        const fetchNews = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/images?s=${encodeURIComponent(query)}&scraper=${scraper}`);
+                const res = await fetch(`/api/news?s=${encodeURIComponent(query)}&scraper=${scraper}`);
                 const data = await res.json();
-                console.log("Images API response:", data);
-                setResults(data.image || []);
+                console.log("News API response:", data);
+                setResults(data.news || []);
             } catch (e) {
-                console.error("Images fetch error:", e);
+                console.error("News fetch error:", e);
                 setResults([]);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchImages();
+        fetchNews();
     }, [query, scraper]);
 
     const handleSearch = () => {
         if (searchQuery.trim()) {
-            router.push(`/images?s=${encodeURIComponent(searchQuery.trim())}`);
+            router.push(`/news?s=${encodeURIComponent(searchQuery.trim())}`);
         }
-    };
-
-    const getThumbUrl = (img: ImageResult): string => {
-        if (typeof img.thumb === "string") return img.thumb;
-        if (img.thumb?.url) return img.thumb.url;
-        return img.url;
     };
 
     return (
@@ -88,37 +84,44 @@ function ImagesContent() {
 
                     <div className="flex gap-4 mt-3 text-sm">
                         <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Web</a>
-                        <span className="text-white border-b-2 border-[#d4af37] pb-1">Images</span>
+                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Images</a>
                         <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Videos</a>
-                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">News</a>
+                        <span className="text-white border-b-2 border-[#d4af37] pb-1">News</span>
                         <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Music</a>
                     </div>
                 </div>
             </header>
 
-            <div className="max-w-6xl mx-auto px-4 py-6">
+            <div className="max-w-4xl mx-auto px-4 py-6">
                 {loading ? (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                        {[...Array(18)].map((_, i) => (
-                            <div key={i} className="aspect-square bg-[#333] rounded animate-pulse" />
+                    <div className="space-y-6">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="animate-pulse space-y-2">
+                                <div className="h-4 bg-[#333] rounded w-3/4" />
+                                <div className="h-3 bg-[#333] rounded w-full" />
+                                <div className="h-3 bg-[#333] rounded w-1/4" />
+                            </div>
                         ))}
                     </div>
                 ) : results.length === 0 ? (
-                    <p className="text-[#888]">No images found for &quot;{query}&quot;</p>
+                    <p className="text-[#888]">No news found for &quot;{query}&quot;</p>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                        {results.map((img, i) => (
-                            <a key={i} href={img.url} target="_blank" rel="noopener noreferrer" className="block">
-                                <img
-                                    src={getThumbUrl(img)}
-                                    alt=""
-                                    className="w-full aspect-square object-cover rounded hover:opacity-80 transition bg-[#333]"
-                                    loading="lazy"
-                                    onError={(e) => {
-                                        e.currentTarget.src = img.url;
-                                    }}
-                                />
-                            </a>
+                    <div className="space-y-6">
+                        {results.map((news, i) => (
+                            <article key={i} className="group">
+                                <a href={news.url} target="_blank" rel="noopener noreferrer">
+                                    <h2 className="text-[#8ab4f8] group-hover:underline text-base mb-1">
+                                        {news.title}
+                                    </h2>
+                                    {news.description && (
+                                        <p className="text-[#bbb] text-sm line-clamp-2 mb-1">{news.description}</p>
+                                    )}
+                                    <div className="flex gap-2 text-xs text-[#888]">
+                                        {news.source?.name && <span>{news.source.name}</span>}
+                                        {news.date && <span>• {news.date}</span>}
+                                    </div>
+                                </a>
+                            </article>
                         ))}
                     </div>
                 )}
@@ -127,10 +130,10 @@ function ImagesContent() {
     );
 }
 
-export default function ImagesPage() {
+export default function NewsPage() {
     return (
         <Suspense fallback={<div className="min-h-screen bg-[#1a1a1a]" />}>
-            <ImagesContent />
+            <NewsContent />
         </Suspense>
     );
 }

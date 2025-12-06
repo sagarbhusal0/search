@@ -7,9 +7,11 @@ import { useState, useEffect } from "react";
 interface MusicResult {
     title: string;
     url: string;
-    thumb?: { url: string };
-    author?: { name: string };
-    stream?: { url: string };
+    thumb?: { url?: string } | string;
+    author?: { name?: string; url?: string } | string;
+    stream?: { url?: string } | string;
+    date?: string;
+    plays?: string;
 }
 
 function MusicContent() {
@@ -23,7 +25,6 @@ function MusicContent() {
 
     const SCRAPERS = [
         { value: "sc", label: "SoundCloud" },
-        { value: "yt", label: "YouTube Music" },
     ];
 
     useEffect(() => {
@@ -34,8 +35,11 @@ function MusicContent() {
             try {
                 const res = await fetch(`/api/music?s=${encodeURIComponent(query)}&scraper=${scraper}`);
                 const data = await res.json();
+                console.log("Music API response:", data);
+                // Music API might return "music" or "audio" array
                 setResults(data.music || data.audio || []);
-            } catch {
+            } catch (e) {
+                console.error("Music fetch error:", e);
                 setResults([]);
             } finally {
                 setLoading(false);
@@ -49,6 +53,24 @@ function MusicContent() {
         if (searchQuery.trim()) {
             router.push(`/music?s=${encodeURIComponent(searchQuery.trim())}`);
         }
+    };
+
+    const getThumbUrl = (item: MusicResult): string | null => {
+        if (typeof item.thumb === "string") return item.thumb;
+        if (item.thumb?.url) return item.thumb.url;
+        return null;
+    };
+
+    const getAuthorName = (item: MusicResult): string | null => {
+        if (typeof item.author === "string") return item.author;
+        if (item.author?.name) return item.author.name;
+        return null;
+    };
+
+    const getStreamUrl = (item: MusicResult): string | null => {
+        if (typeof item.stream === "string") return item.stream;
+        if (item.stream?.url) return item.stream.url;
+        return null;
     };
 
     return (
@@ -102,29 +124,34 @@ function MusicContent() {
                         ))}
                     </div>
                 ) : results.length === 0 ? (
-                    <p className="text-[#888]">No music found</p>
+                    <p className="text-[#888]">No music found for &quot;{query}&quot;</p>
                 ) : (
                     <div className="space-y-4">
                         {results.map((track, i) => (
-                            <a key={i} href={track.url} target="_blank" rel="noopener noreferrer" className="flex gap-4 group">
-                                {track.thumb?.url && (
+                            <div key={i} className="flex gap-4 group">
+                                {getThumbUrl(track) && (
                                     <img
-                                        src={track.thumb.url}
+                                        src={getThumbUrl(track)!}
                                         alt={track.title}
-                                        className="w-16 h-16 object-cover rounded"
+                                        className="w-16 h-16 object-cover rounded bg-[#333]"
                                         loading="lazy"
                                     />
                                 )}
                                 <div className="flex-1">
-                                    <p className="text-sm text-[#8ab4f8] group-hover:underline">{track.title}</p>
-                                    {track.author?.name && <p className="text-xs text-[#888] mt-1">{track.author.name}</p>}
-                                    {track.stream?.url && (
-                                        <audio controls className="mt-2 h-8 w-full" src={track.stream.url}>
-                                            Your browser does not support audio.
+                                    <a href={track.url} target="_blank" rel="noopener noreferrer">
+                                        <p className="text-sm text-[#8ab4f8] group-hover:underline">{track.title}</p>
+                                    </a>
+                                    {getAuthorName(track) && (
+                                        <p className="text-xs text-[#888] mt-1">{getAuthorName(track)}</p>
+                                    )}
+                                    {track.plays && <p className="text-xs text-[#666] mt-1">{track.plays} plays</p>}
+                                    {getStreamUrl(track) && (
+                                        <audio controls className="mt-2 h-8 w-full max-w-md" preload="none">
+                                            <source src={getStreamUrl(track)!} />
                                         </audio>
                                     )}
                                 </div>
-                            </a>
+                            </div>
                         ))}
                     </div>
                 )}
