@@ -6,7 +6,7 @@ RUN apk add php apache2-ssl php84-fileinfo php84-openssl php84-iconv php84-commo
 
 COPY . .
 
-RUN chmod 777 /var/www/html/4get/icons
+RUN mkdir -p icons && chmod 777 icons
 
 EXPOSE 80
 EXPOSE 443
