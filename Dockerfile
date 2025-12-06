@@ -8,8 +8,8 @@ COPY . .
 
 RUN mkdir -p icons && chmod 777 icons
 
-EXPOSE 80
-EXPOSE 443
+EXPOSE 113
+EXPOSE 441
 
 ENV FOURGET_PROTO=http
 
