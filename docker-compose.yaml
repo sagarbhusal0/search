@@ -11,7 +11,7 @@ services:
       - FOURGET_INSTANCES=https://4get.ca
 
     ports:
-      - "80:80"
+      - "112:112"
       - "443:443"
 
     # volumes:
