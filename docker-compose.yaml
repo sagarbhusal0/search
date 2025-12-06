@@ -6,8 +6,7 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "3000:3000" # Next.js frontend
-      - "80:80" # PHP backend (optional, for direct API access)
+      - "3000:3000" # Next.js frontend only
     environment:
       - FOURGET_PROTO=http
       - FOURGET_SERVER_NAME=Sorvx Search
