@@ -1,35 +1,35 @@
 :root {
-	/* background */
-	--1d2021: #101010;
-	/* Main background */
-	--282828: #202124;
+	/* background - Vercel style pure black */
+	--1d2021: #000000;
+	/* Main background - pure black */
+	--282828: #0a0a0a;
 	/* Secondary background / Search bar */
-	--3c3836: #303134;
+	--3c3836: #171717;
 	/* Hover states */
-	--504945: #3c4043;
+	--504945: #262626;
 	/* Borders */
 
 	/* font */
-	--928374: #9aa0a6;
+	--928374: #737373;
 	/* Muted text */
-	--a89984: #bdc1c6;
+	--a89984: #a3a3a3;
 	/* Secondary text */
-	--bdae93: #e8eaed;
+	--bdae93: #ededed;
 	/* Primary text */
-	--8ec07c: #8ab4f8;
+	--8ec07c: #ededed;
 	/* Links / Accents */
-	--ebdbb2: #e8eaed;
+	--ebdbb2: #fafafa;
 
 	/* code highlighter */
-	--comment: #9aa0a6;
-	--default: #e8eaed;
-	--keyword: #8ab4f8;
-	--string: #81c995;
+	--comment: #737373;
+	--default: #ededed;
+	--keyword: #ededed;
+	--string: #22c55e;
 
 	/* color codes for instance list */
-	--green: #81c995;
-	--yellow: #fdd663;
-	--red: #ea4335;
+	--green: #22c55e;
+	--yellow: #eab308;
+	--red: #ef4444;
 }
 
 audio {
@@ -272,9 +272,6 @@ h6 {
 /*
 	HOME
 */
-/*
-	HOME
-*/
 .home {
 	min-height: 100vh;
 	margin: 0;
@@ -283,7 +280,7 @@ h6 {
 	align-items: center;
 	justify-content: center;
 	text-align: center;
-	background: radial-gradient(circle at 50% 10%, #202124 0%, #101010 60%);
+	background: #000000;
 }
 
 .settings-icon {
@@ -302,8 +299,8 @@ h6 {
 }
 
 .home .logo {
-	max-width: 200px;
-	margin: 0 auto 30px auto;
+	max-width: 180px;
+	margin: 0 auto 40px auto;
 }
 
 .home img {
@@ -312,12 +309,11 @@ h6 {
 	display: block;
 	object-fit: contain;
 	background: transparent;
-	/* Remove background */
 }
 
 .home #center {
 	width: 100%;
-	max-width: 600px;
+	max-width: 560px;
 	padding: 20px;
 	display: flex;
 	flex-direction: column;
@@ -327,7 +323,18 @@ h6 {
 .home .searchbox {
 	width: 100%;
 	text-align: left;
-	margin-bottom: 40px;
+	margin-bottom: 0;
+	height: 52px;
+	background: transparent;
+	border: 1px solid var(--504945);
+	box-shadow: none;
+}
+
+.home .searchbox:hover,
+.home .searchbox:focus-within {
+	border-color: var(--928374);
+	background: transparent;
+	box-shadow: none;
 }
 
 .home a {
@@ -338,12 +345,6 @@ h6 {
 
 .home a:hover {
 	color: var(--bdae93);
-}
-
-.footer-links {
-	display: flex;
-	gap: 20px;
-	font-size: 14px;
 }
 
 .home .subtext {
