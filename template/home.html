@@ -13,6 +13,11 @@
 		<meta name="description" content="{%server_name%}: {%server_short_description%}">
 	</head>
 	<body class="home">
+		<div class="settings-icon">
+			<a href="settings" title="Settings">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+			</a>
+		</div>
 		<div id="center">
 			<form method="GET" autocomplete="off" action="web">
 				<div class="logo">
@@ -21,18 +26,29 @@
 					</a>
 				</div>
 				<div class="searchbox">
-					<input type="submit" value="Search" tabindex="-1">
+					<div class="search-icon">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+					</div>
 					<div class="wrapper">
-						<input type="text" maxlength="500" name="s" placeholder="Proxy search..." required autofocus>
+						<input type="text" maxlength="500" name="s" placeholder="Ask anything, find anything..." required autofocus>
+					</div>
+					<div class="actions">
+						<button type="submit" class="action-btn search-btn" tabindex="-1">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+						</button>
+						<div class="action-btn ai-btn">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff4081" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M9 5h4"></path><path d="M19 17v4"></path><path d="M17 19h4"></path></svg>
+						</div>
 					</div>
 					<div class="autocomplete"></div>
 				</div>
 			</form>
-			<a href="settings">Settings</a> • <a href="instances">Instances</a> • <a href="https://git.lolcat.ca/lolcat/4get_news">News</a> • <a href="api.txt">API</a> • <a href="about">About</a> • <a href="https://git.lolcat.ca/lolcat/4get">Source</a><br>
-			<a href="/donate"><b>Donate to the project</b></a>
-			<div class="subtext">
-				<a href="https://4get.ca">Clearnet</a> • <a href="http://4getwebfrq5zr4sxugk6htxvawqehxtdgjrbcn2oslllcol2vepa23yd.onion">Tor</a> • <a href="https://lolcat.ca">Report a problem</a><br>
-				Running on <b>v{%version%}</b>!!
+			
+			<div class="footer-links">
+				<a href="about">About</a>
+				<a href="https://git.lolcat.ca/lolcat/4get">Source</a>
+				<a href="https://lolcat.ca">Report</a>
+				<a href="/donate">Donate</a>
 			</div>
 		</div>
 		<script src="/static/client.js?v{%version%}"></script>
