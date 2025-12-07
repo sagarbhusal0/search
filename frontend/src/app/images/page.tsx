@@ -53,7 +53,7 @@ function ImagesContent() {
         }
     };
 
-    // Use Next.js API route that forwards to PHP backend proxy
+    // Use Next.js API proxy that forwards to PHP backend
     const getProxiedUrl = (url: string, size: string = "thumb"): string => {
         return `/api/proxy?i=${encodeURIComponent(url)}&s=${size}`;
     };
@@ -126,7 +126,6 @@ function ImagesContent() {
                                     className="w-full aspect-square object-cover rounded hover:opacity-80 transition bg-[#333]"
                                     loading="lazy"
                                     onError={(e) => {
-                                        // Try with original size if thumb fails
                                         const originalUrl = getProxiedUrl(img.url, "original");
                                         if (e.currentTarget.src !== originalUrl) {
                                             e.currentTarget.src = originalUrl;

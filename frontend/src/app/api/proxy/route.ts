@@ -8,20 +8,22 @@ export async function GET(request: NextRequest) {
         return new NextResponse("Missing url (i) parameter", { status: 400 });
     }
 
-    const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
+    // PHP backend runs on 127.0.0.1:80 inside the container
+    const backendUrl = process.env.PHP_BACKEND_URL || "http://127.0.0.1:80";
 
     try {
-        // Forward to PHP proxy
         const proxyUrl = `${backendUrl}/proxy.php?i=${encodeURIComponent(url)}&s=${size}`;
 
         const response = await fetch(proxyUrl, {
             headers: {
                 "Accept": "image/*",
+                "User-Agent": "Mozilla/5.0 (compatible; Sorvx/1.0)",
             },
         });
 
         if (!response.ok) {
-            return new NextResponse("Failed to fetch image", { status: response.status });
+            console.error(`PHP proxy returned ${response.status} for ${url}`);
+            return new NextResponse("Image not found", { status: 404 });
         }
 
         const contentType = response.headers.get("content-type") || "image/jpeg";
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
         return new NextResponse(buffer, {
             headers: {
                 "Content-Type": contentType,
-                "Cache-Control": "public, max-age=86400",
+                "Cache-Control": "public, max-age=86400, immutable",
             },
         });
     } catch (error) {

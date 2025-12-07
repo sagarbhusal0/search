@@ -1,14 +1,23 @@
-# Docker Compose for Sorvx Search
-# Single container with both Next.js frontend and PHP backend
+# Sorvx Search - Single Container Deployment
+# Next.js frontend on port 3000 (public)
+# PHP backend on port 80 (internal only)
 
 services:
   sorvx:
     build: .
     restart: unless-stopped
     ports:
-      - "3000:3000" # Next.js frontend only
+      - "3000:3000"
     environment:
       - FOURGET_PROTO=http
       - FOURGET_SERVER_NAME=Sorvx Search
       - FOURGET_INSTANCES=https://4get.ca
-      - PHP_BACKEND_URL=http://localhost:80
+      - PHP_BACKEND_URL=http://127.0.0.1:80
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
