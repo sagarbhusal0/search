@@ -4,10 +4,17 @@ import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-interface ImageResult {
+interface ImageSource {
     url: string;
+    width?: number;
+    height?: number;
+}
+
+interface ImageResult {
+    title?: string;
+    url: string;
+    source?: ImageSource[];
     thumb?: { url?: string } | string;
-    source?: { url?: string; title?: string };
 }
 
 function ImagesContent() {
@@ -53,21 +60,33 @@ function ImagesContent() {
         }
     };
 
-    // Use Next.js API proxy that forwards to PHP backend
-    const getProxiedUrl = (url: string, size: string = "thumb"): string => {
-        return `/api/proxy?i=${encodeURIComponent(url)}&s=${size}`;
+    // Get thumbnail URL - API returns source array with different sizes
+    const getThumbUrl = (img: ImageResult): string => {
+        // Check source array for thumbnail (second item is usually bing thumbnail)
+        if (img.source && img.source.length > 1 && img.source[1]?.url) {
+            return `/api/proxy?i=${encodeURIComponent(img.source[1].url)}&s=original`;
+        }
+        // Fallback to first source
+        if (img.source && img.source.length > 0 && img.source[0]?.url) {
+            return `/api/proxy?i=${encodeURIComponent(img.source[0].url)}&s=thumb`;
+        }
+        // Legacy thumb format
+        if (typeof img.thumb === "string") {
+            return `/api/proxy?i=${encodeURIComponent(img.thumb)}&s=thumb`;
+        }
+        if (img.thumb && typeof img.thumb === "object" && img.thumb.url) {
+            return `/api/proxy?i=${encodeURIComponent(img.thumb.url)}&s=thumb`;
+        }
+        // Last resort - use page URL (won't work but shows something)
+        return "";
     };
 
-    const getThumbUrl = (img: ImageResult): string => {
-        let url: string;
-        if (typeof img.thumb === "string") {
-            url = img.thumb;
-        } else if (img.thumb?.url) {
-            url = img.thumb.url;
-        } else {
-            url = img.url;
+    // Get full image URL
+    const getFullUrl = (img: ImageResult): string => {
+        if (img.source && img.source.length > 0 && img.source[0]?.url) {
+            return img.source[0].url;
         }
-        return getProxiedUrl(url, "thumb");
+        return img.url;
     };
 
     return (
@@ -118,22 +137,31 @@ function ImagesContent() {
                     <p className="text-[#888]">No images found for &quot;{query}&quot;</p>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                        {results.map((img, i) => (
-                            <a key={i} href={img.url} target="_blank" rel="noopener noreferrer" className="block">
-                                <img
-                                    src={getThumbUrl(img)}
-                                    alt=""
-                                    className="w-full aspect-square object-cover rounded hover:opacity-80 transition bg-[#333]"
-                                    loading="lazy"
-                                    onError={(e) => {
-                                        const originalUrl = getProxiedUrl(img.url, "original");
-                                        if (e.currentTarget.src !== originalUrl) {
-                                            e.currentTarget.src = originalUrl;
-                                        }
-                                    }}
-                                />
-                            </a>
-                        ))}
+                        {results.map((img, i) => {
+                            const thumbUrl = getThumbUrl(img);
+                            const fullUrl = getFullUrl(img);
+
+                            return (
+                                <a key={i} href={fullUrl} target="_blank" rel="noopener noreferrer" className="block">
+                                    {thumbUrl ? (
+                                        <img
+                                            src={thumbUrl}
+                                            alt={img.title || ""}
+                                            className="w-full aspect-square object-cover rounded hover:opacity-80 transition bg-[#333]"
+                                            loading="lazy"
+                                            onError={(e) => {
+                                                // Hide broken images
+                                                e.currentTarget.style.display = "none";
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="w-full aspect-square bg-[#333] rounded flex items-center justify-center text-xs text-[#666]">
+                                            No preview
+                                        </div>
+                                    )}
+                                </a>
+                            );
+                        })}
                     </div>
                 )}
             </div>
