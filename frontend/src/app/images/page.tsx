@@ -54,9 +54,20 @@ function ImagesContent() {
     };
 
     const getThumbUrl = (img: ImageResult): string => {
-        if (typeof img.thumb === "string") return img.thumb;
-        if (img.thumb?.url) return img.thumb.url;
-        return img.url;
+        let url: string;
+        if (typeof img.thumb === "string") {
+            url = img.thumb;
+        } else if (img.thumb?.url) {
+            url = img.thumb.url;
+        } else {
+            url = img.url;
+        }
+        // Proxy the image to bypass CORS
+        return `/api/proxy?url=${encodeURIComponent(url)}`;
+    };
+
+    const getFullUrl = (img: ImageResult): string => {
+        return `/api/proxy?url=${encodeURIComponent(img.url)}`;
     };
 
     return (
@@ -115,7 +126,10 @@ function ImagesContent() {
                                     className="w-full aspect-square object-cover rounded hover:opacity-80 transition bg-[#333]"
                                     loading="lazy"
                                     onError={(e) => {
-                                        e.currentTarget.src = img.url;
+                                        // Fallback to full image URL through proxy
+                                        if (!e.currentTarget.src.includes(encodeURIComponent(img.url))) {
+                                            e.currentTarget.src = getFullUrl(img);
+                                        }
                                     }}
                                 />
                             </a>
