@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-    const url = request.nextUrl.searchParams.get("url");
+    const url = request.nextUrl.searchParams.get("i");
+    const size = request.nextUrl.searchParams.get("s") || "original";
 
     if (!url) {
-        return new NextResponse("Missing url parameter", { status: 400 });
+        return new NextResponse("Missing url (i) parameter", { status: 400 });
     }
 
+    const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
+
     try {
-        const response = await fetch(url, {
+        // Forward to PHP proxy
+        const proxyUrl = `${backendUrl}/proxy.php?i=${encodeURIComponent(url)}&s=${size}`;
+
+        const response = await fetch(proxyUrl, {
             headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
                 "Accept": "image/*",
-                "Referer": new URL(url).origin,
             },
         });
 

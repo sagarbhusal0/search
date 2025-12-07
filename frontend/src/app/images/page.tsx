@@ -53,6 +53,11 @@ function ImagesContent() {
         }
     };
 
+    // Use Next.js API route that forwards to PHP backend proxy
+    const getProxiedUrl = (url: string, size: string = "thumb"): string => {
+        return `/api/proxy?i=${encodeURIComponent(url)}&s=${size}`;
+    };
+
     const getThumbUrl = (img: ImageResult): string => {
         let url: string;
         if (typeof img.thumb === "string") {
@@ -62,12 +67,7 @@ function ImagesContent() {
         } else {
             url = img.url;
         }
-        // Proxy the image to bypass CORS
-        return `/api/proxy?url=${encodeURIComponent(url)}`;
-    };
-
-    const getFullUrl = (img: ImageResult): string => {
-        return `/api/proxy?url=${encodeURIComponent(img.url)}`;
+        return getProxiedUrl(url, "thumb");
     };
 
     return (
@@ -126,9 +126,10 @@ function ImagesContent() {
                                     className="w-full aspect-square object-cover rounded hover:opacity-80 transition bg-[#333]"
                                     loading="lazy"
                                     onError={(e) => {
-                                        // Fallback to full image URL through proxy
-                                        if (!e.currentTarget.src.includes(encodeURIComponent(img.url))) {
-                                            e.currentTarget.src = getFullUrl(img);
+                                        // Try with original size if thumb fails
+                                        const originalUrl = getProxiedUrl(img.url, "original");
+                                        if (e.currentTarget.src !== originalUrl) {
+                                            e.currentTarget.src = originalUrl;
                                         }
                                     }}
                                 />
