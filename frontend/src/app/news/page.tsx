@@ -3,6 +3,8 @@
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Search, Clock, ExternalLink } from "lucide-react";
+import Image from "next/image";
 
 interface NewsResult {
     title: string;
@@ -36,7 +38,6 @@ function NewsContent() {
             try {
                 const res = await fetch(`/api/news?s=${encodeURIComponent(query)}&scraper=${scraper}`);
                 const data = await res.json();
-                console.log("News API response:", data);
                 setResults(data.news || []);
             } catch (e) {
                 console.error("News fetch error:", e);
@@ -56,72 +57,98 @@ function NewsContent() {
     };
 
     return (
-        <main className="min-h-screen bg-[#1a1a1a] text-[#e8e6e3]">
-            <header className="sticky top-0 bg-[#1a1a1a] border-b border-[#333] z-10">
-                <div className="max-w-6xl mx-auto px-4 py-3">
-                    <div className="flex items-center gap-4">
-                        <a href="/" className="text-xl font-bold">Sorvx</a>
-                        <div className="flex-1 max-w-xl flex gap-2">
+        <main className="min-h-screen animated-bg">
+            <header className="sticky top-0 glass z-20">
+                <div className="max-w-7xl mx-auto px-4 py-3">
+                    <div className="flex items-center gap-3 sm:gap-6">
+                        <a href="/" className="flex-shrink-0">
+                            <Image src="/logo.png" alt="Sorvx" width={40} height={40} />
+                        </a>
+
+                        <div className="flex-1 max-w-2xl flex gap-2">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                                className="flex-1 h-9 px-3 bg-[#2a2a2a] border border-[#444] rounded text-sm focus:outline-none"
+                                className="flex-1 h-11 px-5 input-glass text-sm"
+                                placeholder="Search news..."
                             />
                             <select
                                 value={scraper}
                                 onChange={(e) => setScraper(e.target.value)}
-                                className="h-9 px-2 bg-[#2a2a2a] border border-[#444] rounded text-sm focus:outline-none"
+                                className="h-11 px-3 glass rounded-full text-sm focus:outline-none hidden sm:block"
                             >
                                 {SCRAPERS.map((s) => (
                                     <option key={s.value} value={s.value}>{s.label}</option>
                                 ))}
                             </select>
-                            <button onClick={handleSearch} className="px-3 h-9 bg-[#3a3a3a] rounded text-sm">Search</button>
+                            <button onClick={handleSearch} className="btn-primary px-4">
+                                <Search size={18} />
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex gap-4 mt-3 text-sm">
-                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Web</a>
-                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Images</a>
-                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Videos</a>
-                        <span className="text-white border-b-2 border-[#d4af37] pb-1">News</span>
-                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Music</a>
+                    <div className="flex gap-6 mt-3 text-sm overflow-x-auto pb-1">
+                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Web</a>
+                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Images</a>
+                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Videos</a>
+                        <span className="tab-active pb-2 whitespace-nowrap">News</span>
+                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Music</a>
                     </div>
                 </div>
             </header>
 
             <div className="max-w-4xl mx-auto px-4 py-6">
                 {loading ? (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         {[...Array(8)].map((_, i) => (
-                            <div key={i} className="animate-pulse space-y-2">
-                                <div className="h-4 bg-[#333] rounded w-3/4" />
-                                <div className="h-3 bg-[#333] rounded w-full" />
-                                <div className="h-3 bg-[#333] rounded w-1/4" />
+                            <div key={i} className="card-glass p-4 space-y-2">
+                                <div className="h-4 shimmer rounded w-3/4" />
+                                <div className="h-3 shimmer rounded w-full" />
+                                <div className="h-3 shimmer rounded w-1/4" />
                             </div>
                         ))}
                     </div>
                 ) : results.length === 0 ? (
-                    <p className="text-[#888]">No news found for &quot;{query}&quot;</p>
+                    <div className="card-glass p-8 text-center">
+                        <p className="text-[--text-secondary]">No news found for &quot;{query}&quot;</p>
+                    </div>
                 ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         {results.map((news, i) => (
-                            <article key={i} className="group">
-                                <a href={news.url} target="_blank" rel="noopener noreferrer">
-                                    <h2 className="text-[#8ab4f8] group-hover:underline text-base mb-1">
-                                        {news.title}
-                                    </h2>
-                                    {news.description && (
-                                        <p className="text-[#bbb] text-sm line-clamp-2 mb-1">{news.description}</p>
-                                    )}
-                                    <div className="flex gap-2 text-xs text-[#888]">
-                                        {news.source?.name && <span>{news.source.name}</span>}
-                                        {news.date && <span>• {news.date}</span>}
+                            <a
+                                key={i}
+                                href={news.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block card-glass p-5 hover-lift group fade-in"
+                                style={{ animationDelay: `${i * 0.05}s` }}
+                            >
+                                <div className="flex gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <h2 className="text-[--primary-cyan] font-medium line-clamp-2 group-hover:underline mb-2">
+                                            {news.title}
+                                        </h2>
+                                        {news.description && (
+                                            <p className="text-[--text-secondary] text-sm line-clamp-2 mb-3">
+                                                {news.description}
+                                            </p>
+                                        )}
+                                        <div className="flex items-center gap-3 text-xs text-[--text-muted]">
+                                            {news.source?.name && (
+                                                <span className="font-medium text-[--primary-purple]">{news.source.name}</span>
+                                            )}
+                                            {news.date && (
+                                                <span className="flex items-center gap-1">
+                                                    <Clock size={12} /> {news.date}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                </a>
-                            </article>
+                                    <ExternalLink size={16} className="text-[--text-muted] flex-shrink-0 mt-1" />
+                                </div>
+                            </a>
                         ))}
                     </div>
                 )}
@@ -132,7 +159,7 @@ function NewsContent() {
 
 export default function NewsPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#1a1a1a]" />}>
+        <Suspense fallback={<div className="min-h-screen animated-bg" />}>
             <NewsContent />
         </Suspense>
     );

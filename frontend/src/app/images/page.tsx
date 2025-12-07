@@ -3,7 +3,8 @@
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ExternalLink, Search, Download } from "lucide-react";
+import Image from "next/image";
 
 interface ImageSource {
     url: string;
@@ -55,7 +56,6 @@ function ImagesContent() {
         fetchImages();
     }, [query, scraper]);
 
-    // Keyboard navigation
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (selectedIndex === null) return;
 
@@ -75,7 +75,6 @@ function ImagesContent() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [handleKeyDown]);
 
-    // Lock body scroll when preview is open
     useEffect(() => {
         if (selectedIndex !== null) {
             document.body.style.overflow = "hidden";
@@ -124,56 +123,61 @@ function ImagesContent() {
     const selectedImage = selectedIndex !== null ? results[selectedIndex] : null;
 
     return (
-        <main className="min-h-screen bg-[#1a1a1a] text-[#e8e6e3]">
+        <main className="min-h-screen animated-bg">
             {/* Header */}
-            <header className="sticky top-0 bg-[#1a1a1a] border-b border-[#333] z-20">
+            <header className="sticky top-0 glass z-20">
                 <div className="max-w-7xl mx-auto px-4 py-3">
-                    <div className="flex items-center gap-4">
-                        <a href="/" className="text-xl font-bold">Sorvx</a>
-                        <div className="flex-1 max-w-xl flex gap-2">
+                    <div className="flex items-center gap-3 sm:gap-6">
+                        <a href="/" className="flex-shrink-0">
+                            <Image src="/logo.png" alt="Sorvx" width={40} height={40} />
+                        </a>
+
+                        <div className="flex-1 max-w-2xl flex gap-2">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                                className="flex-1 h-9 px-3 bg-[#2a2a2a] border border-[#444] rounded text-sm focus:outline-none"
+                                className="flex-1 h-11 px-5 input-glass text-sm"
                                 placeholder="Search images..."
                             />
                             <select
                                 value={scraper}
                                 onChange={(e) => setScraper(e.target.value)}
-                                className="h-9 px-2 bg-[#2a2a2a] border border-[#444] rounded text-sm focus:outline-none"
+                                className="h-11 px-3 glass rounded-full text-sm focus:outline-none hidden sm:block"
                             >
                                 {SCRAPERS.map((s) => (
                                     <option key={s.value} value={s.value}>{s.label}</option>
                                 ))}
                             </select>
-                            <button onClick={handleSearch} className="px-4 h-9 bg-[#3a3a3a] hover:bg-[#444] rounded text-sm transition">
-                                Search
+                            <button onClick={handleSearch} className="btn-primary px-4">
+                                <Search size={18} />
                             </button>
                         </div>
                     </div>
 
-                    <div className="flex gap-4 mt-3 text-sm">
-                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Web</a>
-                        <span className="text-white border-b-2 border-[#d4af37] pb-1">Images</span>
-                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Videos</a>
-                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">News</a>
-                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Music</a>
+                    <div className="flex gap-6 mt-3 text-sm overflow-x-auto pb-1">
+                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Web</a>
+                        <span className="tab-active pb-2 whitespace-nowrap">Images</span>
+                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Videos</a>
+                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">News</a>
+                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Music</a>
                     </div>
                 </div>
             </header>
 
-            {/* Image Grid */}
+            {/* Grid */}
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {loading ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                         {[...Array(24)].map((_, i) => (
-                            <div key={i} className="aspect-square bg-[#2a2a2a] rounded-lg animate-pulse" />
+                            <div key={i} className="aspect-square shimmer rounded-xl" />
                         ))}
                     </div>
                 ) : results.length === 0 ? (
-                    <p className="text-[#888] text-center py-12">No images found for &quot;{query}&quot;</p>
+                    <div className="card-glass p-8 text-center">
+                        <p className="text-[--text-secondary]">No images found for &quot;{query}&quot;</p>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                         {results.map((img, i) => {
@@ -183,23 +187,28 @@ function ImagesContent() {
                                 <div
                                     key={i}
                                     onClick={() => setSelectedIndex(i)}
-                                    className="group cursor-pointer relative aspect-square bg-[#2a2a2a] rounded-lg overflow-hidden hover:ring-2 hover:ring-[#d4af37] transition-all"
+                                    className="group cursor-pointer relative aspect-square rounded-xl overflow-hidden card-glass hover:ring-2 hover:ring-[--primary-cyan] transition-all fade-in"
+                                    style={{ animationDelay: `${(i % 12) * 0.03}s` }}
                                 >
                                     {thumbUrl ? (
                                         <img
                                             src={thumbUrl}
                                             alt={img.title || ""}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                             loading="lazy"
                                             onError={(e) => {
                                                 e.currentTarget.parentElement!.style.display = "none";
                                             }}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-xs text-[#666]">
+                                        <div className="w-full h-full flex items-center justify-center text-xs text-[--text-muted]">
                                             No preview
                                         </div>
                                     )}
+                                    {/* Hover overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                                        <p className="text-white text-xs line-clamp-2">{img.title}</p>
+                                    </div>
                                 </div>
                             );
                         })}
@@ -207,41 +216,37 @@ function ImagesContent() {
                 )}
             </div>
 
-            {/* Image Preview Modal */}
+            {/* Modal */}
             {selectedImage && selectedIndex !== null && (
                 <div
-                    className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+                    className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center"
                     onClick={() => setSelectedIndex(null)}
                 >
-                    {/* Close button */}
                     <button
                         onClick={() => setSelectedIndex(null)}
-                        className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition z-10"
+                        className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/10 transition z-10"
                     >
-                        <X size={28} />
+                        <X size={24} className="text-white" />
                     </button>
 
-                    {/* Left arrow */}
                     {selectedIndex > 0 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); setSelectedIndex(selectedIndex - 1); }}
-                            className="absolute left-2 md:left-6 p-2 md:p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition"
+                            className="absolute left-2 md:left-6 p-3 glass rounded-full hover:bg-white/10 transition"
                         >
-                            <ChevronLeft size={32} />
+                            <ChevronLeft size={28} className="text-white" />
                         </button>
                     )}
 
-                    {/* Right arrow */}
                     {selectedIndex < results.length - 1 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); setSelectedIndex(selectedIndex + 1); }}
-                            className="absolute right-2 md:right-6 p-2 md:p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition"
+                            className="absolute right-2 md:right-6 p-3 glass rounded-full hover:bg-white/10 transition"
                         >
-                            <ChevronRight size={32} />
+                            <ChevronRight size={28} className="text-white" />
                         </button>
                     )}
 
-                    {/* Image container */}
                     <div
                         className="flex flex-col items-center max-w-[90vw] max-h-[85vh]"
                         onClick={(e) => e.stopPropagation()}
@@ -249,30 +254,30 @@ function ImagesContent() {
                         <img
                             src={getFullUrl(selectedImage)}
                             alt={selectedImage.title || ""}
-                            className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"
+                            className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl"
                             onError={(e) => {
-                                // Fallback to thumb if full fails
                                 e.currentTarget.src = getThumbUrl(selectedImage);
                             }}
                         />
 
-                        {/* Image info */}
-                        <div className="mt-4 text-center max-w-2xl px-4">
+                        <div className="mt-4 text-center max-w-2xl px-4 fade-in">
                             {selectedImage.title && (
-                                <h3 className="text-white text-lg font-medium line-clamp-2 mb-2">
+                                <h3 className="text-white text-lg font-medium line-clamp-2 mb-3">
                                     {selectedImage.title}
                                 </h3>
                             )}
-                            <a
-                                href={getOriginalUrl(selectedImage)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 text-[#8ab4f8] hover:underline text-sm"
-                            >
-                                Open original <ExternalLink size={14} />
-                            </a>
-                            <p className="text-[#666] text-xs mt-2">
-                                {selectedIndex + 1} of {results.length} • Use ← → keys to navigate
+                            <div className="flex items-center justify-center gap-4">
+                                <a
+                                    href={getOriginalUrl(selectedImage)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn-glass text-sm inline-flex items-center gap-2"
+                                >
+                                    Open original <ExternalLink size={14} />
+                                </a>
+                            </div>
+                            <p className="text-[--text-muted] text-xs mt-3">
+                                {selectedIndex + 1} of {results.length} • Use ← → keys
                             </p>
                         </div>
                     </div>
@@ -284,7 +289,7 @@ function ImagesContent() {
 
 export default function ImagesPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#1a1a1a]" />}>
+        <Suspense fallback={<div className="min-h-screen animated-bg" />}>
             <ImagesContent />
         </Suspense>
     );

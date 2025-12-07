@@ -3,6 +3,8 @@
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Search, Music, User, PlayCircle } from "lucide-react";
+import Image from "next/image";
 
 interface MusicResult {
     title: string;
@@ -22,6 +24,7 @@ function MusicContent() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState(query);
     const [scraper, setScraper] = useState("sc");
+    const [playing, setPlaying] = useState<number | null>(null);
 
     const SCRAPERS = [
         { value: "sc", label: "SoundCloud" },
@@ -35,8 +38,6 @@ function MusicContent() {
             try {
                 const res = await fetch(`/api/music?s=${encodeURIComponent(query)}&scraper=${scraper}`);
                 const data = await res.json();
-                console.log("Music API response:", data);
-                // Music API might return "music" or "audio" array
                 setResults(data.music || data.audio || []);
             } catch (e) {
                 console.error("Music fetch error:", e);
@@ -74,38 +75,44 @@ function MusicContent() {
     };
 
     return (
-        <main className="min-h-screen bg-[#1a1a1a] text-[#e8e6e3]">
-            <header className="sticky top-0 bg-[#1a1a1a] border-b border-[#333] z-10">
-                <div className="max-w-6xl mx-auto px-4 py-3">
-                    <div className="flex items-center gap-4">
-                        <a href="/" className="text-xl font-bold">Sorvx</a>
-                        <div className="flex-1 max-w-xl flex gap-2">
+        <main className="min-h-screen animated-bg">
+            <header className="sticky top-0 glass z-20">
+                <div className="max-w-7xl mx-auto px-4 py-3">
+                    <div className="flex items-center gap-3 sm:gap-6">
+                        <a href="/" className="flex-shrink-0">
+                            <Image src="/logo.png" alt="Sorvx" width={40} height={40} />
+                        </a>
+
+                        <div className="flex-1 max-w-2xl flex gap-2">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                                className="flex-1 h-9 px-3 bg-[#2a2a2a] border border-[#444] rounded text-sm focus:outline-none"
+                                className="flex-1 h-11 px-5 input-glass text-sm"
+                                placeholder="Search music..."
                             />
                             <select
                                 value={scraper}
                                 onChange={(e) => setScraper(e.target.value)}
-                                className="h-9 px-2 bg-[#2a2a2a] border border-[#444] rounded text-sm focus:outline-none"
+                                className="h-11 px-3 glass rounded-full text-sm focus:outline-none hidden sm:block"
                             >
                                 {SCRAPERS.map((s) => (
                                     <option key={s.value} value={s.value}>{s.label}</option>
                                 ))}
                             </select>
-                            <button onClick={handleSearch} className="px-3 h-9 bg-[#3a3a3a] rounded text-sm">Search</button>
+                            <button onClick={handleSearch} className="btn-primary px-4">
+                                <Search size={18} />
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex gap-4 mt-3 text-sm">
-                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Web</a>
-                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Images</a>
-                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">Videos</a>
-                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[#888] hover:text-white">News</a>
-                        <span className="text-white border-b-2 border-[#d4af37] pb-1">Music</span>
+                    <div className="flex gap-6 mt-3 text-sm overflow-x-auto pb-1">
+                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Web</a>
+                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Images</a>
+                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Videos</a>
+                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">News</a>
+                        <span className="tab-active pb-2 whitespace-nowrap">Music</span>
                     </div>
                 </div>
             </header>
@@ -114,42 +121,80 @@ function MusicContent() {
                 {loading ? (
                     <div className="space-y-4">
                         {[...Array(8)].map((_, i) => (
-                            <div key={i} className="flex gap-4 animate-pulse">
-                                <div className="w-16 h-16 bg-[#333] rounded" />
-                                <div className="flex-1">
-                                    <div className="h-4 bg-[#333] rounded w-3/4 mb-2" />
-                                    <div className="h-3 bg-[#333] rounded w-1/2" />
+                            <div key={i} className="card-glass p-4 flex gap-4">
+                                <div className="w-16 h-16 shimmer rounded-lg" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-4 shimmer rounded w-3/4" />
+                                    <div className="h-3 shimmer rounded w-1/2" />
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : results.length === 0 ? (
-                    <p className="text-[#888]">No music found for &quot;{query}&quot;</p>
+                    <div className="card-glass p-8 text-center">
+                        <p className="text-[--text-secondary]">No music found for &quot;{query}&quot;</p>
+                    </div>
                 ) : (
                     <div className="space-y-4">
                         {results.map((track, i) => (
-                            <div key={i} className="flex gap-4 group">
-                                {getThumbUrl(track) && (
-                                    <img
-                                        src={getThumbUrl(track)!}
-                                        alt={track.title}
-                                        className="w-16 h-16 object-cover rounded bg-[#333]"
-                                        loading="lazy"
-                                    />
-                                )}
-                                <div className="flex-1">
-                                    <a href={track.url} target="_blank" rel="noopener noreferrer">
-                                        <p className="text-sm text-[#8ab4f8] group-hover:underline">{track.title}</p>
-                                    </a>
-                                    {getAuthorName(track) && (
-                                        <p className="text-xs text-[#888] mt-1">{getAuthorName(track)}</p>
-                                    )}
-                                    {track.plays && <p className="text-xs text-[#666] mt-1">{track.plays} plays</p>}
-                                    {getStreamUrl(track) && (
-                                        <audio controls className="mt-2 h-8 w-full max-w-md" preload="none">
-                                            <source src={getStreamUrl(track)!} />
-                                        </audio>
-                                    )}
+                            <div
+                                key={i}
+                                className="card-glass p-4 hover-lift group fade-in"
+                                style={{ animationDelay: `${i * 0.05}s` }}
+                            >
+                                <div className="flex gap-4">
+                                    {/* Album Art */}
+                                    <div className="relative w-16 h-16 flex-shrink-0">
+                                        {getThumbUrl(track) ? (
+                                            <img
+                                                src={getThumbUrl(track)!}
+                                                alt={track.title}
+                                                className="w-full h-full object-cover rounded-lg"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-[--primary-purple] to-[--primary-cyan] rounded-lg flex items-center justify-center">
+                                                <Music size={24} className="text-white" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Track Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <a
+                                            href={track.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[--primary-cyan] font-medium line-clamp-1 hover:underline"
+                                        >
+                                            {track.title}
+                                        </a>
+                                        {getAuthorName(track) && (
+                                            <p className="text-[--text-secondary] text-sm flex items-center gap-1 mt-1">
+                                                <User size={12} /> {getAuthorName(track)}
+                                            </p>
+                                        )}
+                                        {track.plays && (
+                                            <p className="text-[--text-muted] text-xs mt-1">
+                                                {track.plays} plays
+                                            </p>
+                                        )}
+
+                                        {/* Audio Player */}
+                                        {getStreamUrl(track) && (
+                                            <div className="mt-3">
+                                                <audio
+                                                    controls
+                                                    className="w-full h-8 opacity-80 hover:opacity-100 transition"
+                                                    preload="none"
+                                                    onPlay={() => setPlaying(i)}
+                                                    onPause={() => playing === i && setPlaying(null)}
+                                                >
+                                                    <source src={getStreamUrl(track)!} />
+                                                </audio>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -162,7 +207,7 @@ function MusicContent() {
 
 export default function MusicPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#1a1a1a]" />}>
+        <Suspense fallback={<div className="min-h-screen animated-bg" />}>
             <MusicContent />
         </Suspense>
     );

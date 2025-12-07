@@ -1,131 +1,174 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-type Settings = {
-    scraper_ac: string;
-    theme: string;
-    nsfw: string;
-};
-
-const SCRAPERS = [
-    { value: "brave", label: "Brave" },
-    { value: "ddg", label: "DuckDuckGo" },
-    { value: "google", label: "Google" },
-    { value: "yandex", label: "Yandex" },
-    { value: "qwant", label: "Qwant" },
-    { value: "startpage", label: "Startpage" },
-    { value: "disabled", label: "Disabled" },
-];
-
-const THEMES = [
-    { value: "dark", label: "Dark" },
-    { value: "light", label: "Light" },
-    { value: "gruvbox", label: "Gruvbox" },
-];
+import { Settings, Moon, Search as SearchIcon, Shield, ArrowLeft, Check } from "lucide-react";
+import Image from "next/image";
 
 export default function SettingsPage() {
-    const [settings, setSettings] = useState<Settings>({
-        scraper_ac: "brave",
-        theme: "dark",
-        nsfw: "no",
-    });
+    const [autocomplete, setAutocomplete] = useState("brave");
+    const [theme, setTheme] = useState("dark");
+    const [nsfw, setNsfw] = useState("off");
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
         // Load settings from cookies
-        const cookies = document.cookie.split(";").reduce((acc, c) => {
-            const [key, value] = c.trim().split("=");
-            acc[key] = value;
-            return acc;
-        }, {} as Record<string, string>);
-
-        setSettings({
-            scraper_ac: cookies.scraper_ac || "brave",
-            theme: cookies.theme || "dark",
-            nsfw: cookies.nsfw || "no",
+        const cookies = document.cookie.split("; ");
+        cookies.forEach((cookie) => {
+            const [key, value] = cookie.split("=");
+            if (key === "autocomplete") setAutocomplete(value);
+            if (key === "theme") setTheme(value);
+            if (key === "nsfw") setNsfw(value);
         });
     }, []);
 
     const saveSettings = () => {
         const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
-
-        Object.entries(settings).forEach(([key, value]) => {
-            document.cookie = `${key}=${value}; expires=${expires}; path=/`;
-        });
-
+        document.cookie = `autocomplete=${autocomplete}; expires=${expires}; path=/`;
+        document.cookie = `theme=${theme}; expires=${expires}; path=/`;
+        document.cookie = `nsfw=${nsfw}; expires=${expires}; path=/`;
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };
 
+    const SettingCard = ({
+        icon: Icon,
+        title,
+        description,
+        children
+    }: {
+        icon: React.ElementType;
+        title: string;
+        description: string;
+        children: React.ReactNode;
+    }) => (
+        <div className="card-glass p-6 hover-lift fade-in">
+            <div className="flex items-start gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-[--primary-purple]/20 to-[--primary-cyan]/20">
+                    <Icon size={24} className="text-[--primary-cyan]" />
+                </div>
+                <div className="flex-1">
+                    <h3 className="font-medium text-[--text-primary] mb-1">{title}</h3>
+                    <p className="text-sm text-[--text-secondary] mb-4">{description}</p>
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+
+    const SelectOption = ({
+        options,
+        value,
+        onChange
+    }: {
+        options: { value: string; label: string }[];
+        value: string;
+        onChange: (v: string) => void;
+    }) => (
+        <div className="flex flex-wrap gap-2">
+            {options.map((opt) => (
+                <button
+                    key={opt.value}
+                    onClick={() => onChange(opt.value)}
+                    className={`px-4 py-2 rounded-full text-sm transition ${value === opt.value
+                            ? "bg-gradient-to-r from-[--primary-purple] to-[--primary-cyan] text-white"
+                            : "btn-glass"
+                        }`}
+                >
+                    {opt.label}
+                </button>
+            ))}
+        </div>
+    );
+
     return (
-        <main className="min-h-screen bg-[#1a1a1a] text-[#e8e6e3]">
+        <main className="min-h-screen animated-bg">
             {/* Header */}
-            <header className="sticky top-0 bg-[#1a1a1a] border-b border-[#333] z-10">
-                <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <a href="/" className="text-xl font-bold">Sorvx</a>
-                    <nav className="flex gap-4 text-sm">
-                        <a href="/" className="text-[#888] hover:text-white">Home</a>
-                        <span className="text-white">Settings</span>
-                    </nav>
+            <header className="glass">
+                <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+                    <a href="/" className="p-2 hover:bg-white/5 rounded-full transition">
+                        <ArrowLeft size={20} className="text-[--text-secondary]" />
+                    </a>
+                    <Image src="/logo.png" alt="Sorvx" width={36} height={36} />
+                    <h1 className="text-xl font-semibold gradient-text">Settings</h1>
                 </div>
             </header>
 
             {/* Content */}
             <div className="max-w-4xl mx-auto px-4 py-8">
-                <h1 className="text-2xl font-bold mb-6">Settings</h1>
-
-                <div className="space-y-6">
-                    {/* Autocomplete Scraper */}
-                    <div className="bg-[#2a2a2a] border border-[#444] rounded-md p-4">
-                        <label className="block text-sm font-medium mb-2">Autocomplete Provider</label>
-                        <select
-                            value={settings.scraper_ac}
-                            onChange={(e) => setSettings({ ...settings, scraper_ac: e.target.value })}
-                            className="w-full bg-[#1a1a1a] border border-[#444] rounded px-3 py-2 text-sm focus:outline-none focus:border-[#888]"
-                        >
-                            {SCRAPERS.map((s) => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
-                            ))}
-                        </select>
-                        <p className="text-xs text-[#888] mt-2">Choose which search engine provides autocomplete suggestions.</p>
-                    </div>
+                <div className="space-y-4">
+                    {/* Autocomplete */}
+                    <SettingCard
+                        icon={SearchIcon}
+                        title="Autocomplete Provider"
+                        description="Choose which service provides search suggestions as you type."
+                    >
+                        <SelectOption
+                            value={autocomplete}
+                            onChange={setAutocomplete}
+                            options={[
+                                { value: "brave", label: "Brave" },
+                                { value: "ddg", label: "DuckDuckGo" },
+                                { value: "google", label: "Google" },
+                                { value: "off", label: "Disabled" },
+                            ]}
+                        />
+                    </SettingCard>
 
                     {/* Theme */}
-                    <div className="bg-[#2a2a2a] border border-[#444] rounded-md p-4">
-                        <label className="block text-sm font-medium mb-2">Theme</label>
-                        <select
-                            value={settings.theme}
-                            onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
-                            className="w-full bg-[#1a1a1a] border border-[#444] rounded px-3 py-2 text-sm focus:outline-none focus:border-[#888]"
-                        >
-                            {THEMES.map((t) => (
-                                <option key={t.value} value={t.value}>{t.label}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <SettingCard
+                        icon={Moon}
+                        title="Theme"
+                        description="Customize the appearance of the search interface."
+                    >
+                        <SelectOption
+                            value={theme}
+                            onChange={setTheme}
+                            options={[
+                                { value: "dark", label: "Dark" },
+                                { value: "light", label: "Light" },
+                                { value: "gruvbox", label: "Gruvbox" },
+                            ]}
+                        />
+                    </SettingCard>
 
                     {/* NSFW */}
-                    <div className="bg-[#2a2a2a] border border-[#444] rounded-md p-4">
-                        <label className="block text-sm font-medium mb-2">NSFW Content</label>
-                        <select
-                            value={settings.nsfw}
-                            onChange={(e) => setSettings({ ...settings, nsfw: e.target.value })}
-                            className="w-full bg-[#1a1a1a] border border-[#444] rounded px-3 py-2 text-sm focus:outline-none focus:border-[#888]"
-                        >
-                            <option value="yes">Show</option>
-                            <option value="no">Hide</option>
-                        </select>
-                    </div>
+                    <SettingCard
+                        icon={Shield}
+                        title="Safe Search"
+                        description="Filter explicit content from search results."
+                    >
+                        <SelectOption
+                            value={nsfw}
+                            onChange={setNsfw}
+                            options={[
+                                { value: "off", label: "Safe (Hide NSFW)" },
+                                { value: "on", label: "Show NSFW" },
+                            ]}
+                        />
+                    </SettingCard>
+                </div>
 
-                    {/* Save Button */}
+                {/* Save Button */}
+                <div className="mt-8 flex justify-center">
                     <button
                         onClick={saveSettings}
-                        className="bg-[#3a3a3a] hover:bg-[#444] border border-[#444] rounded px-6 py-2 text-sm transition-colors"
+                        className={`btn-primary px-8 py-3 text-base flex items-center gap-2 ${saved ? "bg-green-500" : ""
+                            }`}
                     >
-                        {saved ? "✓ Saved!" : "Save Settings"}
+                        {saved ? (
+                            <>
+                                <Check size={20} /> Saved!
+                            </>
+                        ) : (
+                            "Save Settings"
+                        )}
                     </button>
                 </div>
+
+                {/* Info */}
+                <p className="text-center text-[--text-muted] text-sm mt-6">
+                    Settings are stored locally in your browser cookies. No data is sent to our servers.
+                </p>
             </div>
         </main>
     );
