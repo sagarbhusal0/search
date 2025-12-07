@@ -2,7 +2,8 @@
 
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
 
 interface ImageSource {
     url: string;
@@ -25,6 +26,7 @@ function ImagesContent() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState(query);
     const [scraper, setScraper] = useState("ddg");
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     const SCRAPERS = [
         { value: "ddg", label: "DuckDuckGo" },
@@ -41,7 +43,6 @@ function ImagesContent() {
             try {
                 const res = await fetch(`/api/images?s=${encodeURIComponent(query)}&scraper=${scraper}`);
                 const data = await res.json();
-                console.log("Images API response:", data);
                 setResults(data.image || []);
             } catch (e) {
                 console.error("Images fetch error:", e);
@@ -54,45 +55,79 @@ function ImagesContent() {
         fetchImages();
     }, [query, scraper]);
 
+    // Keyboard navigation
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (selectedIndex === null) return;
+
+        if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            setSelectedIndex(prev => prev !== null && prev > 0 ? prev - 1 : prev);
+        } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            setSelectedIndex(prev => prev !== null && prev < results.length - 1 ? prev + 1 : prev);
+        } else if (e.key === "Escape") {
+            setSelectedIndex(null);
+        }
+    }, [selectedIndex, results.length]);
+
+    useEffect(() => {
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [handleKeyDown]);
+
+    // Lock body scroll when preview is open
+    useEffect(() => {
+        if (selectedIndex !== null) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => { document.body.style.overflow = ""; };
+    }, [selectedIndex]);
+
     const handleSearch = () => {
         if (searchQuery.trim()) {
             router.push(`/images?s=${encodeURIComponent(searchQuery.trim())}`);
         }
     };
 
-    // Get thumbnail URL - API returns source array with different sizes
     const getThumbUrl = (img: ImageResult): string => {
-        // Check source array for thumbnail (second item is usually bing thumbnail)
         if (img.source && img.source.length > 1 && img.source[1]?.url) {
             return `/api/proxy?i=${encodeURIComponent(img.source[1].url)}&s=original`;
         }
-        // Fallback to first source
         if (img.source && img.source.length > 0 && img.source[0]?.url) {
             return `/api/proxy?i=${encodeURIComponent(img.source[0].url)}&s=thumb`;
         }
-        // Legacy thumb format
         if (typeof img.thumb === "string") {
             return `/api/proxy?i=${encodeURIComponent(img.thumb)}&s=thumb`;
         }
         if (img.thumb && typeof img.thumb === "object" && img.thumb.url) {
             return `/api/proxy?i=${encodeURIComponent(img.thumb.url)}&s=thumb`;
         }
-        // Last resort - use page URL (won't work but shows something)
         return "";
     };
 
-    // Get full image URL
     const getFullUrl = (img: ImageResult): string => {
+        if (img.source && img.source.length > 0 && img.source[0]?.url) {
+            return `/api/proxy?i=${encodeURIComponent(img.source[0].url)}&s=original`;
+        }
+        return "";
+    };
+
+    const getOriginalUrl = (img: ImageResult): string => {
         if (img.source && img.source.length > 0 && img.source[0]?.url) {
             return img.source[0].url;
         }
         return img.url;
     };
 
+    const selectedImage = selectedIndex !== null ? results[selectedIndex] : null;
+
     return (
         <main className="min-h-screen bg-[#1a1a1a] text-[#e8e6e3]">
-            <header className="sticky top-0 bg-[#1a1a1a] border-b border-[#333] z-10">
-                <div className="max-w-6xl mx-auto px-4 py-3">
+            {/* Header */}
+            <header className="sticky top-0 bg-[#1a1a1a] border-b border-[#333] z-20">
+                <div className="max-w-7xl mx-auto px-4 py-3">
                     <div className="flex items-center gap-4">
                         <a href="/" className="text-xl font-bold">Sorvx</a>
                         <div className="flex-1 max-w-xl flex gap-2">
@@ -102,6 +137,7 @@ function ImagesContent() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                                 className="flex-1 h-9 px-3 bg-[#2a2a2a] border border-[#444] rounded text-sm focus:outline-none"
+                                placeholder="Search images..."
                             />
                             <select
                                 value={scraper}
@@ -112,7 +148,9 @@ function ImagesContent() {
                                     <option key={s.value} value={s.value}>{s.label}</option>
                                 ))}
                             </select>
-                            <button onClick={handleSearch} className="px-3 h-9 bg-[#3a3a3a] rounded text-sm">Search</button>
+                            <button onClick={handleSearch} className="px-4 h-9 bg-[#3a3a3a] hover:bg-[#444] rounded text-sm transition">
+                                Search
+                            </button>
                         </div>
                     </div>
 
@@ -126,45 +164,120 @@ function ImagesContent() {
                 </div>
             </header>
 
-            <div className="max-w-6xl mx-auto px-4 py-6">
+            {/* Image Grid */}
+            <div className="max-w-7xl mx-auto px-4 py-6">
                 {loading ? (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                        {[...Array(18)].map((_, i) => (
-                            <div key={i} className="aspect-square bg-[#333] rounded animate-pulse" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        {[...Array(24)].map((_, i) => (
+                            <div key={i} className="aspect-square bg-[#2a2a2a] rounded-lg animate-pulse" />
                         ))}
                     </div>
                 ) : results.length === 0 ? (
-                    <p className="text-[#888]">No images found for &quot;{query}&quot;</p>
+                    <p className="text-[#888] text-center py-12">No images found for &quot;{query}&quot;</p>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                         {results.map((img, i) => {
                             const thumbUrl = getThumbUrl(img);
-                            const fullUrl = getFullUrl(img);
 
                             return (
-                                <a key={i} href={fullUrl} target="_blank" rel="noopener noreferrer" className="block">
+                                <div
+                                    key={i}
+                                    onClick={() => setSelectedIndex(i)}
+                                    className="group cursor-pointer relative aspect-square bg-[#2a2a2a] rounded-lg overflow-hidden hover:ring-2 hover:ring-[#d4af37] transition-all"
+                                >
                                     {thumbUrl ? (
                                         <img
                                             src={thumbUrl}
                                             alt={img.title || ""}
-                                            className="w-full aspect-square object-cover rounded hover:opacity-80 transition bg-[#333]"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                             loading="lazy"
                                             onError={(e) => {
-                                                // Hide broken images
-                                                e.currentTarget.style.display = "none";
+                                                e.currentTarget.parentElement!.style.display = "none";
                                             }}
                                         />
                                     ) : (
-                                        <div className="w-full aspect-square bg-[#333] rounded flex items-center justify-center text-xs text-[#666]">
+                                        <div className="w-full h-full flex items-center justify-center text-xs text-[#666]">
                                             No preview
                                         </div>
                                     )}
-                                </a>
+                                </div>
                             );
                         })}
                     </div>
                 )}
             </div>
+
+            {/* Image Preview Modal */}
+            {selectedImage && selectedIndex !== null && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+                    onClick={() => setSelectedIndex(null)}
+                >
+                    {/* Close button */}
+                    <button
+                        onClick={() => setSelectedIndex(null)}
+                        className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition z-10"
+                    >
+                        <X size={28} />
+                    </button>
+
+                    {/* Left arrow */}
+                    {selectedIndex > 0 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedIndex(selectedIndex - 1); }}
+                            className="absolute left-2 md:left-6 p-2 md:p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition"
+                        >
+                            <ChevronLeft size={32} />
+                        </button>
+                    )}
+
+                    {/* Right arrow */}
+                    {selectedIndex < results.length - 1 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedIndex(selectedIndex + 1); }}
+                            className="absolute right-2 md:right-6 p-2 md:p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition"
+                        >
+                            <ChevronRight size={32} />
+                        </button>
+                    )}
+
+                    {/* Image container */}
+                    <div
+                        className="flex flex-col items-center max-w-[90vw] max-h-[85vh]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <img
+                            src={getFullUrl(selectedImage)}
+                            alt={selectedImage.title || ""}
+                            className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"
+                            onError={(e) => {
+                                // Fallback to thumb if full fails
+                                e.currentTarget.src = getThumbUrl(selectedImage);
+                            }}
+                        />
+
+                        {/* Image info */}
+                        <div className="mt-4 text-center max-w-2xl px-4">
+                            {selectedImage.title && (
+                                <h3 className="text-white text-lg font-medium line-clamp-2 mb-2">
+                                    {selectedImage.title}
+                                </h3>
+                            )}
+                            <a
+                                href={getOriginalUrl(selectedImage)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 text-[#8ab4f8] hover:underline text-sm"
+                            >
+                                Open original <ExternalLink size={14} />
+                            </a>
+                            <p className="text-[#666] text-xs mt-2">
+                                {selectedIndex + 1} of {results.length} • Use ← → keys to navigate
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
