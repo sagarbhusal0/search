@@ -118,12 +118,10 @@ export default function SearchResults() {
             <header className="sticky top-0 glass z-20">
                 <div className="max-w-7xl mx-auto px-4 py-3">
                     <div className="flex items-center gap-3 sm:gap-6">
-                        {/* Logo */}
                         <a href="/" className="flex-shrink-0">
                             <Image src="/logo.png" alt="Sorvx" width={40} height={40} />
                         </a>
 
-                        {/* Search Box */}
                         <div className="relative flex-1 max-w-2xl">
                             <div className="flex items-center">
                                 <input
@@ -142,22 +140,21 @@ export default function SearchResults() {
                                 />
                                 <button
                                     onClick={() => handleSearch()}
-                                    className="absolute right-1 p-2 rounded-full hover:bg-[--primary-purple]/20 transition"
+                                    className="absolute right-1 p-2 rounded-full hover:bg-violet-500/20 transition"
                                 >
-                                    <Search size={18} className="text-[--primary-cyan]" />
+                                    <Search size={18} className="text-cyan-400" />
                                 </button>
                             </div>
 
-                            {/* Autocomplete */}
                             {showSuggestions && suggestions.length > 0 && (
                                 <div className="absolute top-full left-0 right-0 mt-2 glass rounded-xl overflow-hidden z-50">
                                     {suggestions.map((s, i) => (
                                         <div
                                             key={i}
-                                            className="px-4 py-2.5 cursor-pointer text-sm hover:bg-[--primary-purple]/10 transition"
+                                            className="px-4 py-2.5 cursor-pointer text-sm hover:bg-violet-500/10 transition"
                                             onMouseDown={() => handleSearch(s)}
                                         >
-                                            <Search size={14} className="inline mr-2 text-[--text-muted]" />
+                                            <Search size={14} className="inline mr-2 text-slate-500" />
                                             {s}
                                         </div>
                                     ))}
@@ -165,29 +162,25 @@ export default function SearchResults() {
                             )}
                         </div>
 
-                        {/* Settings */}
-                        <a href="/settings" className="text-[--text-secondary] hover:text-[--text-primary] transition hidden sm:block">
+                        <a href="/settings" className="text-slate-400 hover:text-white transition hidden sm:block text-sm">
                             Settings
                         </a>
                     </div>
 
-                    {/* Tabs */}
                     <div className="flex gap-6 mt-3 text-sm overflow-x-auto pb-1">
                         <span className="tab-active pb-2 whitespace-nowrap">Web</span>
-                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Images</a>
-                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Videos</a>
-                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">News</a>
-                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Music</a>
+                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Images</a>
+                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Videos</a>
+                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">News</a>
+                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Music</a>
                     </div>
                 </div>
             </header>
 
-            {/* Content */}
             <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col lg:flex-row gap-8">
-                {/* Main Results */}
                 <div className="flex-1 min-w-0">
                     {!loading && (
-                        <p className="text-xs text-[--text-muted] mb-6 fade-in">
+                        <p className="text-xs text-slate-500 mb-6 fade-in">
                             Found results in {timeTaken.toFixed(2)}s
                         </p>
                     )}
@@ -204,14 +197,14 @@ export default function SearchResults() {
                         </div>
                     ) : error ? (
                         <div className="card-glass p-6 text-center">
-                            <p className="text-[--text-secondary]">{error}</p>
+                            <p className="text-slate-400">{error}</p>
                         </div>
                     ) : results.length === 0 ? (
                         <div className="card-glass p-6 text-center">
-                            <p className="text-[--text-secondary]">No results found for &quot;{query}&quot;</p>
+                            <p className="text-slate-400">No results found for &quot;{query}&quot;</p>
                         </div>
                     ) : (
-                        <div className="space-y-6">
+                        <div className="space-y-4">
                             {results.map((result, index) => (
                                 <article
                                     key={index}
@@ -223,12 +216,12 @@ export default function SearchResults() {
                                             {getFavicon(result.url) && (
                                                 <img src={getFavicon(result.url)!} alt="" className="w-5 h-5 rounded" />
                                             )}
-                                            <span className="text-xs text-[--text-muted] truncate">{result.url}</span>
+                                            <span className="text-xs text-slate-500 truncate">{result.url}</span>
                                         </div>
-                                        <h2 className="text-[--primary-cyan] hover:underline text-lg font-medium mb-1">
+                                        <h2 className="text-cyan-400 hover:underline text-lg font-medium mb-1">
                                             {result.title}
                                         </h2>
-                                        <p className="text-[--text-secondary] text-sm line-clamp-2">
+                                        <p className="text-slate-400 text-sm line-clamp-2">
                                             {result.description}
                                         </p>
                                     </a>
@@ -237,16 +230,15 @@ export default function SearchResults() {
                         </div>
                     )}
 
-                    {/* Related */}
                     {related.length > 0 && (
-                        <div className="mt-8 pt-6 border-t border-[--glass-border] fade-in">
+                        <div className="mt-8 pt-6 border-t border-violet-500/15 fade-in">
                             <h3 className="text-sm font-medium mb-4 gradient-text">Related searches</h3>
                             <div className="flex flex-wrap gap-2">
                                 {related.slice(0, 8).map((term, i) => (
                                     <a
                                         key={i}
                                         href={`/search?s=${encodeURIComponent(term)}`}
-                                        className="btn-glass text-sm"
+                                        className="btn-glass text-sm px-4 py-2"
                                     >
                                         {term}
                                     </a>
@@ -256,7 +248,6 @@ export default function SearchResults() {
                     )}
                 </div>
 
-                {/* Sidebar - Videos */}
                 {videos.length > 0 && (
                     <aside className="w-full lg:w-80 flex-shrink-0">
                         <h3 className="text-sm font-medium mb-4 gradient-text">Videos</h3>
@@ -267,8 +258,8 @@ export default function SearchResults() {
                                         <img src={video.thumb.url} alt={video.title} className="w-full h-auto" />
                                     )}
                                     <div className="p-3">
-                                        <p className="text-sm text-[--primary-cyan] line-clamp-2">{video.title}</p>
-                                        {video.views && <p className="text-xs text-[--text-muted] mt-1">{video.views}</p>}
+                                        <p className="text-sm text-cyan-400 line-clamp-2">{video.title}</p>
+                                        {video.views && <p className="text-xs text-slate-500 mt-1">{video.views}</p>}
                                     </div>
                                 </a>
                             ))}

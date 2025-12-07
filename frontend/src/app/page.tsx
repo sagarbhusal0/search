@@ -64,7 +64,7 @@ export default function Home() {
     <main className="min-h-screen animated-bg flex flex-col">
       {/* Navigation */}
       <nav className="w-full px-4 sm:px-6 py-4 flex justify-end gap-4">
-        <a href="/settings" className="flex items-center gap-2 text-[--text-secondary] hover:text-[--text-primary] transition">
+        <a href="/settings" className="flex items-center gap-2 text-slate-400 hover:text-white transition">
           <Settings size={18} />
           <span className="hidden sm:inline text-sm">Settings</span>
         </a>
@@ -110,7 +110,7 @@ export default function Home() {
             />
             <button
               onClick={() => handleSearch()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-gradient-to-r from-[--primary-purple] to-[--primary-cyan] hover:opacity-90 transition"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 hover:opacity-90 transition"
             >
               <Search size={20} className="text-white" />
             </button>
@@ -123,12 +123,12 @@ export default function Home() {
                 <div
                   key={index}
                   className={`px-5 py-3 cursor-pointer flex items-center gap-3 transition ${index === selectedIndex
-                      ? "bg-[--primary-purple]/20 text-[--primary-cyan]"
-                      : "hover:bg-[--primary-purple]/10"
+                      ? "bg-violet-500/20 text-cyan-300"
+                      : "hover:bg-violet-500/10"
                     }`}
                   onMouseDown={() => handleSearch(suggestion)}
                 >
-                  <Search size={16} className="text-[--text-muted]" />
+                  <Search size={16} className="text-slate-500" />
                   <span>{suggestion}</span>
                 </div>
               ))}
@@ -142,7 +142,7 @@ export default function Home() {
             <a
               key={type}
               href={`/${type.toLowerCase()}`}
-              className="px-4 py-2 btn-glass text-sm hover:text-[--primary-cyan] transition"
+              className="px-4 py-2 btn-glass text-sm hover:text-cyan-300 transition"
             >
               {type}
             </a>
@@ -151,7 +151,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="py-4 text-center text-[--text-muted] text-sm">
+      <footer className="py-4 text-center text-slate-500 text-sm">
         <p>Private search, powered by the wave.</p>
       </footer>
     </main>

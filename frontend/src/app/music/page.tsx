@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Search, Music, User, PlayCircle } from "lucide-react";
+import { Search, Music, User } from "lucide-react";
 import Image from "next/image";
 
 interface MusicResult {
@@ -95,7 +95,7 @@ function MusicContent() {
                             <select
                                 value={scraper}
                                 onChange={(e) => setScraper(e.target.value)}
-                                className="h-11 px-3 glass rounded-full text-sm focus:outline-none hidden sm:block"
+                                className="h-11 px-3 bg-slate-900/80 border border-violet-500/20 rounded-full text-sm focus:outline-none hidden sm:block"
                             >
                                 {SCRAPERS.map((s) => (
                                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -108,10 +108,10 @@ function MusicContent() {
                     </div>
 
                     <div className="flex gap-6 mt-3 text-sm overflow-x-auto pb-1">
-                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Web</a>
-                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Images</a>
-                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Videos</a>
-                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">News</a>
+                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Web</a>
+                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Images</a>
+                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Videos</a>
+                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">News</a>
                         <span className="tab-active pb-2 whitespace-nowrap">Music</span>
                     </div>
                 </div>
@@ -132,7 +132,7 @@ function MusicContent() {
                     </div>
                 ) : results.length === 0 ? (
                     <div className="card-glass p-8 text-center">
-                        <p className="text-[--text-secondary]">No music found for &quot;{query}&quot;</p>
+                        <p className="text-slate-400">No music found for &quot;{query}&quot;</p>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -143,7 +143,6 @@ function MusicContent() {
                                 style={{ animationDelay: `${i * 0.05}s` }}
                             >
                                 <div className="flex gap-4">
-                                    {/* Album Art */}
                                     <div className="relative w-16 h-16 flex-shrink-0">
                                         {getThumbUrl(track) ? (
                                             <img
@@ -153,34 +152,32 @@ function MusicContent() {
                                                 loading="lazy"
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-[--primary-purple] to-[--primary-cyan] rounded-lg flex items-center justify-center">
+                                            <div className="w-full h-full bg-gradient-to-br from-violet-500 to-cyan-400 rounded-lg flex items-center justify-center">
                                                 <Music size={24} className="text-white" />
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Track Info */}
                                     <div className="flex-1 min-w-0">
                                         <a
                                             href={track.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-[--primary-cyan] font-medium line-clamp-1 hover:underline"
+                                            className="text-cyan-400 font-medium line-clamp-1 hover:underline"
                                         >
                                             {track.title}
                                         </a>
                                         {getAuthorName(track) && (
-                                            <p className="text-[--text-secondary] text-sm flex items-center gap-1 mt-1">
+                                            <p className="text-slate-400 text-sm flex items-center gap-1 mt-1">
                                                 <User size={12} /> {getAuthorName(track)}
                                             </p>
                                         )}
                                         {track.plays && (
-                                            <p className="text-[--text-muted] text-xs mt-1">
+                                            <p className="text-slate-500 text-xs mt-1">
                                                 {track.plays} plays
                                             </p>
                                         )}
 
-                                        {/* Audio Player */}
                                         {getStreamUrl(track) && (
                                             <div className="mt-3">
                                                 <audio

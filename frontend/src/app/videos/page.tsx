@@ -83,7 +83,7 @@ function VideosContent() {
                             <select
                                 value={scraper}
                                 onChange={(e) => setScraper(e.target.value)}
-                                className="h-11 px-3 glass rounded-full text-sm focus:outline-none hidden sm:block"
+                                className="h-11 px-3 bg-slate-900/80 border border-violet-500/20 rounded-full text-sm focus:outline-none hidden sm:block"
                             >
                                 {SCRAPERS.map((s) => (
                                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -96,11 +96,11 @@ function VideosContent() {
                     </div>
 
                     <div className="flex gap-6 mt-3 text-sm overflow-x-auto pb-1">
-                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Web</a>
-                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Images</a>
+                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Web</a>
+                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Images</a>
                         <span className="tab-active pb-2 whitespace-nowrap">Videos</span>
-                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">News</a>
-                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Music</a>
+                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">News</a>
+                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Music</a>
                     </div>
                 </div>
             </header>
@@ -120,7 +120,7 @@ function VideosContent() {
                     </div>
                 ) : results.length === 0 ? (
                     <div className="card-glass p-8 text-center">
-                        <p className="text-[--text-secondary]">No videos found for &quot;{query}&quot;</p>
+                        <p className="text-slate-400">No videos found for &quot;{query}&quot;</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -143,19 +143,19 @@ function VideosContent() {
                                         />
                                     )}
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <div className="w-14 h-14 rounded-full bg-[--primary-purple]/80 flex items-center justify-center">
+                                        <div className="w-14 h-14 rounded-full bg-violet-500/80 flex items-center justify-center">
                                             <Play size={24} className="text-white ml-1" fill="white" />
                                         </div>
                                     </div>
                                 </div>
                                 <div className="p-4">
-                                    <h3 className="text-[--primary-cyan] font-medium line-clamp-2 mb-2 group-hover:underline">
+                                    <h3 className="text-cyan-400 font-medium line-clamp-2 mb-2 group-hover:underline">
                                         {video.title}
                                     </h3>
                                     {video.author?.name && (
-                                        <p className="text-[--text-secondary] text-sm">{video.author.name}</p>
+                                        <p className="text-slate-400 text-sm">{video.author.name}</p>
                                     )}
-                                    <div className="flex items-center gap-3 mt-2 text-xs text-[--text-muted]">
+                                    <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
                                         {video.views && (
                                             <span className="flex items-center gap-1">
                                                 <Eye size={12} /> {video.views}

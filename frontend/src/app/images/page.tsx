@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { ChevronLeft, ChevronRight, X, ExternalLink, Search, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ExternalLink, Search } from "lucide-react";
 import Image from "next/image";
 
 interface ImageSource {
@@ -124,7 +124,6 @@ function ImagesContent() {
 
     return (
         <main className="min-h-screen animated-bg">
-            {/* Header */}
             <header className="sticky top-0 glass z-20">
                 <div className="max-w-7xl mx-auto px-4 py-3">
                     <div className="flex items-center gap-3 sm:gap-6">
@@ -144,7 +143,7 @@ function ImagesContent() {
                             <select
                                 value={scraper}
                                 onChange={(e) => setScraper(e.target.value)}
-                                className="h-11 px-3 glass rounded-full text-sm focus:outline-none hidden sm:block"
+                                className="h-11 px-3 bg-slate-900/80 border border-violet-500/20 rounded-full text-sm focus:outline-none hidden sm:block"
                             >
                                 {SCRAPERS.map((s) => (
                                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -157,16 +156,15 @@ function ImagesContent() {
                     </div>
 
                     <div className="flex gap-6 mt-3 text-sm overflow-x-auto pb-1">
-                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Web</a>
+                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Web</a>
                         <span className="tab-active pb-2 whitespace-nowrap">Images</span>
-                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Videos</a>
-                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">News</a>
-                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Music</a>
+                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Videos</a>
+                        <a href={`/news?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">News</a>
+                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Music</a>
                     </div>
                 </div>
             </header>
 
-            {/* Grid */}
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {loading ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
@@ -176,7 +174,7 @@ function ImagesContent() {
                     </div>
                 ) : results.length === 0 ? (
                     <div className="card-glass p-8 text-center">
-                        <p className="text-[--text-secondary]">No images found for &quot;{query}&quot;</p>
+                        <p className="text-slate-400">No images found for &quot;{query}&quot;</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
@@ -187,7 +185,7 @@ function ImagesContent() {
                                 <div
                                     key={i}
                                     onClick={() => setSelectedIndex(i)}
-                                    className="group cursor-pointer relative aspect-square rounded-xl overflow-hidden card-glass hover:ring-2 hover:ring-[--primary-cyan] transition-all fade-in"
+                                    className="group cursor-pointer relative aspect-square rounded-xl overflow-hidden bg-slate-800/50 hover:ring-2 hover:ring-cyan-400 transition-all fade-in"
                                     style={{ animationDelay: `${(i % 12) * 0.03}s` }}
                                 >
                                     {thumbUrl ? (
@@ -201,11 +199,10 @@ function ImagesContent() {
                                             }}
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-xs text-[--text-muted]">
+                                        <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">
                                             No preview
                                         </div>
                                     )}
-                                    {/* Hover overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
                                         <p className="text-white text-xs line-clamp-2">{img.title}</p>
                                     </div>
@@ -216,15 +213,14 @@ function ImagesContent() {
                 )}
             </div>
 
-            {/* Modal */}
             {selectedImage && selectedIndex !== null && (
                 <div
-                    className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center"
+                    className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center"
                     onClick={() => setSelectedIndex(null)}
                 >
                     <button
                         onClick={() => setSelectedIndex(null)}
-                        className="absolute top-4 right-4 p-2 glass rounded-full hover:bg-white/10 transition z-10"
+                        className="absolute top-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition z-10"
                     >
                         <X size={24} className="text-white" />
                     </button>
@@ -232,7 +228,7 @@ function ImagesContent() {
                     {selectedIndex > 0 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); setSelectedIndex(selectedIndex - 1); }}
-                            className="absolute left-2 md:left-6 p-3 glass rounded-full hover:bg-white/10 transition"
+                            className="absolute left-2 md:left-6 p-3 bg-white/10 rounded-full hover:bg-white/20 transition"
                         >
                             <ChevronLeft size={28} className="text-white" />
                         </button>
@@ -241,7 +237,7 @@ function ImagesContent() {
                     {selectedIndex < results.length - 1 && (
                         <button
                             onClick={(e) => { e.stopPropagation(); setSelectedIndex(selectedIndex + 1); }}
-                            className="absolute right-2 md:right-6 p-3 glass rounded-full hover:bg-white/10 transition"
+                            className="absolute right-2 md:right-6 p-3 bg-white/10 rounded-full hover:bg-white/20 transition"
                         >
                             <ChevronRight size={28} className="text-white" />
                         </button>
@@ -271,12 +267,12 @@ function ImagesContent() {
                                     href={getOriginalUrl(selectedImage)}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="btn-glass text-sm inline-flex items-center gap-2"
+                                    className="btn-glass text-sm inline-flex items-center gap-2 px-4 py-2"
                                 >
                                     Open original <ExternalLink size={14} />
                                 </a>
                             </div>
-                            <p className="text-[--text-muted] text-xs mt-3">
+                            <p className="text-slate-500 text-xs mt-3">
                                 {selectedIndex + 1} of {results.length} • Use ← → keys
                             </p>
                         </div>

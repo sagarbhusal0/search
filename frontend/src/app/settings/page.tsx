@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, Moon, Search as SearchIcon, Shield, ArrowLeft, Check } from "lucide-react";
+import { Moon, Search as SearchIcon, Shield, ArrowLeft, Check } from "lucide-react";
 import Image from "next/image";
 
 export default function SettingsPage() {
@@ -11,7 +11,6 @@ export default function SettingsPage() {
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
-        // Load settings from cookies
         const cookies = document.cookie.split("; ");
         cookies.forEach((cookie) => {
             const [key, value] = cookie.split("=");
@@ -43,12 +42,12 @@ export default function SettingsPage() {
     }) => (
         <div className="card-glass p-6 hover-lift fade-in">
             <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-[--primary-purple]/20 to-[--primary-cyan]/20">
-                    <Icon size={24} className="text-[--primary-cyan]" />
+                <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500/20 to-cyan-400/20">
+                    <Icon size={24} className="text-cyan-400" />
                 </div>
                 <div className="flex-1">
-                    <h3 className="font-medium text-[--text-primary] mb-1">{title}</h3>
-                    <p className="text-sm text-[--text-secondary] mb-4">{description}</p>
+                    <h3 className="font-medium text-white mb-1">{title}</h3>
+                    <p className="text-sm text-slate-400 mb-4">{description}</p>
                     {children}
                 </div>
             </div>
@@ -70,7 +69,7 @@ export default function SettingsPage() {
                     key={opt.value}
                     onClick={() => onChange(opt.value)}
                     className={`px-4 py-2 rounded-full text-sm transition ${value === opt.value
-                            ? "bg-gradient-to-r from-[--primary-purple] to-[--primary-cyan] text-white"
+                            ? "bg-gradient-to-r from-violet-500 to-cyan-400 text-white"
                             : "btn-glass"
                         }`}
                 >
@@ -82,21 +81,18 @@ export default function SettingsPage() {
 
     return (
         <main className="min-h-screen animated-bg">
-            {/* Header */}
             <header className="glass">
                 <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
                     <a href="/" className="p-2 hover:bg-white/5 rounded-full transition">
-                        <ArrowLeft size={20} className="text-[--text-secondary]" />
+                        <ArrowLeft size={20} className="text-slate-400" />
                     </a>
                     <Image src="/logo.png" alt="Sorvx" width={36} height={36} />
                     <h1 className="text-xl font-semibold gradient-text">Settings</h1>
                 </div>
             </header>
 
-            {/* Content */}
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="space-y-4">
-                    {/* Autocomplete */}
                     <SettingCard
                         icon={SearchIcon}
                         title="Autocomplete Provider"
@@ -114,7 +110,6 @@ export default function SettingsPage() {
                         />
                     </SettingCard>
 
-                    {/* Theme */}
                     <SettingCard
                         icon={Moon}
                         title="Theme"
@@ -131,7 +126,6 @@ export default function SettingsPage() {
                         />
                     </SettingCard>
 
-                    {/* NSFW */}
                     <SettingCard
                         icon={Shield}
                         title="Safe Search"
@@ -148,11 +142,10 @@ export default function SettingsPage() {
                     </SettingCard>
                 </div>
 
-                {/* Save Button */}
                 <div className="mt-8 flex justify-center">
                     <button
                         onClick={saveSettings}
-                        className={`btn-primary px-8 py-3 text-base flex items-center gap-2 ${saved ? "bg-green-500" : ""
+                        className={`btn-primary px-8 py-3 text-base flex items-center gap-2 ${saved ? "!bg-green-500" : ""
                             }`}
                     >
                         {saved ? (
@@ -165,9 +158,8 @@ export default function SettingsPage() {
                     </button>
                 </div>
 
-                {/* Info */}
-                <p className="text-center text-[--text-muted] text-sm mt-6">
-                    Settings are stored locally in your browser cookies. No data is sent to our servers.
+                <p className="text-center text-slate-500 text-sm mt-6">
+                    Settings are stored locally in your browser cookies.
                 </p>
             </div>
         </main>

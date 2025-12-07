@@ -77,7 +77,7 @@ function NewsContent() {
                             <select
                                 value={scraper}
                                 onChange={(e) => setScraper(e.target.value)}
-                                className="h-11 px-3 glass rounded-full text-sm focus:outline-none hidden sm:block"
+                                className="h-11 px-3 bg-slate-900/80 border border-violet-500/20 rounded-full text-sm focus:outline-none hidden sm:block"
                             >
                                 {SCRAPERS.map((s) => (
                                     <option key={s.value} value={s.value}>{s.label}</option>
@@ -90,11 +90,11 @@ function NewsContent() {
                     </div>
 
                     <div className="flex gap-6 mt-3 text-sm overflow-x-auto pb-1">
-                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Web</a>
-                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Images</a>
-                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Videos</a>
+                        <a href={`/search?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Web</a>
+                        <a href={`/images?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Images</a>
+                        <a href={`/videos?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Videos</a>
                         <span className="tab-active pb-2 whitespace-nowrap">News</span>
-                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-[--text-secondary] hover:text-[--text-primary] transition whitespace-nowrap">Music</a>
+                        <a href={`/music?s=${encodeURIComponent(query)}`} className="text-slate-400 hover:text-white transition whitespace-nowrap">Music</a>
                     </div>
                 </div>
             </header>
@@ -112,7 +112,7 @@ function NewsContent() {
                     </div>
                 ) : results.length === 0 ? (
                     <div className="card-glass p-8 text-center">
-                        <p className="text-[--text-secondary]">No news found for &quot;{query}&quot;</p>
+                        <p className="text-slate-400">No news found for &quot;{query}&quot;</p>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -127,17 +127,17 @@ function NewsContent() {
                             >
                                 <div className="flex gap-4">
                                     <div className="flex-1 min-w-0">
-                                        <h2 className="text-[--primary-cyan] font-medium line-clamp-2 group-hover:underline mb-2">
+                                        <h2 className="text-cyan-400 font-medium line-clamp-2 group-hover:underline mb-2">
                                             {news.title}
                                         </h2>
                                         {news.description && (
-                                            <p className="text-[--text-secondary] text-sm line-clamp-2 mb-3">
+                                            <p className="text-slate-400 text-sm line-clamp-2 mb-3">
                                                 {news.description}
                                             </p>
                                         )}
-                                        <div className="flex items-center gap-3 text-xs text-[--text-muted]">
+                                        <div className="flex items-center gap-3 text-xs text-slate-500">
                                             {news.source?.name && (
-                                                <span className="font-medium text-[--primary-purple]">{news.source.name}</span>
+                                                <span className="font-medium text-violet-400">{news.source.name}</span>
                                             )}
                                             {news.date && (
                                                 <span className="flex items-center gap-1">
@@ -146,7 +146,7 @@ function NewsContent() {
                                             )}
                                         </div>
                                     </div>
-                                    <ExternalLink size={16} className="text-[--text-muted] flex-shrink-0 mt-1" />
+                                    <ExternalLink size={16} className="text-slate-500 flex-shrink-0 mt-1" />
                                 </div>
                             </a>
                         ))}
