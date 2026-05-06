@@ -23,9 +23,19 @@ echo "📥 Pulling latest changes from GitHub..."
 git pull origin main
 
 echo "🏗️ Rebuilding and restarting Docker containers..."
-# --build ensures the local Dockerfile is rebuilt with the new code
-# -d runs it in the background
-docker-compose up -d --build
+# Detect which docker compose command is available
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE="docker compose"
+elif docker-compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    echo "❌ Error: Neither 'docker compose' nor 'docker-compose' was found."
+    echo "Please install it: sudo apt-get update && sudo apt-get install docker-compose-plugin"
+    exit 1
+fi
+
+echo "Using: $DOCKER_COMPOSE"
+$DOCKER_COMPOSE up -d --build
 
 echo "🧹 Cleaning up old images..."
 docker image prune -f
