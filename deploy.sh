@@ -7,8 +7,8 @@
 set -e
 
 # Navigate to the project directory
-# REPLACE THIS with the actual path on your server
-PROJECT_DIR="/var/www/4get"
+# MATCHES your server path: ~/search
+PROJECT_DIR="/root/search"
 
 echo "🚀 Starting deployment..."
 
