@@ -25,7 +25,7 @@ git pull origin main
 echo "🏗️ Rebuilding and restarting Docker containers..."
 # --build ensures the local Dockerfile is rebuilt with the new code
 # -d runs it in the background
-docker compose up -d --build
+docker-compose up -d --build
 
 echo "🧹 Cleaning up old images..."
 docker image prune -f
