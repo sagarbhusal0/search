@@ -1,47 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --background: #070b14;
-  --background-2: #0d1220;
-  --foreground: #f4f6fb;
-  --muted: #9aa3b5;
-  --border: #1f2937;
-  --card: #0f1525;
-  --accent: #9b5cff;
-  --accent-2: #c4a2ff;
-}
-
-:root[data-theme="dark"] {
-  --background: #070b14;
-  --background-2: #0d1220;
-  --foreground: #f4f6fb;
-  --muted: #9aa3b5;
-  --border: #1f2937;
-  --card: #0f1525;
+  --background: #0b0f1a;
+  --background-2: #111827;
+  --foreground: #f3f4f6;
+  --muted: #9ca3af;
+  --border: #374151;
+  --card: #1f2937;
   --accent: #9b5cff;
   --accent-2: #c4a2ff;
 }
 
 :root[data-theme="light"] {
-  --background: #f5f7fb;
-  --background-2: #e9edf5;
-  --foreground: #0c1220;
-  --muted: #4a5568;
-  --border: #d6dbe7;
+  --background: #ffffff;
+  --background-2: #f9fafb;
+  --foreground: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
   --card: #ffffff;
-  --accent: #6f42c1;
-  --accent-2: #b39dfa;
+  --accent: #7c3aed;
+  --accent-2: #a78bfa;
 }
 
 :root[data-theme="gruvbox"] {
-  --background: #1d2021;
-  --background-2: #282828;
+  --background: #282828;
+  --background-2: #1d2021;
   --foreground: #ebdbb2;
-  --muted: #bdae93;
+  --muted: #928374;
   --border: #3c3836;
-  --card: #1f2526;
-  --accent: #d3869b;
-  --accent-2: #fe8019;
+  --card: #32302f;
+  --accent: #b16286;
+  --accent-2: #d3869b;
 }
 
 * {
@@ -52,23 +41,16 @@ body {
   margin: 0;
   padding: 0;
   color: var(--foreground);
-  background: radial-gradient(circle at 20% 20%, rgba(255, 122, 29, 0.12), transparent 24%),
-    radial-gradient(circle at 80% 30%, rgba(255, 193, 136, 0.12), transparent 22%),
-    radial-gradient(circle at 40% 80%, rgba(92, 141, 255, 0.08), transparent 20%),
-    linear-gradient(135deg, var(--background), var(--background-2) 60%, #05070f);
+  background-color: var(--background);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
+  line-height: 1.5;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 0);
-  background-size: 28px 28px;
-  opacity: 0.35;
-  pointer-events: none;
-  z-index: 0;
+/* Homepage background - Clean & Modern but static */
+.home-bg {
+  background: radial-gradient(circle at 50% -20%, rgba(155, 92, 255, 0.15), transparent 70%),
+              var(--background);
 }
 
 a {
@@ -76,83 +58,9 @@ a {
   text-decoration: none;
 }
 
-.glass-panel {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(18px);
-}
-
-.card-hover {
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 200ms ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.3);
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200px 0;
-  }
-
-  100% {
-    background-position: 200px 0;
-  }
-}
-
-.shimmer {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.14) 50%, rgba(255, 255, 255, 0.04) 100%);
-  background-size: 200px 100%;
-  animation: shimmer 1.4s ease infinite;
-}
-
-@keyframes fade-slide {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-slide {
-  opacity: 0;
-  animation: fade-slide 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.scale-in {
-  animation: scale-in 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.fade-in {
-  animation: fade-in 200ms ease-out forwards;
+/* Performance optimizations */
+.transition-fast {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -161,7 +69,29 @@ a {
 
 .no-scrollbar {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
+}
+
+/* Skeleton loader for high performance */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Result item layout (DuckDuckGo style) */
+.result-link:hover .result-title {
+  text-decoration: underline;
+  color: var(--accent-2);
+}
+
+.result-url {
+  color: #10b981; /* Green URL color like DDG */
+}
+
+:root[data-theme="light"] .result-url {
+  color: #059669;
 }
