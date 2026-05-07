@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q") || searchParams.get("s");
-    const scraper = searchParams.get("scraper");
+    const scraperParam = searchParams.get("scraper");
 
     if (!query) {
         return NextResponse.json({ status: "Missing search query" }, { status: 400 });
     }
 
+    const cookieStore = await cookies();
+    const cookieScraper = cookieStore.get("scraper_music")?.value;
+
     const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
 
     let url = `${backendUrl}/api/v1/music.php?s=${encodeURIComponent(query)}`;
-    if (scraper) url += `&scraper=${scraper}`;
+    
+    if (scraperParam || cookieScraper) url += `&scraper=${scraperParam || cookieScraper}`;
 
     try {
         const response = await fetch(url, { headers: { "Accept": "application/json" } });

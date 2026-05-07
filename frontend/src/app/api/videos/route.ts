@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q") || searchParams.get("s");
-    const scraper = searchParams.get("scraper");
+    const scraperParam = searchParams.get("scraper");
     const page = searchParams.get("p") || "1";
 
     if (!query) {
         return NextResponse.json({ status: "Missing search query" }, { status: 400 });
     }
+
+    const cookieStore = await cookies();
+    const cookieScraper = cookieStore.get("scraper_videos")?.value;
+    const nsfw = cookieStore.get("nsfw")?.value;
 
     const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
 
@@ -16,7 +21,9 @@ export async function GET(request: NextRequest) {
     const npt = searchParams.get("npt");
     if (npt) url += `&npt=${encodeURIComponent(npt)}`;
     else url += `&p=${page}`;
-    if (scraper) url += `&scraper=${scraper}`;
+    
+    if (scraperParam || cookieScraper) url += `&scraper=${scraperParam || cookieScraper}`;
+    if (nsfw) url += `&nsfw=${nsfw}`;
 
     try {
         const response = await fetch(url, { headers: { "Accept": "application/json" } });

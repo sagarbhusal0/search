@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     const cookieStore = await cookies();
-    const cookieScraper = cookieStore.get("scraper_ac")?.value;
+    const cookieScraper = cookieStore.get("scraper_web")?.value;
     const nsfw = cookieStore.get("nsfw")?.value;
 
     const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
