@@ -187,7 +187,7 @@ function ImagesContent() {
                 {SCRAPERS.map(s => <option key={s.value} value={s.value} className="bg-[var(--card)]">{s.label}</option>)}
               </select>
               <button onClick={() => handleSearch()} className="ml-2 text-[var(--accent)] hover:text-[var(--accent-2)] transition-colors">
-                <Search size={18} md:size={20} strokeWidth={2.5} />
+                <Search size={20} strokeWidth={2.5} />
               </button>
             </div>
           </div>
