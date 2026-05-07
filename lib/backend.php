@@ -179,7 +179,7 @@ class backend{
 			base64_decode(
 				str_pad(
 					strtr($key, '-_', '+/'),
-					strlen($key) % 4,
+					strlen($key) + (4 - (strlen($key) % 4)) % 4,
 					'=',
 					STR_PAD_RIGHT
 				)

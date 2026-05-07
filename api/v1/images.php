@@ -20,10 +20,7 @@ include "lib/bot_protection.php";
 $null = null;
 new bot_protection($null, $null, $null, "images", false);
 
-[$scraper, $filters] = $frontend->getscraperfilters(
-	"images",
-	isset($_GET["scraper"]) ? $_GET["scraper"] : null
-);
+[$scraper, $filters] = $frontend->getscraperfilters("images");
 
 $get = $frontend->parsegetfilters($_GET, $filters);
 
