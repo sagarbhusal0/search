@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Globe2, Image as ImageIcon, Newspaper, Search, Video, X, ArrowLeft, ArrowRight, ArrowUp, ExternalLink, Maximize2, Download } from "lucide-react";
+import { Globe2, Image as ImageIcon, Newspaper, Search, Video, X, ArrowLeft, ArrowRight, ArrowUp, ExternalLink, Maximize2, Download, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ImageSource {
   url: string;
@@ -33,7 +33,7 @@ function ImagesContent() {
   const [previousNpts, setPreviousNpts] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isNavigating, setIsNavigating] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<ImageResult | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const SCRAPERS = [
@@ -145,15 +145,40 @@ function ImagesContent() {
     }
   };
 
-  const openPreview = (image: ImageResult) => {
-    setSelectedImage(image);
+  const openPreview = (index: number) => {
+    setSelectedImageIndex(index);
     document.body.style.overflow = "hidden";
   };
 
-  const closePreview = () => {
-    setSelectedImage(null);
+  const closePreview = useCallback(() => {
+    setSelectedImageIndex(null);
     document.body.style.overflow = "auto";
-  };
+  }, []);
+
+  const nextImage = useCallback(() => {
+    if (selectedImageIndex !== null && selectedImageIndex < results.length - 1) {
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+  }, [selectedImageIndex, results.length]);
+
+  const prevImage = useCallback(() => {
+    if (selectedImageIndex !== null && selectedImageIndex > 0) {
+      setSelectedImageIndex(selectedImageIndex - 1);
+    }
+  }, [selectedImageIndex]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedImageIndex === null) return;
+      if (e.key === "ArrowRight") nextImage();
+      else if (e.key === "ArrowLeft") prevImage();
+      else if (e.key === "Escape") closePreview();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImageIndex, nextImage, prevImage, closePreview]);
+
+  const selectedImage = selectedImageIndex !== null ? results[selectedImageIndex] : null;
 
   return (
     <main className="min-h-screen bg-[var(--background)]">
@@ -228,7 +253,7 @@ function ImagesContent() {
                 return (
                   <div 
                     key={i} 
-                    onClick={() => openPreview(result)}
+                    onClick={() => openPreview(i)}
                     className="group relative aspect-square bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden transition-fast hover:border-[var(--accent)] cursor-pointer"
                   >
                     <img
@@ -279,17 +304,38 @@ function ImagesContent() {
             <X size={24} />
           </button>
 
+          {/* Navigation Buttons */}
+          <button
+            onClick={prevImage}
+            disabled={selectedImageIndex === 0}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-[60] p-3 bg-black/30 hover:bg-black/60 text-white rounded-full transition-all disabled:opacity-0 disabled:pointer-events-none hidden md:block"
+          >
+            <ChevronLeft size={32} />
+          </button>
+          <button
+            onClick={nextImage}
+            disabled={selectedImageIndex === results.length - 1}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-[60] p-3 bg-black/30 hover:bg-black/60 text-white rounded-full transition-all disabled:opacity-0 disabled:pointer-events-none hidden md:block"
+          >
+            <ChevronRight size={32} />
+          </button>
+
+          {/* Mobile Navigation Area (Invisible tap zones) */}
+          <div className="absolute inset-y-0 left-0 w-16 z-50 md:hidden" onClick={prevImage} />
+          <div className="absolute inset-y-0 right-0 w-16 z-50 md:hidden" onClick={nextImage} />
+
           {/* Image Container */}
-          <div className="flex-1 flex items-center justify-center p-4 md:p-8 min-h-0">
+          <div className="flex-1 flex items-center justify-center p-4 md:p-8 min-h-0 relative">
             <img 
+              key={selectedImage.source[0].url}
               src={`/api/proxy?i=${encodeURIComponent(selectedImage.source[0].url)}`} 
               alt={selectedImage.title}
-              className="max-w-full max-h-full object-contain shadow-2xl"
+              className="max-w-full max-h-full object-contain shadow-2xl animate-in fade-in duration-300"
             />
           </div>
 
           {/* Sidebar */}
-          <div className="w-full md:w-96 bg-[var(--card)] border-l border-[var(--border)] flex flex-col overflow-y-auto">
+          <div className="w-full md:w-96 bg-[var(--card)] border-l border-[var(--border)] flex flex-col overflow-y-auto max-h-[40vh] md:max-h-full">
             <div className="p-4 md:p-6 space-y-6">
               <div>
                 <h2 className="text-lg md:text-xl font-medium text-[var(--foreground)] leading-tight mb-2">
@@ -345,6 +391,13 @@ function ImagesContent() {
                 >
                   <Download size={18} /> Download
                 </button>
+              </div>
+              
+              {/* Mobile Arrows Indicator */}
+              <div className="flex items-center justify-center gap-6 pt-4 md:hidden opacity-40">
+                <ChevronLeft size={24} onClick={prevImage} className={selectedImageIndex === 0 ? "opacity-20" : ""} />
+                <span className="text-xs font-medium">Swipe or tap edges to navigate</span>
+                <ChevronRight size={24} onClick={nextImage} className={selectedImageIndex === results.length - 1 ? "opacity-20" : ""} />
               </div>
             </div>
           </div>
