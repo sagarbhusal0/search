@@ -177,12 +177,8 @@ class backend{
 		
 		$key =
 			base64_decode(
-				str_pad(
-					strtr($key, '-_', '+/'),
-					strlen($key) + (4 - (strlen($key) % 4)) % 4,
-					'=',
-					STR_PAD_RIGHT
-				)
+				strtr($key, '-_', '+/') .
+				str_repeat('=', (4 - strlen($key) % 4) % 4)
 			);
 		
 		// decrypt and decompress data
@@ -199,9 +195,6 @@ class backend{
 			
 			throw new Exception("The next page token is invalid or has expired!");
 		}
-		
-		// remove the key after using successfully
-		apcu_delete($apcu);
 		
 		return [
 			$payload[2], // data

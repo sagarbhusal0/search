@@ -1032,8 +1032,9 @@ class frontend{
 		foreach($gets as $key => $value){
 			
 			if(
-				$value == null ||
-				$value == false ||
+				$value === null ||
+				$value === false ||
+				$value === "" ||
 				$key == "npt" ||
 				$key == "extendedsearch" ||
 				$value == "any" ||

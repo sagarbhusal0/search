@@ -124,7 +124,7 @@ export default function SearchResults() {
         };
 
         fetchResults();
-    }, [query, scraper, page]);
+    }, [query, scraper, page, searchParams]);
 
     useEffect(() => {
         if (searchQuery.length < 2) {
