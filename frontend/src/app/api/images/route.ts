@@ -36,8 +36,10 @@ export async function GET(request: NextRequest) {
                 {
                     title: "Sample result",
                     url: "https://example.com/sample",
-                    thumb: { url: "https://placehold.co/400x300?text=Sample" },
-                    source: [{ url: "https://placehold.co/800x600?text=Sample+Full" }]
+                    source: [
+                        { url: "https://placehold.co/800x600?text=Sample+Full", width: 800, height: 600 },
+                        { url: "https://placehold.co/400x300?text=Sample+Thumb", width: 400, height: 300 }
+                    ]
                 }
             ],
             status: "offline-fallback"

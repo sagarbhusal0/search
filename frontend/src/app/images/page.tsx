@@ -4,10 +4,16 @@ import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Globe2, Image as ImageIcon, Newspaper, Search, Video, X, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 
+interface ImageSource {
+  url: string;
+  width?: number;
+  height?: number;
+}
+
 interface ImageResult {
   title?: string;
   url: string;
-  thumb?: { url?: string } | string;
+  source: ImageSource[];
 }
 
 function ImagesContent() {
@@ -130,6 +136,14 @@ function ImagesContent() {
     setTimeout(() => setIsNavigating(false), 200);
   };
 
+  const getDomain = (url: string) => {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[var(--background)]">
       <header className="sticky top-0 z-40 bg-[var(--background)] border-b border-[var(--border)] py-3">
@@ -195,7 +209,9 @@ function ImagesContent() {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {results.map((result, i) => {
-                const thumbUrl = typeof result.thumb === "string" ? result.thumb : result.thumb?.url || "";
+                const thumbUrl = result.source && result.source.length > 0 
+                  ? result.source[result.source.length - 1].url 
+                  : "";
                 const proxiedThumb = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
                 
                 return (
@@ -208,7 +224,7 @@ function ImagesContent() {
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
                       <p className="text-white text-[11px] font-medium line-clamp-2">{result.title}</p>
-                      <p className="text-white/60 text-[9px] truncate">{result.url}</p>
+                      <p className="text-white/60 text-[9px] truncate">{getDomain(result.url)}</p>
                     </div>
                     <a href={result.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0" />
                   </div>
