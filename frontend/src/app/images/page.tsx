@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Globe2, Image as ImageIcon, Newspaper, Search, Video, X, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
+import { Globe2, Image as ImageIcon, Newspaper, Search, Video, X, ArrowLeft, ArrowRight, ArrowUp, ExternalLink, Maximize2, Download } from "lucide-react";
 
 interface ImageSource {
   url: string;
@@ -33,6 +33,7 @@ function ImagesContent() {
   const [previousNpts, setPreviousNpts] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<ImageResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const SCRAPERS = [
@@ -144,12 +145,22 @@ function ImagesContent() {
     }
   };
 
+  const openPreview = (image: ImageResult) => {
+    setSelectedImage(image);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closePreview = () => {
+    setSelectedImage(null);
+    document.body.style.overflow = "auto";
+  };
+
   return (
     <main className="min-h-screen bg-[var(--background)]">
       <header className="sticky top-0 z-40 bg-[var(--background)] border-b border-[var(--border)] py-3">
-        <div className="max-w-[1300px] mx-auto px-4 flex items-center gap-6">
+        <div className="max-w-[1300px] mx-auto px-4 flex items-center gap-4 md:gap-6">
           <a href="/" className="flex-shrink-0">
-            <img src="/logo.svg" alt="Sorvx" className="h-9 w-auto" />
+            <img src="/logo.svg" alt="Sorvx" className="h-7 md:h-9 w-auto" />
           </a>
           <div className="flex-1 max-w-2xl relative">
             <div className={`flex items-center bg-[var(--card)] border border-[var(--border)] rounded-full px-4 py-1.5 transition-fast focus-within:ring-1 focus-within:ring-[var(--accent)] focus-within:border-[var(--accent)] ${showSuggestions && suggestions.length > 0 ? 'rounded-b-none' : ''}`}>
@@ -160,29 +171,29 @@ function ImagesContent() {
                 onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); setActiveSuggestionIndex(-1); }}
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                className="flex-1 h-9 bg-transparent text-[var(--foreground)] focus:outline-none text-base"
+                className="flex-1 h-8 md:h-9 bg-transparent text-[var(--foreground)] focus:outline-none text-sm md:text-base"
               />
               {searchQuery && (
-                <button onClick={() => { setSearchQuery(""); inputRef.current?.focus(); }} className="p-1.5 hover:bg-white/10 rounded-full text-[var(--muted)]">
-                  <X size={16} />
+                <button onClick={() => { setSearchQuery(""); inputRef.current?.focus(); }} className="p-1 md:p-1.5 hover:bg-white/10 rounded-full text-[var(--muted)]">
+                  <X size={14} />
                 </button>
               )}
-              <div className="w-px h-5 bg-[var(--border)] mx-2" />
+              <div className="w-px h-5 bg-[var(--border)] mx-1 md:mx-2" />
               <select
                 value={scraper}
                 onChange={(e) => setScraper(e.target.value)}
-                className="bg-transparent text-[13px] text-[var(--foreground)] border-none outline-none cursor-pointer hover:bg-white/5 rounded px-1"
+                className="bg-transparent text-[11px] md:text-[13px] text-[var(--foreground)] border-none outline-none cursor-pointer hover:bg-white/5 rounded px-1"
               >
                 {SCRAPERS.map(s => <option key={s.value} value={s.value} className="bg-[var(--card)]">{s.label}</option>)}
               </select>
               <button onClick={() => handleSearch()} className="ml-2 text-[var(--accent)] hover:text-[var(--accent-2)] transition-colors">
-                <Search size={20} strokeWidth={2.5} />
+                <Search size={18} md:size={20} strokeWidth={2.5} />
               </button>
             </div>
           </div>
         </div>
 
-        <div className="max-w-[1300px] mx-auto px-4 mt-3 flex items-center gap-6 text-[13px] text-[var(--muted)] font-medium">
+        <div className="max-w-[1300px] mx-auto px-4 mt-3 flex items-center gap-4 md:gap-6 text-[12px] md:text-[13px] text-[var(--muted)] font-medium overflow-x-auto no-scrollbar whitespace-nowrap">
           <a href={`/search?s=${encodeURIComponent(query)}`} className="flex items-center gap-1.5 pb-1.5 border-b-2 border-transparent hover:text-[var(--foreground)] transition-colors">
             <Search size={14} /> All
           </a>
@@ -198,16 +209,16 @@ function ImagesContent() {
         </div>
       </header>
 
-      <div className="max-w-[1300px] mx-auto px-4 py-6">
+      <div className="max-w-[1300px] mx-auto px-2 md:px-4 py-4 md:py-6">
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
             {[...Array(20)].map((_, i) => (
               <div key={i} className="aspect-square bg-[var(--border)] animate-pulse rounded-lg" />
             ))}
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
               {results.map((result, i) => {
                 const thumbUrl = result.source && result.source.length > 0 
                   ? result.source[result.source.length - 1].url 
@@ -215,45 +226,130 @@ function ImagesContent() {
                 const proxiedThumb = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
                 
                 return (
-                  <div key={i} className="group relative aspect-square bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden transition-fast hover:border-[var(--accent)]">
+                  <div 
+                    key={i} 
+                    onClick={() => openPreview(result)}
+                    className="group relative aspect-square bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden transition-fast hover:border-[var(--accent)] cursor-pointer"
+                  >
                     <img
                       src={proxiedThumb}
                       alt={result.title || ""}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
-                      <p className="text-white text-[11px] font-medium line-clamp-2">{result.title}</p>
-                      <p className="text-white/60 text-[9px] truncate">{getDomain(result.url)}</p>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity p-2 md:p-3 flex flex-col justify-end pointer-events-none">
+                      <p className="text-white text-[10px] md:text-[11px] font-medium line-clamp-2">{result.title}</p>
+                      <p className="text-white/60 text-[8px] md:text-[9px] truncate">{getDomain(result.url)}</p>
                     </div>
-                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0" />
                   </div>
                 );
               })}
             </div>
 
             {results.length > 0 && (
-              <div className="mt-12 flex items-center justify-center gap-4 pb-12">
+              <div className="mt-8 md:mt-12 flex items-center justify-center gap-4 pb-8 md:pb-12">
                 <button
                   onClick={handlePreviousPage}
                   disabled={previousNpts.length === 0 || isNavigating}
-                  className="flex items-center gap-2 px-5 py-2 rounded border border-[var(--border)] text-[14px] font-medium hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-fast"
+                  className="flex items-center gap-2 px-4 md:px-5 py-2 rounded border border-[var(--border)] text-[13px] md:text-[14px] font-medium hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-fast"
                 >
-                  <ArrowLeft size={16} /> Previous
+                  <ArrowLeft size={16} /> <span className="hidden xs:inline">Previous</span>
                 </button>
-                <span className="text-sm font-medium text-[var(--muted)]">Page {currentPage}</span>
+                <span className="text-xs md:text-sm font-medium text-[var(--muted)]">Page {currentPage}</span>
                 <button
                   onClick={handleNextPage}
                   disabled={!npt || isNavigating}
-                  className="flex items-center gap-2 px-5 py-2 rounded border border-[var(--border)] text-[14px] font-medium hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-fast"
+                  className="flex items-center gap-2 px-4 md:px-5 py-2 rounded border border-[var(--border)] text-[13px] md:text-[14px] font-medium hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none transition-fast"
                 >
-                  Next <ArrowRight size={16} />
+                  <span className="hidden xs:inline">Next</span> <ArrowRight size={16} />
                 </button>
               </div>
             )}
           </>
         )}
       </div>
+
+      {/* Image Preview Modal (DuckDuckGo style) */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex flex-col md:flex-row bg-black/95 animate-in fade-in zoom-in duration-200">
+          <button 
+            onClick={closePreview}
+            className="absolute top-4 right-4 z-[60] p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+          >
+            <X size={24} />
+          </button>
+
+          {/* Image Container */}
+          <div className="flex-1 flex items-center justify-center p-4 md:p-8 min-h-0">
+            <img 
+              src={`/api/proxy?i=${encodeURIComponent(selectedImage.source[0].url)}`} 
+              alt={selectedImage.title}
+              className="max-w-full max-h-full object-contain shadow-2xl"
+            />
+          </div>
+
+          {/* Sidebar */}
+          <div className="w-full md:w-96 bg-[var(--card)] border-l border-[var(--border)] flex flex-col overflow-y-auto">
+            <div className="p-4 md:p-6 space-y-6">
+              <div>
+                <h2 className="text-lg md:text-xl font-medium text-[var(--foreground)] leading-tight mb-2">
+                  {selectedImage.title}
+                </h2>
+                <a 
+                  href={selectedImage.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-[var(--accent-2)] hover:underline flex items-center gap-2 break-all"
+                >
+                  {getDomain(selectedImage.url)}
+                  <ExternalLink size={14} />
+                </a>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <a 
+                  href={selectedImage.source[0].url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl border border-[var(--border)] hover:bg-white/5 transition-fast group"
+                >
+                  <Maximize2 size={20} className="text-[var(--muted)] group-hover:text-[var(--accent)]" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">View Image</span>
+                  <span className="text-[10px] text-[var(--muted)] opacity-60">
+                    {selectedImage.source[0].width} x {selectedImage.source[0].height}
+                  </span>
+                </a>
+                <a 
+                  href={selectedImage.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl border border-[var(--border)] hover:bg-white/5 transition-fast group"
+                >
+                  <Globe2 size={20} className="text-[var(--muted)] group-hover:text-[var(--accent)]" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">Visit Site</span>
+                  <span className="text-[10px] text-[var(--muted)] opacity-60">Source page</span>
+                </a>
+              </div>
+
+              <div className="pt-6 border-t border-[var(--border)]">
+                <button 
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = `/api/proxy?i=${encodeURIComponent(selectedImage.source[0].url)}`;
+                    link.download = `image-${Date.now()}.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-2)] text-white py-3 rounded-xl font-medium transition-fast"
+                >
+                  <Download size={18} /> Download
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "instant" })}
