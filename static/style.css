@@ -104,7 +104,7 @@ h3,h4,h5,h6{
 	border:1px solid var(--504945);
 	background:var(--282828);
 	border-radius:2px;
-	margin-bottom:10px;
+	margin:0 auto 10px;
 	position:relative;
 }
 
@@ -178,6 +178,7 @@ h3,h4,h5,h6{
 	overflow:hidden;
 	overflow-x:auto;
 	white-space:nowrap;
+	text-align:center;
 }
 
 .tabs{
