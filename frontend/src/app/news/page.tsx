@@ -146,22 +146,34 @@ function NewsContent() {
           </div>
         ) : (
           <div className="space-y-10">
-            {results.map((result, i) => (
-              <article key={i} className="group result-link">
-                <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] mb-1">
-                  <span className="font-bold uppercase tracking-tight">{result.author || "News"}</span>
-                  {result.date && <span>• {new Date(result.date * 1000).toLocaleDateString()}</span>}
-                </div>
-                <a href={result.url} target="_blank" rel="noopener noreferrer" className="block">
-                  <h2 className="text-[19px] font-medium text-[var(--accent-2)] result-title leading-tight mb-2">
-                    {result.title}
-                  </h2>
-                </a>
-                <p className="text-[14px] text-[var(--foreground)] opacity-80 leading-relaxed line-clamp-3">
-                  {result.description}
-                </p>
-              </article>
-            ))}
+            {results.map((result, i) => {
+              const thumbUrl = typeof result.thumb === "string" ? result.thumb : result.thumb?.url || "";
+              const proxiedThumb = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
+
+              return (
+                <article key={i} className="group result-link flex gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] mb-1">
+                      <span className="font-bold uppercase tracking-tight">{result.author || "News"}</span>
+                      {result.date && <span>• {new Date(result.date * 1000).toLocaleDateString()}</span>}
+                    </div>
+                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="block">
+                      <h2 className="text-[19px] font-medium text-[var(--accent-2)] result-title leading-tight mb-2">
+                        {result.title}
+                      </h2>
+                    </a>
+                    <p className="text-[14px] text-[var(--foreground)] opacity-80 leading-relaxed line-clamp-3">
+                      {result.description}
+                    </p>
+                  </div>
+                  {proxiedThumb && (
+                    <div className="hidden sm:block w-32 h-20 flex-shrink-0 bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden">
+                      <img src={proxiedThumb} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  )}
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

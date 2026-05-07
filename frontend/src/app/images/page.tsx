@@ -194,21 +194,26 @@ function ImagesContent() {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {results.map((result, i) => (
-                <div key={i} className="group relative aspect-square bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden transition-fast hover:border-[var(--accent)]">
-                  <img
-                    src={typeof result.thumb === "string" ? result.thumb : result.thumb?.url || ""}
-                    alt={result.title || ""}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
-                    <p className="text-white text-[11px] font-medium line-clamp-2">{result.title}</p>
-                    <p className="text-white/60 text-[9px] truncate">{result.url}</p>
+              {results.map((result, i) => {
+                const thumbUrl = typeof result.thumb === "string" ? result.thumb : result.thumb?.url || "";
+                const proxiedThumb = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
+                
+                return (
+                  <div key={i} className="group relative aspect-square bg-[var(--card)] border border-[var(--border)] rounded-lg overflow-hidden transition-fast hover:border-[var(--accent)]">
+                    <img
+                      src={proxiedThumb}
+                      alt={result.title || ""}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
+                      <p className="text-white text-[11px] font-medium line-clamp-2">{result.title}</p>
+                      <p className="text-white/60 text-[9px] truncate">{result.url}</p>
+                    </div>
+                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0" />
                   </div>
-                  <a href={result.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0" />
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {results.length > 0 && (

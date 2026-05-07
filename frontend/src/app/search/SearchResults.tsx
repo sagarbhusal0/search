@@ -378,22 +378,27 @@ export default function SearchResults() {
                         <div className="sticky top-40">
                             <h3 className="text-[12px] font-bold text-[var(--muted)] uppercase tracking-widest mb-4">Video Results</h3>
                             <div className="space-y-6">
-                                {videos.slice(0, 4).map((video, i) => (
-                                    <a key={i} href={video.url} target="_blank" rel="noopener noreferrer" className="group block">
-                                        <div className="relative aspect-video rounded-lg overflow-hidden bg-black/20 mb-2 border border-[var(--border)]">
-                                            {video.thumb?.url ? (
-                                                <img src={video.thumb.url} alt="" className="w-full h-full object-cover" />
-                                            ) : <div className="flex items-center justify-center h-full"><Video size={20} /></div>}
-                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                                        </div>
-                                        <h4 className="text-[14px] font-medium text-[var(--foreground)] leading-tight group-hover:text-[var(--accent-2)] group-hover:underline line-clamp-2">
-                                            {video.title}
-                                        </h4>
-                                        <div className="text-[12px] text-[var(--muted)] mt-1">
-                                            {video.author?.name || "Video"}
-                                        </div>
-                                    </a>
-                                ))}
+                                {videos.slice(0, 4).map((video, i) => {
+                                    const thumbUrl = video.thumb?.url;
+                                    const proxiedThumb = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=landscape` : null;
+
+                                    return (
+                                        <a key={i} href={video.url} target="_blank" rel="noopener noreferrer" className="group block">
+                                            <div className="relative aspect-video rounded-lg overflow-hidden bg-black/20 mb-2 border border-[var(--border)]">
+                                                {proxiedThumb ? (
+                                                    <img src={proxiedThumb} alt="" className="w-full h-full object-cover" />
+                                                ) : <div className="flex items-center justify-center h-full"><Video size={20} /></div>}
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                            </div>
+                                            <h4 className="text-[14px] font-medium text-[var(--foreground)] leading-tight group-hover:text-[var(--accent-2)] group-hover:underline line-clamp-2">
+                                                {video.title}
+                                            </h4>
+                                            <div className="text-[12px] text-[var(--muted)] mt-1">
+                                                {video.author?.name || "Video"}
+                                            </div>
+                                        </a>
+                                    );
+                                })}
                             </div>
                         </div>
                     </aside>

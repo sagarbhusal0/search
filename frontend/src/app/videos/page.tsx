@@ -158,34 +158,39 @@ function VideosContent() {
           </div>
         ) : (
           <div className="space-y-8">
-            {results.map((result, i) => (
-              <article key={i} className="group flex gap-5 result-link">
-                <div className="relative w-48 aspect-video bg-black/20 rounded-lg overflow-hidden border border-[var(--border)] shrink-0">
-                  {result.thumb?.url ? (
-                    <img src={result.thumb.url} alt="" className="w-full h-full object-cover" />
-                  ) : <div className="flex items-center justify-center h-full"><Video size={24} /></div>}
-                  {result.duration && (
-                    <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded">
-                      {formatDuration(result.duration)}
-                    </div>
-                  )}
-                  <a href={result.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <a href={result.url} target="_blank" rel="noopener noreferrer" className="block mb-1">
-                    <h2 className="text-[17px] font-medium text-[var(--accent-2)] result-title leading-tight line-clamp-2">
-                      {result.title}
-                    </h2>
-                  </a>
-                  <div className="text-[12px] text-[var(--muted)] mb-2">
-                    {result.author?.name || "Video"} {result.date && `• ${new Date(result.date * 1000).toLocaleDateString()}`}
+            {results.map((result, i) => {
+              const thumbUrl = result.thumb?.url;
+              const proxiedThumb = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=landscape` : null;
+
+              return (
+                <article key={i} className="group flex gap-5 result-link">
+                  <div className="relative w-48 aspect-video bg-black/20 rounded-lg overflow-hidden border border-[var(--border)] shrink-0">
+                    {proxiedThumb ? (
+                      <img src={proxiedThumb} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    ) : <div className="flex items-center justify-center h-full"><Video size={24} /></div>}
+                    {result.duration && (
+                      <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded">
+                        {formatDuration(result.duration)}
+                      </div>
+                    )}
+                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="absolute inset-0" />
                   </div>
-                  <p className="text-[13px] text-[var(--foreground)] opacity-70 line-clamp-2 leading-relaxed">
-                    {result.description}
-                  </p>
-                </div>
-              </article>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <a href={result.url} target="_blank" rel="noopener noreferrer" className="block mb-1">
+                      <h2 className="text-[17px] font-medium text-[var(--accent-2)] result-title leading-tight line-clamp-2">
+                        {result.title}
+                      </h2>
+                    </a>
+                    <div className="text-[12px] text-[var(--muted)] mb-2">
+                      {result.author?.name || "Video"} {result.date && `• ${new Date(result.date * 1000).toLocaleDateString()}`}
+                    </div>
+                    <p className="text-[13px] text-[var(--foreground)] opacity-70 line-clamp-2 leading-relaxed">
+                      {result.description}
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
