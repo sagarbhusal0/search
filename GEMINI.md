@@ -33,7 +33,11 @@ Central configuration is managed in `data/config.php` via the `config` class con
 ### 4. Proxy Management
 `lib/backend.php` handles proxy rotation. Proxy lists are stored in `data/proxies/*.txt`.
 
-### 5. Oracles
+### 5. Cookie Management
+- **PHP:** Use `$frontend->set_cookie($name, $value, $expire)` to ensure consistent cookie attributes (`SameSite=Lax`, `Secure`, `Path=/`).
+- **Frontend:** Search preferences (like scrapers) are stored in cookies (`scraper_web`, `scraper_images`, etc.) and should be read as defaults if not present in the URL.
+
+### 6. Oracles
 Oracles in the `oracles/` directory provide specialized "instant answer" functionality (e.g., calculator, time, unit conversion).
 
 ### 6. Audio Proxies
