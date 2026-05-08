@@ -167,14 +167,10 @@ class bot_protection{
 				
 				apcu_inc("real_requests");
 				
-				setcookie(
+				$frontend->set_cookie(
 					"pass",
 					$key,
-					[
-						"expires" => time() + 86400, // expires in 24 hours
-						"samesite" => "Lax",
-						"path" => "/"
-					]
+					time() + 86400 // expires in 24 hours
 				);
 				
 				$frontend->loadheader(

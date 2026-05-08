@@ -2006,7 +2006,7 @@ class ddg{
 			}
 			
 			preg_match(
-				'/vqd="([0-9-]+)"/',
+				'/vqd="([^"]+)"/',
 				$html,
 				$vqd
 			);
@@ -2178,7 +2178,7 @@ class ddg{
 			}
 			
 			preg_match(
-				'/vqd="([0-9-]+)"/',
+				'/vqd="([^"]+)"/',
 				$html,
 				$vqd
 			);
@@ -2357,7 +2357,7 @@ class ddg{
 			}
 			
 			preg_match(
-				'/vqd="([0-9-]+)"/',
+				'/vqd="([^"]+)"/',
 				$html,
 				$vqd
 			);

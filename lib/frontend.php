@@ -961,13 +961,36 @@ class frontend{
 		return $html;
 	}
 	
+	public function set_cookie($name, $value, $expire = null){
+		
+		if($expire === null){
+			$expire = strtotime("+400 days");
+		}
+		
+		setcookie(
+			$name,
+			$value,
+			[
+				"expires" => $expire,
+				"samesite" => "Lax",
+				"path" => "/",
+				"secure" => (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] === "on")
+			]
+		);
+		
+		$_COOKIE[$name] = $value;
+	}
+
 	public function generatehtmlfilters($filters, $params){
 		
 		$html = null;
 		
 		foreach($filters as $filter_name => $filter_values){
 			
-			if(!isset($filter_values["display"])){
+			if(
+				!isset($filter_values["display"]) ||
+				$filter_name == "scraper"
+			){
 				
 				continue;
 			}

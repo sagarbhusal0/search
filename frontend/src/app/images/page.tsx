@@ -27,7 +27,13 @@ function ImagesContent() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
-  const [scraper, setScraper] = useState("ddg");
+  const getCookie = (name: string) => {
+    if (typeof document === "undefined") return null;
+    const match = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
+    return match ? decodeURIComponent(match.split("=")[1]) : null;
+  };
+
+  const [scraper, setScraper] = useState(getCookie("scraper_images") || "ddg");
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [npt, setNpt] = useState<string | null>(null);
   const [previousNpts, setPreviousNpts] = useState<string[]>([]);
@@ -71,7 +77,7 @@ function ImagesContent() {
       }
     };
     fetchImages();
-  }, [query, scraper, page]);
+  }, [query, scraper, page, searchParams]);
 
   useEffect(() => {
     const handleScroll = () => setShowBackToTop(window.scrollY > 400);
@@ -203,14 +209,6 @@ function ImagesContent() {
                   <X size={14} />
                 </button>
               )}
-              <div className="w-px h-5 bg-[var(--border)] mx-1 md:mx-2" />
-              <select
-                value={scraper}
-                onChange={(e) => setScraper(e.target.value)}
-                className="bg-transparent text-[11px] md:text-[13px] text-[var(--foreground)] border-none outline-none cursor-pointer hover:bg-white/5 rounded px-1"
-              >
-                {SCRAPERS.map(s => <option key={s.value} value={s.value} className="bg-[var(--card)]">{s.label}</option>)}
-              </select>
               <button onClick={() => handleSearch()} className="ml-2 text-[var(--accent)] hover:text-[var(--accent-2)] transition-colors">
                 <Search size={20} strokeWidth={2.5} />
               </button>

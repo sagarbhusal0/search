@@ -216,6 +216,17 @@ export default function SettingsPage() {
         router.refresh();
     };
 
+    const resetSettings = () => {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i];
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+        }
+        window.location.reload();
+    };
+
     return (
         <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
             {/* Header */}
@@ -277,12 +288,20 @@ export default function SettingsPage() {
 
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-[var(--border)]">
                         <p className="text-[13px] text-[var(--muted)] text-center sm:text-left">Settings are saved locally as cookies for 400 days.</p>
-                        <button
-                            onClick={saveSettings}
-                            className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-2)] text-white text-sm font-bold shadow-lg shadow-purple-500/25 transition-all transform active:scale-95 flex items-center justify-center gap-2"
-                        >
-                            {saved ? "✓ Saved Successfully!" : "Save Settings"}
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <button
+                                onClick={resetSettings}
+                                className="w-full sm:w-auto px-8 py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 text-sm font-bold border border-red-500/20 transition-all transform active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                Reset Settings
+                            </button>
+                            <button
+                                onClick={saveSettings}
+                                className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-2)] text-white text-sm font-bold shadow-lg shadow-purple-500/25 transition-all transform active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                {saved ? "✓ Saved Successfully!" : "Save Settings"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

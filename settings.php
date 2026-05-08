@@ -422,6 +422,15 @@ foreach($themes as $theme){
 /*
 	Set cookies
 */
+if(isset($_POST["reset"])){
+	foreach($_COOKIE as $key => $value){
+		$frontend->set_cookie($key, "", -1);
+		unset($_COOKIE[$key]);
+	}
+	header("Location: /settings");
+	die();
+}
+
 if($_POST){
 
 	$loop = &$_POST;
@@ -442,17 +451,7 @@ foreach($loop as $key => $value){
 		
 		if($value == config::DEFAULT_THEME){
 			
-			unset($_COOKIE[$key]);
-			
-			setcookie(
-				"theme",
-				"",
-				[
-					"expires" => -1, // removes cookie
-					"samesite" => "Lax",
-					"path" => "/"
-				]
-			);
+			$frontend->set_cookie("theme", "", -1);
 			continue;
 		}
 	}else{
@@ -466,17 +465,7 @@ foreach($loop as $key => $value){
 					$list["options"][0]["value"] == $value
 				){
 					
-					unset($_COOKIE[$key]);
-					
-					setcookie(
-						$key,
-						"",
-						[
-							"expires" => -1, // removes cookie
-							"samesite" => "Lax",
-							"path" => "/"
-						]
-					);
+					$frontend->set_cookie($key, "", -1);
 					
 					continue 3;
 				}
@@ -492,17 +481,7 @@ foreach($loop as $key => $value){
 	$key = trim($key);
 	$value = trim($value);
 	
-	$_COOKIE[$key] = $value;
-	
-	setcookie(
-		$key,
-		$value,
-		[
-			"expires" => strtotime("+400 days"), // maximal cookie ttl in chrome
-			"samesite" => "Lax",
-			"path" => "/"
-		]
-	);
+	$frontend->set_cookie($key, $value);
 }
 
 include "lib/frontend.php";
@@ -597,6 +576,7 @@ $left .=
 	'</div>' .
 	'<div class="settings-submit">' .
 		'<input type="submit" value="Update settings!">' .
+		'<input type="submit" name="reset" value="Reset settings!" style="background: #a33; border-color: #a33;">' .
 		'<a href="../">&lt; Go back</a>' .
 	'</div>' .
 	'</form>';

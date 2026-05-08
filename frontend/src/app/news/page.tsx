@@ -23,7 +23,13 @@ function NewsContent() {
   const [searchQuery, setSearchQuery] = useState(query);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [scraper, setScraper] = useState("google");
+  const getCookie = (name: string) => {
+    if (typeof document === "undefined") return null;
+    const match = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
+    return match ? decodeURIComponent(match.split("=")[1]) : null;
+  };
+
+  const [scraper, setScraper] = useState(getCookie("scraper_news") || "google");
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [npt, setNpt] = useState<string | null>(null);
   const [previousNpts, setPreviousNpts] = useState<string[]>([]);
@@ -65,7 +71,7 @@ function NewsContent() {
       }
     };
     fetchNews();
-  }, [query, scraper, page]);
+  }, [query, scraper, page, searchParams]);
 
   useEffect(() => {
     const handleScroll = () => setShowBackToTop(window.scrollY > 400);
@@ -99,13 +105,6 @@ function NewsContent() {
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 className="flex-1 h-9 bg-transparent text-[var(--foreground)] focus:outline-none text-base"
               />
-              <select
-                value={scraper}
-                onChange={(e) => setScraper(e.target.value)}
-                className="bg-transparent text-[13px] text-[var(--foreground)] border-none outline-none cursor-pointer hover:bg-white/5 rounded px-1"
-              >
-                {SCRAPERS.map(s => <option key={s.value} value={s.value} className="bg-[var(--card)]">{s.label}</option>)}
-              </select>
               <button onClick={() => handleSearch()} className="ml-2 text-[var(--accent)] hover:text-[var(--accent-2)] transition-colors">
                 <Search size={20} strokeWidth={2.5} />
               </button>

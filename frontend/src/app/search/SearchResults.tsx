@@ -231,14 +231,6 @@ export default function SearchResults() {
                                     <X size={16} />
                                 </button>
                             )}
-                            <div className="w-px h-5 bg-[var(--border)] mx-2" />
-                            <select
-                                value={scraper}
-                                onChange={(e) => setScraper(e.target.value)}
-                                className="bg-transparent text-[13px] text-[var(--foreground)] border-none outline-none cursor-pointer hover:bg-white/5 rounded px-1"
-                            >
-                                {SCRAPERS.map(s => <option key={s.value} value={s.value} className="bg-[var(--card)]">{s.label}</option>)}
-                            </select>
                             <button onClick={() => handleSearch()} className="ml-2 text-[var(--accent)] hover:text-[var(--accent-2)] transition-colors">
                                 <Search size={20} strokeWidth={2.5} />
                             </button>
