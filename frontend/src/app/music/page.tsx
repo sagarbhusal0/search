@@ -1,17 +1,20 @@
 "use client";
 
+import { Search } from "lucide-react";
+
 export default function MusicPage() {
-    return (
-        <main className="min-h-screen flex items-center justify-center text-[#e8e6e3]">
-            <div className="glass-panel rounded-2xl border border-white/10 p-6 text-center max-w-lg">
-                <h1 className="text-2xl font-semibold mb-2 text-white">Music search removed</h1>
-                <p className="text-sm text-[#c7d2e4]">This page is no longer available.</p>
-                <div className="mt-4">
-                    <a href="/" className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#9b5cff] to-[#c4a2ff] text-[#0b0718] font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-400/30 transition">
-                        Go Home
-                    </a>
-                </div>
-            </div>
-        </main>
-    );
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+      <div className="text-center max-w-md px-6">
+        <div className="size-14 rounded-[var(--radius-lg)] bg-[var(--surface)] border border-[var(--border)] flex items-center justify-center mx-auto mb-5">
+          <Search size={22} className="text-[var(--meta)]" />
+        </div>
+        <h1 className="text-xl font-medium text-[var(--fg)] mb-2">Music search removed</h1>
+        <p className="text-sm text-[var(--meta)] mb-6">This page is no longer available.</p>
+        <a href="/" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[var(--radius-sm)] bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium transition-colors">
+          Go Home
+        </a>
+      </div>
+    </main>
+  );
 }

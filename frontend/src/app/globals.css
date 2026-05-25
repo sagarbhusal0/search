@@ -1,97 +1,116 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0b0f1a;
-  --background-2: #111827;
-  --foreground: #f3f4f6;
-  --muted: #9ca3af;
-  --border: #374151;
-  --card: #1f2937;
-  --accent: #9b5cff;
-  --accent-2: #c4a2ff;
+  --bg: #08090a;
+  --surface: #191a1b;
+  --surface-alt: #0f1011;
+  --fg: #f7f8f8;
+  --fg-2: #d0d6e0;
+  --muted: #8a8f98;
+  --meta: #62666d;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.05);
+  --accent: #5e6ad2;
+  --accent-hover: #828fff;
+  --accent-on: #ffffff;
+  --success: #27a644;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
+  --font-display: 'Inter Variable', 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter Variable', 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --ease-stand: cubic-bezier(0.2, 0, 0, 1);
+  --container: 1200px;
 }
 
 :root[data-theme="light"] {
-  --background: #ffffff;
-  --background-2: #f9fafb;
-  --foreground: #111827;
+  --bg: #f7f8f8;
+  --surface: #ffffff;
+  --surface-alt: #f3f4f5;
+  --fg: #111827;
+  --fg-2: #374151;
   --muted: #6b7280;
-  --border: #e5e7eb;
-  --card: #ffffff;
-  --accent: #7c3aed;
-  --accent-2: #a78bfa;
+  --meta: #9ca3af;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-soft: rgba(0, 0, 0, 0.05);
+  --accent: #5e6ad2;
+  --accent-hover: #818cf8;
+  --accent-on: #ffffff;
 }
 
 :root[data-theme="gruvbox"] {
-  --background: #282828;
-  --background-2: #1d2021;
-  --foreground: #ebdbb2;
+  --bg: #282828;
+  --surface: #32302f;
+  --surface-alt: #1d2021;
+  --fg: #ebdbb2;
+  --fg-2: #d5c4a1;
   --muted: #928374;
-  --border: #3c3836;
-  --card: #32302f;
+  --meta: #7c6f64;
+  --border: rgba(235, 219, 178, 0.1);
+  --border-soft: rgba(235, 219, 178, 0.06);
   --accent: #b16286;
-  --accent-2: #d3869b;
+  --accent-hover: #d3869b;
+  --accent-on: #ebdbb2;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   padding: 0;
-  color: var(--foreground);
-  background-color: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   line-height: 1.5;
 }
 
-/* Homepage background - Clean & Modern but static */
-.home-bg {
-  background: radial-gradient(circle at 50% -20%, rgba(155, 92, 255, 0.15), transparent 70%),
-              var(--background);
+a { color: inherit; text-decoration: none; }
+
+::selection { background: var(--accent); color: var(--accent-on); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.skeleton {
+  background: linear-gradient(90deg, var(--border) 25%, var(--border-soft) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: var(--radius-sm);
 }
 
-/* Performance optimizations */
-.transition-fast {
-  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+.glow-accent {
+  box-shadow: 0 0 0 1px var(--border);
+  transition: box-shadow var(--motion-fast) var(--ease-stand);
+}
+.glow-accent:focus-within,
+.glow-accent:hover {
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+.fade-enter {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.fade-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms var(--ease-stand), transform 300ms var(--ease-stand);
 }
 
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Skeleton loader for high performance */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Result item layout (DuckDuckGo style) */
-.result-link:hover .result-title {
-  text-decoration: underline;
-  color: var(--accent-2);
-}
-
-.result-url {
-  color: #10b981; /* Green URL color like DDG */
-}
-
-:root[data-theme="light"] .result-url {
-  color: #059669;
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
