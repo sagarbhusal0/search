@@ -55,7 +55,7 @@ export default function SearchBar({ initialQuery = "", placeholder = "Search wit
   return (
     <div className="relative w-full">
       <div className={`flex items-center gap-2 bg-[var(--surface)] border border-[var(--border)] px-3 py-1 transition-all duration-150 ease-[cubic-bezier(0.2,0,0,1)] ${show && suggestions.length > 0 ? "rounded-t-[var(--radius-md)] rounded-b-none border-b-transparent" : "rounded-[var(--radius-md)]"} glow-accent`}>
-        <Search size={16} className="text-[var(--meta)] shrink-0" />
+        <button onClick={() => handleSearch()} className="p-0.5 text-[var(--meta)] shrink-0 cursor-pointer transition-colors hover:text-[var(--fg)]" aria-label="Search"><Search size={16} /></button>
         <input
           ref={inputRef}
           type="text"
