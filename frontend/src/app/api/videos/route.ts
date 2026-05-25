@@ -31,6 +31,29 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(data);
     } catch (error) {
         console.error("Videos API error:", error);
-        return NextResponse.json({ status: "Failed to fetch videos" }, { status: 500 });
+        const sample = {
+            video: [
+                {
+                    title: "Welcome to Sorvx Videos",
+                    description: "Backend is offline, showing sample result.",
+                    url: "https://example.com/videos/welcome",
+                    author: { name: "Sorvx" },
+                    date: Math.floor(Date.now() / 1000),
+                    duration: 120,
+                    thumb: { url: "https://placehold.co/480x360?text=Sample+Video" },
+                },
+                {
+                    title: "Building modern search interfaces",
+                    description: "A look at how modern search engines are rethinking the user experience with privacy-first design.",
+                    url: "https://example.com/videos/search-ui",
+                    author: { name: "TechTalks" },
+                    date: Math.floor(Date.now() / 1000) - 172800,
+                    duration: 845,
+                    thumb: { url: "https://placehold.co/480x360?text=Search+UI" },
+                },
+            ],
+            status: "offline-fallback"
+        };
+        return NextResponse.json(sample, { status: 200 });
     }
 }

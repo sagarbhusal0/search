@@ -31,6 +31,25 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(data);
     } catch (error) {
         console.error("News API error:", error);
-        return NextResponse.json({ status: "Failed to fetch news" }, { status: 500 });
+        const sample = {
+            news: [
+                {
+                    title: "Welcome to Sorvx News",
+                    description: "Backend is offline, showing sample result.",
+                    url: "https://example.com/news/welcome",
+                    author: "Sorvx",
+                    date: Math.floor(Date.now() / 1000),
+                },
+                {
+                    title: "Privacy-first search engines gaining traction",
+                    description: "Users are increasingly turning to private search alternatives that don't track browsing habits or build advertising profiles.",
+                    url: "https://example.com/news/privacy",
+                    author: "Tech Report",
+                    date: Math.floor(Date.now() / 1000) - 86400,
+                },
+            ],
+            status: "offline-fallback"
+        };
+        return NextResponse.json(sample, { status: 200 });
     }
 }
