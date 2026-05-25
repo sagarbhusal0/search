@@ -1,8 +1,8 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Search, ArrowLeft, ArrowRight } from "lucide-react";
 import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
 
@@ -12,10 +12,15 @@ interface VideoResult {
 
 function VideosContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const query = searchParams.get("s") || "";
   const page = searchParams.get("p") || "1";
   const [results, setResults] = useState<VideoResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [npt, setNpt] = useState<string | null>(null);
+  const [prevNpts, setPrevNpts] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isNavigating, setIsNavigating] = useState(false);
   const getCookie = (name: string) => {
     if (typeof document === "undefined") return null;
     const m = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
@@ -34,10 +39,43 @@ function VideosContent() {
         const res = await fetch(url);
         const data = await res.json();
         setResults(data.video || []);
+        const nptFromUrl = searchParams.get("npt");
+        if (nptFromUrl && !prevNpts.includes(nptFromUrl)) {
+          setPrevNpts(p => [...p, nptFromUrl]);
+          setCurrentPage(p => p + 1);
+        } else if (!nptFromUrl) { setPrevNpts([]); setCurrentPage(1); }
+        setNpt(data.npt || null);
       } catch { setResults([]); } finally { setLoading(false); }
     };
     fetchVideos();
   }, [query, scraper, page, searchParams]);
+
+  const handleNextPage = () => {
+    if (!npt || isNavigating) return;
+    setIsNavigating(true);
+    const p = new URLSearchParams(searchParams.toString());
+    p.delete("p"); p.set("npt", npt);
+    router.push(`/videos?${p.toString()}`);
+    window.scrollTo({ top: 0, behavior: "instant" });
+    setTimeout(() => setIsNavigating(false), 200);
+  };
+
+  const handlePreviousPage = () => {
+    if (prevNpts.length === 0 || isNavigating) return;
+    setIsNavigating(true);
+    const p = new URLSearchParams(searchParams.toString());
+    p.delete("p");
+    if (prevNpts.length === 1) { p.delete("npt"); setPrevNpts([]); setCurrentPage(1); }
+    else {
+      const n = [...prevNpts]; n.pop();
+      p.set("npt", n[n.length - 1]);
+      setPrevNpts(n);
+      setCurrentPage(c => c - 1);
+    }
+    router.push(`/videos?${p.toString()}`);
+    window.scrollTo({ top: 0, behavior: "instant" });
+    setTimeout(() => setIsNavigating(false), 200);
+  };
 
   const fmtDur = (s?: number) => {
     if (!s) return "";
@@ -93,6 +131,18 @@ function VideosContent() {
             })}
           </div>
         )}
+
+          {!loading && results.length > 0 && (
+            <div className="mt-8 flex items-center gap-4 pb-8">
+              <button onClick={handlePreviousPage} disabled={prevNpts.length === 0 || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium hover:bg-white/[0.03] disabled:opacity-25 disabled:pointer-events-none transition-colors" aria-label="Previous page">
+                <ArrowLeft size={14} /> Prev
+              </button>
+              <span className="text-[12px] font-medium text-[var(--meta)]">Page {currentPage}</span>
+              <button onClick={handleNextPage} disabled={!npt || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium hover:bg-white/[0.03] disabled:opacity-25 disabled:pointer-events-none transition-colors" aria-label="Next page">
+                Next <ArrowRight size={14} />
+              </button>
+            </div>
+          )}
       </div>
       </div>
 
