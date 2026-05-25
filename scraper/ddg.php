@@ -2006,7 +2006,7 @@ class ddg{
 			}
 			
 			preg_match(
-				'/vqd="([^"]+)"/',
+				'/vqd="([0-9-]+)"/',
 				$html,
 				$vqd
 			);
@@ -2016,13 +2016,9 @@ class ddg{
 				throw new Exception("Failed to grep VQD token");
 			}
 			
-			$js_link =
-				"i.js?" .
-				http_build_query([
-					"l" => $get["country"],
-					"o" => "json",
-					"q" => $get["s"],
-					"vqd" => $vqd[1],
+			$q = [
+				"query" => $get["s"],
+				"vqd" => $vqd[1],
 					"f" => $filters,
 					"p" => $nsfw
 				]);
@@ -2178,7 +2174,7 @@ class ddg{
 			}
 			
 			preg_match(
-				'/vqd="([^"]+)"/',
+				'/vqd="([0-9-]+)"/',
 				$html,
 				$vqd
 			);
@@ -2357,7 +2353,7 @@ class ddg{
 			}
 			
 			preg_match(
-				'/vqd="([^"]+)"/',
+				'/vqd="([0-9-]+)"/',
 				$html,
 				$vqd
 			);

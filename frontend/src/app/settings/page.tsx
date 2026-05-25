@@ -50,7 +50,7 @@ const CATEGORIES = [
 
 const DEFAULTS: Settings = {
   nsfw: "no", theme: "dark", bg_noclick: "no",
-  scraper_ac: "brave", scraper_web: "brave", scraper_images: "ddg",
+  scraper_ac: "ddg", scraper_web: "ddg", scraper_images: "ddg",
   scraper_videos: "yt", scraper_news: "google", scraper_music: "sc",
 };
 
