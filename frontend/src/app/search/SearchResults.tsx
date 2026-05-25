@@ -232,7 +232,7 @@ export default function SearchResults() {
                           <h2 className="text-[15px] font-medium text-[var(--fg)] leading-snug line-clamp-2 group-hover:text-[var(--accent-hover)]">{video.title}</h2>
                         </a>
                         <div className="text-[11px] text-[var(--meta)] mb-1.5">
-                          {video.author?.name || "Video"} {video.date ? `\u00b7 ${new Date(video.date * 1000).toLocaleDateString()}` : ""}
+                          {video.author?.name || "Video"} {video.date ? `\u00b7 ${new Date(Number(video.date) * 1000).toLocaleDateString()}` : ""}
                         </div>
                         <p className="text-[12px] text-[var(--fg-2)] leading-relaxed line-clamp-2">{video.description}</p>
                       </div>
