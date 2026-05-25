@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ThemeProvider from "./components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Sorvx — Private Search",
@@ -18,7 +19,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased">
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

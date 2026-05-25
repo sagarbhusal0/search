@@ -46,7 +46,7 @@ export default function SearchResults() {
     return match ? decodeURIComponent(match.split("=")[1]) : null;
   };
 
-  const [scraper, setScraper] = useState(queryScraper || getCookie("scraper_ac") || "brave");
+  const [scraper, setScraper] = useState(queryScraper || getCookie("scraper_web") || "brave");
   const [results, setResults] = useState<WebResult[]>([]);
   const [videos, setVideos] = useState<VideoResult[]>([]);
   const [related, setRelated] = useState<string[]>([]);

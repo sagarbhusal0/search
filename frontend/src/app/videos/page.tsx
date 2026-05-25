@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
@@ -12,12 +12,16 @@ interface VideoResult {
 
 function VideosContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const query = searchParams.get("s") || "";
   const page = searchParams.get("p") || "1";
   const [results, setResults] = useState<VideoResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [scraper] = useState("yt");
+  const getCookie = (name: string) => {
+    if (typeof document === "undefined") return null;
+    const m = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
+    return m ? decodeURIComponent(m.split("=")[1]) : null;
+  };
+  const [scraper] = useState(getCookie("scraper_videos") || "yt");
 
   useEffect(() => {
     if (!query) return;
