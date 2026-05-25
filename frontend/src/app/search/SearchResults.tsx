@@ -46,7 +46,12 @@ export default function SearchResults() {
     return match ? decodeURIComponent(match.split("=")[1]) : null;
   };
 
-  const [scraper, setScraper] = useState(queryScraper || getCookie("scraper_web") || "ddg");
+  const BROKEN_WEB_SCRAPERS = ["startpage", "brave"];
+  const cookieVal = getCookie("scraper_web");
+  if (cookieVal && BROKEN_WEB_SCRAPERS.includes(cookieVal)) {
+    document.cookie = `scraper_web=ddg; path=/; SameSite=Lax; max-age=34560000`;
+  }
+  const [scraper, setScraper] = useState(queryScraper || (cookieVal && !BROKEN_WEB_SCRAPERS.includes(cookieVal) ? cookieVal : null) || "ddg");
   const [results, setResults] = useState<WebResult[]>([]);
   const [videos, setVideos] = useState<VideoResult[]>([]);
   const [related, setRelated] = useState<string[]>([]);

@@ -68,8 +68,17 @@ function readCookies(): Partial<Settings> {
   }, {} as Partial<Settings>);
 }
 
+const BROKEN_SCRAPERS = new Set(["startpage", "brave"]);
+
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>(() => ({ ...DEFAULTS, ...readCookies() }));
+  const [settings, setSettings] = useState<Settings>(() => {
+    const fromCookies = readCookies();
+    if (fromCookies.scraper_web && BROKEN_SCRAPERS.has(fromCookies.scraper_web)) {
+      document.cookie = `scraper_web=ddg; path=/; SameSite=Lax; max-age=34560000`;
+      delete fromCookies.scraper_web;
+    }
+    return { ...DEFAULTS, ...fromCookies };
+  });
   const [saved, setSaved] = useState(false);
   const router = useRouter();
 
