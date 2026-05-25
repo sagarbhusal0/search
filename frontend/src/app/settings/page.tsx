@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Settings as SettingsIcon, Sun, Moon, ChevronDown } from "lucide-react";
 
@@ -54,19 +54,24 @@ const DEFAULTS: Settings = {
   scraper_videos: "yt", scraper_news: "google", scraper_music: "sc",
 };
 
+function readCookies(): Partial<Settings> {
+  if (typeof document === "undefined") return {};
+  const cookies: Record<string, string> = {};
+  document.cookie.split(";").forEach(c => {
+    const [key, value] = c.trim().split("=");
+    if (key) cookies[key] = decodeURIComponent(value);
+  });
+  return Object.keys(DEFAULTS).reduce((acc, key) => {
+    const k = key as keyof Settings;
+    if (cookies[k]) (acc as any)[k] = cookies[k];
+    return acc;
+  }, {} as Partial<Settings>);
+}
+
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>(DEFAULTS);
+  const [settings, setSettings] = useState<Settings>(() => ({ ...DEFAULTS, ...readCookies() }));
   const [saved, setSaved] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const cookies = document.cookie.split(";").reduce((acc, c) => {
-      const [key, value] = c.trim().split("=");
-      if (key) acc[key] = decodeURIComponent(value);
-      return acc;
-    }, {} as Record<string, string>);
-    setSettings(prev => ({ ...prev, ...Object.keys(prev).reduce((acc, key) => { if (cookies[key]) acc[key as keyof Settings] = cookies[key]; return acc; }, {} as Partial<Settings>) }));
-  }, []);
 
   const setTheme = (theme: string) => {
     setSettings(s => ({ ...s, theme }));
@@ -78,6 +83,7 @@ export default function SettingsPage() {
   const save = () => {
     const expires = new Date(Date.now() + 400 * 24 * 60 * 60 * 1000).toUTCString();
     Object.entries(settings).forEach(([k, v]) => document.cookie = `${k}=${encodeURIComponent(v)}; expires=${expires}; path=/; SameSite=Lax`);
+    document.documentElement.setAttribute("data-theme", settings.theme);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
     router.refresh();
@@ -94,6 +100,9 @@ export default function SettingsPage() {
   const isDark = settings.theme === "dark";
   const isLight = settings.theme === "light";
   const isGruvbox = settings.theme === "gruvbox";
+  const togglePos = isDark ? "translate-x-0.5" : "translate-x-[2.85rem]";
+  const toggleBg = isDark ? "bg-[#1e293b]" : isLight ? "bg-[#e2e8f0]" : "bg-[#3c3836]";
+  const toggleIcon = isDark ? <Moon size={12} className="text-slate-700" /> : isLight ? <Sun size={12} className="text-amber-500" /> : <Moon size={12} className="text-amber-100" />;
 
   return (
     <main className="min-h-screen bg-[var(--bg)]">
@@ -122,16 +131,16 @@ export default function SettingsPage() {
           <div className="flex flex-wrap items-center gap-4">
             {/* Dark/Light Toggle */}
             <button
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              className={`relative flex items-center h-10 w-20 rounded-[var(--radius-pill)] transition-colors duration-300 shrink-0 ${isDark ? "bg-[#1e293b]" : "bg-[#e2e8f0]"}`}
-              aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+              onClick={() => setTheme(isDark ? "light" : isLight ? "gruvbox" : "dark")}
+              className={`relative flex items-center h-10 w-20 rounded-[var(--radius-pill)] transition-colors duration-300 shrink-0 ${toggleBg}`}
+              aria-label={`Switch to ${isDark ? "light" : isLight ? "gruvbox" : "dark"} mode`}
             >
-              <span className="absolute left-1.5 text-[13px]" aria-hidden>{isDark ? <Moon size={14} className="text-blue-300" /> : <Moon size={14} className="text-slate-400" />}</span>
-              <span className="absolute right-1.5 text-[13px]" aria-hidden>{isLight ? <Sun size={14} className="text-amber-500" /> : <Sun size={14} className="text-slate-500" />}</span>
+              <span className="absolute left-1.5 text-[13px]" aria-hidden><Moon size={14} className={isDark ? "text-blue-300" : "text-slate-400"} /></span>
+              <span className="absolute right-1.5 text-[13px]" aria-hidden><Sun size={14} className={isLight ? "text-amber-500" : "text-slate-500"} /></span>
               <span
-                className={`absolute top-1 h-8 w-8 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${isDark ? "translate-x-0.5" : "translate-x-[2.85rem]"}`}
+                className={`absolute top-1 h-8 w-8 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${togglePos}`}
               >
-                {isDark ? <Moon size={12} className="text-slate-700" /> : <Sun size={12} className="text-amber-500" />}
+                {toggleIcon}
               </span>
             </button>
 
