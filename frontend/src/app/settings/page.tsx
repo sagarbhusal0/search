@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Settings as SettingsIcon, ChevronDown } from "lucide-react";
+import { Settings as SettingsIcon, Sun, Moon, ChevronDown } from "lucide-react";
 
 type Settings = {
   nsfw: string; theme: string; bg_noclick: string; scraper_ac: string; scraper_web: string;
@@ -14,7 +14,6 @@ const CATEGORIES = [
     name: "General",
     settings: [
       { param: "nsfw" as keyof Settings, label: "Allow NSFW content", options: [{ v: "yes", t: "Yes" }, { v: "maybe", t: "Maybe" }, { v: "no", t: "No" }] },
-      { param: "theme" as keyof Settings, label: "Theme", options: [{ v: "dark", t: "Dark" }, { v: "light", t: "Light" }, { v: "gruvbox", t: "Gruvbox" }] },
       { param: "bg_noclick" as keyof Settings, label: "Prevent background click in image viewer", options: [{ v: "no", t: "No" }, { v: "yes", t: "Yes" }] },
     ],
   },
@@ -69,10 +68,16 @@ export default function SettingsPage() {
     setSettings(prev => ({ ...prev, ...Object.keys(prev).reduce((acc, key) => { if (cookies[key]) acc[key as keyof Settings] = cookies[key]; return acc; }, {} as Partial<Settings>) }));
   }, []);
 
+  const setTheme = (theme: string) => {
+    setSettings(s => ({ ...s, theme }));
+    document.documentElement.setAttribute("data-theme", theme);
+    const expires = new Date(Date.now() + 400 * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `theme=${encodeURIComponent(theme)}; expires=${expires}; path=/; SameSite=Lax`;
+  };
+
   const save = () => {
     const expires = new Date(Date.now() + 400 * 24 * 60 * 60 * 1000).toUTCString();
     Object.entries(settings).forEach(([k, v]) => document.cookie = `${k}=${encodeURIComponent(v)}; expires=${expires}; path=/; SameSite=Lax`);
-    document.documentElement.setAttribute("data-theme", settings.theme);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
     router.refresh();
@@ -85,6 +90,10 @@ export default function SettingsPage() {
     });
     window.location.reload();
   };
+
+  const isDark = settings.theme === "dark";
+  const isLight = settings.theme === "light";
+  const isGruvbox = settings.theme === "gruvbox";
 
   return (
     <main className="min-h-screen bg-[var(--bg)]">
@@ -104,6 +113,37 @@ export default function SettingsPage() {
           <div>
             <h1 className="text-xl font-medium text-[var(--fg)]">Settings</h1>
             <p className="text-[13px] text-[var(--meta)]">Tune your search experience and privacy defaults.</p>
+          </div>
+        </div>
+
+        {/* Theme Toggle Section */}
+        <div className="rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--border)] p-5 transition-colors">
+          <label className="text-[13px] font-medium text-[var(--fg)] mb-4 block">Theme</label>
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Dark/Light Toggle */}
+            <button
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              className={`relative flex items-center h-10 w-20 rounded-[var(--radius-pill)] transition-colors duration-300 shrink-0 ${isDark ? "bg-[#1e293b]" : "bg-[#e2e8f0]"}`}
+              aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+            >
+              <span className="absolute left-1.5 text-[13px]" aria-hidden>{isDark ? <Moon size={14} className="text-blue-300" /> : <Moon size={14} className="text-slate-400" />}</span>
+              <span className="absolute right-1.5 text-[13px]" aria-hidden>{isLight ? <Sun size={14} className="text-amber-500" /> : <Sun size={14} className="text-slate-500" />}</span>
+              <span
+                className={`absolute top-1 h-8 w-8 rounded-full bg-white shadow-md transition-transform duration-300 flex items-center justify-center ${isDark ? "translate-x-0.5" : "translate-x-[2.85rem]"}`}
+              >
+                {isDark ? <Moon size={12} className="text-slate-700" /> : <Sun size={12} className="text-amber-500" />}
+              </span>
+            </button>
+
+            {/* Gruvbox chip */}
+            <button
+              onClick={() => setTheme("gruvbox")}
+              className={`px-3 py-1.5 rounded-[var(--radius-pill)] text-[12px] font-medium border transition-colors ${isGruvbox ? "bg-[var(--accent)] text-white border-[var(--accent)]" : "bg-transparent text-[var(--meta)] border-[var(--border)] hover:text-[var(--fg)]"}`}
+            >
+              Gruvbox
+            </button>
+
+            <span className="text-[12px] text-[var(--meta)]">{isDark ? "Dark" : isLight ? "Light" : "Gruvbox"} mode active</span>
           </div>
         </div>
 
