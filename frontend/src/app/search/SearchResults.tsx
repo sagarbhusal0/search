@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Search, ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
+import { Search, ArrowLeft, ArrowRight } from "lucide-react";
 import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
 
@@ -213,28 +213,35 @@ export default function SearchResults() {
           )}
         </div>
 
-        {/* Videos sidebar */}
-        {videos.length > 0 && !loading && (
-          <aside className="hidden lg:block w-72 shrink-0">
-            <div className="sticky top-28 space-y-4">
-              <h3 className="text-[11px] font-semibold text-[var(--meta)] uppercase tracking-widest">Videos</h3>
-              {videos.slice(0, 4).map((video, i) => {
-                const thumbUrl = video.thumb?.url;
-                const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=landscape` : null;
-                return (
-                  <a key={i} href={video.url} target="_blank" rel="noopener noreferrer" className="group block">
-                    <div className="relative aspect-video rounded-[var(--radius-sm)] overflow-hidden bg-black/30 border border-[var(--border)] mb-1.5">
-                      {proxied ? <img src={proxied} alt="" className="size-full object-cover" /> : <div className="flex items-center justify-center h-full"><Search size={16} className="text-[var(--meta)]" /></div>}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                    </div>
-                    <h4 className="text-[13px] font-medium text-[var(--fg)] leading-snug line-clamp-2 group-hover:text-[var(--accent-hover)]">{video.title}</h4>
-                    {video.author?.name && <div className="text-[11px] text-[var(--meta)] mt-0.5">{video.author.name}</div>}
-                  </a>
-                );
-              })}
+          {/* Videos inline (left column like normal search) */}
+          {videos.length > 0 && !loading && (
+            <div className="mt-10 pt-6 border-t border-[var(--border)]">
+              <h3 className="text-[12px] font-semibold text-[var(--meta)] uppercase tracking-wider mb-4">Videos</h3>
+              <div className="space-y-5">
+                {videos.slice(0, 4).map((video, i) => {
+                  const thumbUrl = video.thumb?.url;
+                  const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=landscape` : null;
+                  return (
+                    <article key={i} className="group flex gap-4">
+                      <a href={video.url} target="_blank" rel="noopener noreferrer" className="relative w-48 aspect-video shrink-0 bg-black/30 border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden">
+                        {proxied ? <img src={proxied} alt="" className="size-full object-cover" loading="lazy" /> : <div className="flex items-center justify-center h-full"><Search size={20} className="text-[var(--meta)]" /></div>}
+                        {video.views && <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded-[2px]">{video.views}</div>}
+                      </a>
+                      <div className="flex-1 min-w-0">
+                        <a href={video.url} target="_blank" rel="noopener noreferrer" className="block mb-0.5">
+                          <h2 className="text-[15px] font-medium text-[var(--fg)] leading-snug line-clamp-2 group-hover:text-[var(--accent-hover)]">{video.title}</h2>
+                        </a>
+                        <div className="text-[11px] text-[var(--meta)] mb-1.5">
+                          {video.author?.name || "Video"} {video.date ? `\u00b7 ${new Date(video.date * 1000).toLocaleDateString()}` : ""}
+                        </div>
+                        <p className="text-[12px] text-[var(--fg-2)] leading-relaxed line-clamp-2">{video.description}</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
-          </aside>
-        )}
+          )}
       </div>
 
       <BackToTop />
