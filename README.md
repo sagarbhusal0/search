@@ -1,108 +1,65 @@
-# <a href="https://4get.ca/donate">Donate to the project here!</a>
+## <a href="https://4get.ca/donate">Donate to the project here!</a>
 
-# 4get Search 🔍
-**4get** is a proxy search engine that aggregates results from various sources without tracking you. It's designed to be lightweight, fast, and functional even without JavaScript.
+# 4get search
+**4get** is a proxy search engine that doesn't suck.
 
-## 🌟 Features
-- **Privacy First:** No tracking, no logs, no user profiling.
-- **Aggregated Results:** Combines the best of multiple search engines.
-- **JavaScript Optional:** Works perfectly with JS disabled.
-- **Rotating Proxies:** Per-scraper proxy rotation to prevent blocks.
-- **Search Filters:** Fine-grained control over your search results.
-- **Oracles:** Instant answers for calculations, time, and more.
-- **Multimedia Proxies:** Stream music (SoundCloud, Spotify) and view images via proxy.
-- **Theming:** Customizable CSS-based themes.
-- **Bot Protection:** Effective captcha-based filtering (when enabled).
+## About 4get
+https://4get.ca/about
 
-## 🛠 Tech Stack
-- **Backend:** PHP 8.x (Vanilla, high-performance minimal dependencies).
-- **Caching:** APCu for proxy rotation and temporary state.
-- **Frontend (Classic):** PHP Templates + Vanilla CSS.
-- **Frontend (Modern):** Next.js (React/TypeScript) located in `/frontend`.
-- **Scraping:** Custom cURL-based scrapers with a proprietary HTML parser (`lib/fuckhtml.php`).
-- **Containerization:** Docker & Docker Compose support.
+## Official instance
+https://4get.ca , or visit the official instance list: https://4get.ca/instances
 
-## 📂 Project Structure
-```text
-├── audio/          # Audio streaming proxies
-├── banner/         # Custom banners for the home page
-├── data/           # Config, API keys, proxies, and fonts
-├── docs/           # Detailed setup and configuration guides
-├── frontend/       # Modern Next.js frontend
-├── icons/          # Website icons
-├── lib/            # Core logic, backend, and HTML parser
-├── oracles/        # Instant answer modules (calc, time, etc.)
-├── resolve/        # Stream resolvers (e.g., SoundCloud)
-├── scraper/        # Search engine scraper implementations
-├── static/         # CSS, JS, icons, and themes
-└── template/       # PHP HTML templates
-```
+_NOT to be confused with 4get.ch, 4get.lol and friends! I **don't** host these._
 
-## 🌐 Supported Engines
+## Totally unbiased comparison between alternatives
 
-| Web | Images | Videos | News | Music |
-| :--- | :--- | :--- | :--- | :--- |
-| DuckDuckGo | DuckDuckGo | YouTube | DuckDuckGo | SoundCloud |
-| Brave | Yandex | Vimeo | Brave | Swisscows |
-| Google | Brave | DuckDuckGo | Google | |
-| Startpage | Google | Brave | Startpage | |
-| Qwant | Pinterest | Yandex | Mojeek | |
-| Baidu | Flickr | Qwant | Baidu | |
-| Mojeek | Unsplash | ... | ... | |
+|                            | 4get                    | searx(ng) | whoogle    | degoog                                    |
+|----------------------------|-------------------------|-----------|------------|-------------------------------------------|
+| RAM usage                  | 100-400mb~              | 400mb-1GB | 100mb      | 100mb-250mb                               |
+| Does it suck               | no (debunked by snopes) | yes       | kind of?   | hit and miss with search filters          |
+| Does it work               | ye                      | lmao      | shits dead | works $rightNow, it's actually kinda cool |
 
-*...and many more! See the full list in the scrapers directory.*
+## Features
+1. Rotating proxies on a per-scraper basis
+2. Search filters, which SearxNG lacks for the most part
+3. Bot protection that *actually* filters out the bots (when configured)
+4. Interface doesn't require javascript
+5. Favicon fetcher with caching support & image proxy
+6. Bunch of other shits
 
-## 🚀 Getting Started
+tl;dr 4get is the best way to browse for shit.
 
-### Using Docker (Recommended)
-The fastest way to get 4get running is via Docker.
+# Supported websites
 
-```bash
-docker run -d -p 80:80 \
-  -e FOURGET_SERVER_NAME="yourdomain.com" \
-  -e FOURGET_PROTO="http" \
-  luuul/4get:latest
-```
+| web          | images       | videos       | news         | music      | autocomplete |
+|--------------|--------------|--------------|--------------|------------|--------------|
+| DuckDuckGo   | DuckDuckGo   | YouTube      | DuckDuckGo   | SoundCloud | Brave        |
+| Brave        | Yandex       | Vimeo        | Brave        | Swisscows  | DuckDuckGo   |
+| Yandex       | Brave        | Sepia Search | Google       |            | Yandex       |
+| Google       | Google       | DuckDuckGo   | Yahoo! JAPAN |            | Google       |
+| Google API   | Google API   | Brave        | Startpage    |            | Startpage    |
+| Google CSE   | Google CSE   | Yandex       | Qwant        |            | Kagi         |
+| Yahoo! JAPAN | Yahoo! JAPAN | Google       | Mojeek       |            | Qwant        |
+| Startpage    | Startpage    | Yahoo! JAPAN | Baidu        |            | Ghostery     |
+| Qwant        | Qwant        | Startpage    |              |            | Yep          |
+| Ghostery     | Baidu        | Qwant        |              |            | Marginalia   |
+| Yep          | Solofield    | Baidu        |              |            | YouTube      |
+| Mwmbl        | Pinterest    | Coc Coc      |              |            | SoundCloud   |
+| Mojeek       | Cara         | Solofield    |              |            |              |
+| Baidu        | Flickr       |              |              |            |              |
+| Coc Coc      | Pexels       |              |              |            |              |
+| Solofield    | Pixabay      |              |              |            |              |
+| Marginalia   | Unsplash     |              |              |            |              |
+| wiby         | 500px        |              |              |            |              |
+|              | VSCO         |              |              |            |              |
+|              | Imgur        |              |              |            |              |
+|              | FindThatMeme |              |              |            |              |
 
-For SSL and advanced configurations, see the [Docker Documentation](docs/docker.md).
+# Installation
+Refer to the <a href="https://git.lolcat.ca/lolcat/4get/src/branch/master/docs/">documentation index</a>. I recommend following the <a href="https://git.lolcat.ca/lolcat/4get/src/branch/master/docs/apache2.md">apache2 guide</a>.
 
-### Manual Installation
-1. Ensure you have **PHP 8.x** with `curl`, `gd`, and `apcu` extensions installed.
-2. Clone the repository.
-3. Configure your web server (Apache, Nginx, or Caddy).
-4. See the specific guides in `/docs`:
-   - [Apache2 Setup](docs/apache2.md)
-   - [Nginx Setup](docs/nginx.md)
-   - [Caddy Setup](docs/caddy.md)
+## Contact
+Shit breaks all the time but I repair it all the time too. Email me here: <b>will (at) lolcat.ca</b> or create an issue.
 
-## ⚙️ Configuration
-The main configuration file is located at `data/config.php`.
-
-### Environment Variables (Docker)
-| Variable | Description |
-| :--- | :--- |
-| `FOURGET_SERVER_NAME` | Your instance domain (e.g., 4get.ca) |
-| `FOURGET_PROTO` | `http` or `https` |
-| `FOURGET_BOT_PROTECTION` | Set to `1` to enable captchas |
-
-### Proxies
-Add your proxies to `data/proxies/yourproxy.txt` in the format:
-`<protocol>:<address>:<port>:<username>:<password>`
-
-Then update `data/config.php` to use them for specific scrapers.
-
-## 🛡 Cloudflare Bypass
-Some engines (like **Yep**) and images require bypassing Cloudflare TLS checks. 4get supports `curl-impersonate` for this. Refer to [Configuration Guide](docs/configure.md) for setup instructions.
-
-## 🤝 Contributing
-4get is an open-source project. We welcome contributions of all kinds!
-1. Fork the repo.
-2. Create your feature branch.
-3. Follow the coding standards in `GEMINI.md`.
-4. Submit a PR!
-
-## 📜 License
-4get is licensed under the **AGPL-3.0 License**.
-
----
-*4get is the best way to browse for shit. Period.*
+## License
+AGPL

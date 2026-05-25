@@ -24,6 +24,16 @@ class config{
 	const API_ENABLED = true;
 	
 	//
+	// 4play (session provider)
+	//
+	// Enable 4play API?
+	const FPLAY_ENABLE_API = true;
+	
+	// 4play password. Please set this to something secure if you enable the 4play API.
+	// This password is used to POST sessions to /api/v2/provide_sesh
+	const FPLAY_PASSWORD = "1234";
+	
+	//
 	// BOT PROTECTION
 	//
 	
@@ -118,10 +128,10 @@ class config{
 	
 	// Default user agent to use for scraper requests. Sometimes ignored to get specific webpages
 	// Changing this might break things.
-	const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:149.0) Gecko/20100101 Firefox/149.0";
+	const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:151.0) Gecko/20100101 Firefox/151.0";
 	
 	// User agent to use with 4get-friendly APIs
-	const USER_AGENT_FRIENDLY = "4get-scrapist";
+	const USER_AGENT_FRIENDLY = "4get-scrapist (+https://4get.ca)";
 	
 	// Proxy pool assignments for each scraper
 	// false = Use server's raw IP
@@ -131,7 +141,6 @@ class config{
 	const PROXY_YAHOO = false;
 	const PROXY_YAHOO_JAPAN = false;
 	const PROXY_BRAVE = false;
-	const PROXY_FB = false; // facebook
 	const PROXY_GOOGLE = false;
 	const PROXY_GOOGLE_API = false;
 	const PROXY_GOOGLE_CSE = false;
@@ -155,7 +164,6 @@ class config{
 	const PROXY_VIMEO = false;
 	const PROXY_YEP = false;
 	const PROXY_PINTEREST = false;
-	const PROXY_SANKAKUCOMPLEX = false;
 	const PROXY_FLICKR = false;
 	const PROXY_PIXABAY = false;
 	const PROXY_UNSPLASH = false;
@@ -164,8 +172,6 @@ class config{
 	const PROXY_VSCO = false;
 	const PROXY_SEZNAM = false;
 	const PROXY_NAVER = false;
-	const PROXY_GREPPR = false;
-	const PROXY_CROWDVIEW = false;
 	const PROXY_MWMBL = false;
 	const PROXY_FTM = false; // findthatmeme
 	const PROXY_IMGUR = false;
@@ -173,6 +179,11 @@ class config{
 	const PROXY_YANDEX_W = false; // yandex web
 	const PROXY_YANDEX_I = false; // yandex images
 	const PROXY_YANDEX_V = false; // yandex videos
+	const PROXY_SAFEBOORU = false;
+	const PROXY_KONACHAN = false;
+	const PROXY_YANDERE = false;
+	const PROXY_TBIB = false;
+	const PROXY_GELBOORU = false;
 	
 	//
 	// Scraper-specific parameters
@@ -185,4 +196,7 @@ class config{
 	// Use "null" to default out to HTML scraping OR specify a string to
 	// use the API (Eg: "public"). API has less filters.
 	const MARGINALIA_API_KEY = null;
+	
+	// Yep
+	const YEP_USE_API = false;
 }

@@ -216,7 +216,7 @@ class yep{
 		];
 	}
 	
-	private function get($proxy, $url, $get = []){
+	private function get($proxy, $url, $get = [], $use_api = false, $post_data = null, $bearer = null){
 		
 		$curlproc = curl_init();
 		
@@ -231,21 +231,37 @@ class yep{
 		curl_setopt($curlproc, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
 		
 		curl_setopt($curlproc, CURLOPT_ENCODING, ""); // default encoding
-		curl_setopt($curlproc, CURLOPT_HTTPHEADER,
-			["User-Agent: " . config::USER_AGENT,
-			"Accept: */*",
-			"Accept-Language: en-US,en;q=0.5",
-			"Accept-Encoding: gzip, deflate, br, zstd",
-			"Referer: https://yep.com/",
-			"Origin: https://yep.com",
-			"DNT: 1",
-			"Connection: keep-alive",
-			"Sec-Fetch-Dest: empty",
-			"Sec-Fetch-Mode: cors",
-			"Sec-Fetch-Site: same-site",
-			"Priority: u=4",
-			"TE: trailers"]
-		);
+		
+		if($use_api){
+			
+			$post_data = json_encode($post_data);
+			
+			curl_setopt($curlproc, CURLOPT_HTTPHEADER,
+				["Content-Type: application/json",
+				"Authorization: Bearer $bearer",
+				"Content-Length: " . strlen($post_data)]
+			);
+			
+			curl_setopt($curlproc, CURLOPT_POST, true);
+			curl_setopt($curlproc, CURLOPT_POSTFIELDS, $post_data);
+		}else{
+			
+			curl_setopt($curlproc, CURLOPT_HTTPHEADER,
+				["User-Agent: " . config::USER_AGENT,
+				"Accept: */*",
+				"Accept-Language: en-US,en;q=0.5",
+				"Accept-Encoding: gzip, deflate, br, zstd",
+				"Referer: https://yep.com/",
+				"Origin: https://yep.com",
+				"DNT: 1",
+				"Connection: keep-alive",
+				"Sec-Fetch-Dest: empty",
+				"Sec-Fetch-Mode: cors",
+				"Sec-Fetch-Site: same-site",
+				"Priority: u=4",
+				"TE: trailers"]
+			);
+		}
 		
 		curl_setopt($curlproc, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curlproc, CURLOPT_SSL_VERIFYHOST, 2);
@@ -269,6 +285,11 @@ class yep{
 	
 	
 	public function web($get){
+		
+		if(config::YEP_USE_API){
+			
+			return $this->web_api($get);
+		}
 		
 		$search = $get["s"];
 		if(strlen($search) === 0){
@@ -303,11 +324,11 @@ class yep{
 		
 		try{
 			
-			// https://api.yep.com/fs/2/search?limit=20&query=asmr
+			// https://api.yep.com/search?limit=20&query=asmr
 			$json =
 				$this->get(
 					$this->backend->get_ip(),
-					"https://api.yep.com/fs/2/search",
+					"https://api.yep.com/search",
 					$filters
 				);
 			
@@ -386,6 +407,123 @@ class yep{
 						break;
 				}
 			}
+		}
+		
+		return $out;
+	}
+	
+	
+	private function web_api($get){
+		
+		$search = $get["s"];
+		if(strlen($search) === 0){
+			
+			throw new Exception("Search term is empty!");
+		}
+		
+		$out = [
+			"status" => "ok",
+			"spelling" => [
+				"type" => "no_correction",
+				"using" => null,
+				"correction" => null
+			],
+			"npt" => null,
+			"answer" => [],
+			"web" => [],
+			"image" => [],
+			"video" => [],
+			"news" => [],
+			"related" => []
+		];
+		
+		// parse filters
+		$filters = [
+			"query" => $search,
+			"limit" => 100
+		];
+		
+		if($get["nsfw"] == "no"){ $filters["safe_search"] = true; }
+		if($get["lang"] != "any"){ $filters["language"] = [ $get["lang"] ]; }
+		
+		// add api key
+		$key_data = $this->backend->get_key();
+		
+		try{
+			
+			$json =
+				$this->get(
+					$this->backend->get_ip($key_data["increment"]),
+					"https://platform.yep.com/api/search",
+					[],
+					true,
+					$filters,
+					$key_data["key"]
+				);
+			
+		}catch(Exception $error){
+			
+			throw new Exception("Failed to fetch JSON");
+		}
+		
+		// should never happen
+		//$this->detect_cf($json);
+		
+		$json = json_decode($json, true);
+		//$json = json_decode(file_get_contents("scraper/yep.json"), true);
+		
+		if($json === null){
+			
+			throw new Exception("Failed to decode JSON");
+		}
+		
+		if(isset($json["error"])){
+			
+			throw new Exception("Yep API returned an error: " . $json["error"]);
+		}
+		
+		if(isset($json["errors"])){
+			
+			throw new Exception("Yep API returned the following errors: {$json["message"]}");
+		}
+		
+		if(
+			isset($json["success"]) &&
+			$json["success"] !== true
+		){
+			
+			throw new Exception("Yep API returned a false-y success value");
+		}
+		
+		if(!isset($json["results"])){
+			
+			throw new Exception("Yep API did not return a results object");
+		}
+		
+		foreach($json["results"] as $item){
+			
+			if(
+				$item["url"] === null ||
+				$item["url"] == ""
+			){
+				
+				// sometimes API fucks up
+				continue;
+			}
+			
+			$out["web"][] = [
+				"title" => $item["title"],
+				"description" => $item["description"],
+				"url" => $item["url"],
+				"date" => null,
+				"type" => "web",
+				"thumb" => [
+					"url" => null,
+					"ratio" => null
+				],
+				"sublink" => [],
+				"table" => []
+			];
 		}
 		
 		return $out;

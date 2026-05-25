@@ -564,12 +564,16 @@ class startpage{
 					break;
 				
 				case "spellsuggest-google":
-					$out["spelling"] =
-						[
-							"type" => "including",
-							"using" => $json["render"]["query"],
-							"correction" => $category["results"][0]["query"]
-						];
+					
+					if(isset($category["results"][0]["query"])){
+						
+						$out["spelling"] =
+							[
+								"type" => "including",
+								"using" => $json["render"]["query"],
+								"correction" => urldecode($category["results"][0]["query"])
+							];
+					}
 					break;
 				
 				case "dictionary-qi":
@@ -642,318 +646,6 @@ class startpage{
 						$out["answer"][] = $answer;
 					}
 					break;
-			}
-		}
-		
-		// parse instant answers
-		if(
-			$get["extendedsearch"] == "yes" &&
-			$get_instant_answer === true
-		){
-			
-			// https://www.startpage.com/sp/qi?qimsn=ex&sxap=%2Fv1%2Fquery&sc=BqZ3inqrAgF701&sr=1
-			try{
-				$post = [
-					"se" => "n0vze2y9dqwy",
-					"q" => $json["render"]["query"],
-					"results" => [], // populate
-					"enableKnowledgePanel" => true,
-					"enableMediaThumbBar" => false,
-					"enableSearchSuggestions" => false,
-					"enableTripadvisorProperties" => [],
-					"enableTripadvisorPlaces" => [],
-					"enableTripadvisorPlacesForLocations" => [],
-					"enableWebProducts" => false,
-					"tripadvisorPartnerId" => null,
-					"tripadvisorMapColorMode" => "light",
-					"tripadvisorDisablesKnowledgePanel" => false,
-					"instantAnswers" => [
-						"smartAnswers",
-						"youtube",
-						"tripadvisor"
-					],
-					"iaType" => null,
-					"forceEnhancedKnowledgePanel" => false,
-					"shoppingOnly" => false,
-					"allowAdultProducts" => true,
-					"lang" => "en",
-					"browserLang" => "en-US",
-					"browserTimezone" => "America/New_York",
-					"market" => null,
-					"userLocation" => null,
-					"userDate" => date("Y-m-d"),
-					"userAgentType" => "unknown"
-				];
-				
-				foreach($out["web"] as $result){
-					
-					$post["results"][] = [
-						"url" => $result["url"],
-						"title" => $result["title"]
-					];
-				}
-				
-				$post = json_encode($post, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_IGNORE);
-				
-				$additional_data =
-					$this->get(
-						$proxy,
-						"https://www.startpage.com/sp/qi?qimsn=ex&sxap=%2Fv1%2Fquery&sc=" . $json["render"]["callback_sc"] . "&sr=1",
-						$post,
-						true,
-						true
-					);
-				
-				$additional_data = json_decode($additional_data, true);
-				
-				if($additional_data === null){
-					
-					throw new Exception("Failed to decode JSON"); // just break out, dont fail completely
-				}
-				
-				if(!isset($additional_data["knowledgePanel"])){
-					
-					throw new Exception("Response has missing data (knowledgePanel)");
-				}
-				
-				$additional_data = $additional_data["knowledgePanel"];
-				
-				$answer = [
-					"title" => $additional_data["meta"]["title"],
-					"description" => [
-						[
-							"type" => "quote",
-							"value" => $additional_data["meta"]["description"]
-						]
-					],
-					"url" => $additional_data["meta"]["origWikiUrl"],
-					"thumb" => $additional_data["meta"]["image"],
-					"table" => [],
-					"sublink" => []
-				];
-				
-				// parse html for instant answer
-				$this->fuckhtml->load($additional_data["html"]);
-				
-				$div =
-					$this->fuckhtml
-					->getElementsByTagName(
-						"div"
-					);
-				
-				// get description
-				$description =
-					$this->fuckhtml
-					->getElementsByClassName(
-						"sx-kp-short-extract sx-kp-short-extract-complete",
-						$div
-					);
-				
-				if(count($description) !== 0){
-					
-					$answer["description"][] = [
-						"type" => "text",
-						"value" =>
-							html_entity_decode(
-								$this->fuckhtml
-								->getTextContent(
-									$description[0]
-								)
-							)
-					];
-				}
-				
-				// get socials
-				$socials =
-					$this->fuckhtml
-					->getElementsByClassName(
-						"sx-wiki-social-link",
-						"a"
-					);
-				
-				foreach($socials as $social){
-					
-					$title =
-						$this->fuckhtml
-						->getTextContent(
-							$social["attributes"]["title"]
-						);
-					
-					$url =
-						$this->fuckhtml
-						->getTextContent(
-							$social["attributes"]["href"]
-						);
-					
-					switch($title){
-						
-						case "Official Website":
-							$title = "Website";
-							break;
-					}
-					
-					$answer["sublink"][$title] = $url;
-				}
-				
-				// get videos
-				$videos =
-					$this->fuckhtml
-					->getElementsByClassName(
-						"sx-kp-video-grid-item",
-						$div
-					);
-				
-				foreach($videos as $video){
-					
-					$this->fuckhtml->load($video);
-					
-					$as =
-						$this->fuckhtml
-						->getElementsByTagName(
-							"a"
-						);
-					
-					if(count($as) === 0){
-						
-						// ?? invalid
-						continue;
-					}
-					
-					$image =
-						$this->fuckhtml
-						->getElementsByAttributeName(
-							"data-sx-src",
-							"img"
-						);
-					
-					if(count($image) !== 0){
-						
-						$thumb = [
-							"ratio" => "16:9",
-							"url" =>
-								$this->fuckhtml
-								->getTextContent(
-									$image[0]["attributes"]["data-sx-src"]
-								)
-						];
-					}else{
-
-						$thumb = [
-							"ratio" => null,
-							"url" => null
-						];
-					}
-					
-					$out["video"][] = [
-						"title" =>
-							$this->fuckhtml
-							->getTextContent(
-								$as[0]["attributes"]["title"]
-							),
-						"description" => null,
-						"date" => null,
-						"duration" => null,
-						"views" => null,
-						"thumb" => $thumb,
-						"url" =>
-							$this->fuckhtml
-							->getTextContent(
-								$as[0]["attributes"]["href"]
-							)
-					];
-				}
-				
-				// reset
-				$this->fuckhtml->load($additional_data["html"]);
-				
-				// get table elements
-				$table =
-					$this->fuckhtml
-					->getElementsByClassName(
-						"sx-infobox",
-						"table"
-					);
-				
-				if(count($table) !== 0){
-					
-					$trs =
-						$this->fuckhtml
-						->getElementsByTagName(
-							"tr"
-						);
-					
-					foreach($trs as $tr){
-						
-						$this->fuckhtml->load($tr);
-						
-						// ok so startpage devs cant fucking code a table
-						// td = content
-						// th (AAAHH) = title
-						$tds =
-							$this->fuckhtml
-							->getElementsByTagName(
-								"td"	
-							);
-						
-						$ths =
-							$this->fuckhtml
-							->getElementsByTagName(
-								"th"
-							);
-						
-						if(
-							count($ths) === 1 &&
-							count($tds) === 1
-						){
-							
-							$title =
-								$this->fuckhtml
-								->getTextContent(
-									$ths[0]
-								);
-							
-							$description = [];
-							
-							$this->fuckhtml->load($tds[0]);
-							
-							$lis =
-								$this->fuckhtml
-								->getElementsByTagName(
-									"li"
-								);
-							
-							if(count($lis) !== 0){
-								
-								foreach($lis as $li){
-									
-									$description[] =
-										$this->fuckhtml
-										->getTextContent(
-											$li
-										);
-								}
-								
-								$description = implode(", ", $description);
-							}else{
-								
-								$description =
-									$this->fuckhtml
-									->getTextContent(
-										$tds[0]
-									);
-							}
-							
-							$answer["table"][$title] = $description;
-						}
-					}
-				}
-				
-				$out["answer"][] = $answer;
-				
-			}catch(Exception $error){
-				
-				// do nothing
-				//echo "error!";
 			}
 		}
 		
@@ -1428,12 +1120,16 @@ class startpage{
 							[
 								"lui" => "english",
 								"language" => "english",
-								"query" => $str["q"],
-								"cat" => $pagetype,
 								"sc" => $str["sc"],
 								"t" => "device",
+								"cat" => $pagetype,
 								"segment" => "startpage.udog",
-								"page" => $str["page"]
+								"abd" => 0,
+								"abe" => 0,
+								"query" => $str["q"],
+								"page" => $str["page"],
+								"qsr" => "all",
+								"qadf" => "none" // @ todo fix (??)
 							]
 						),
 						$pagetype,
