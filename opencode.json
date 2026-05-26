@@ -15,13 +15,5 @@
       "description": "UI design agent powered by Open Design (151 design systems, 132 skills). Generates landing pages, decks, dashboards, mobile prototypes, and visual artifacts following a structured discovery→direction→generate→critique workflow."
     }
   },
-  "mcpServers": {
-    "gstack": {
-      "command": "node",
-      "args": ["server.js"],
-      "env": {
-        "GSTACK_DIR": "E:\\gstack"
-      }
-    }
-  }
+
 }
