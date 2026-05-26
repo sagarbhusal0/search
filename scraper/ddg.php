@@ -2017,11 +2017,12 @@ class ddg{
 			}
 			
 			$q = [
-				"query" => $get["s"],
+				"o" => "json",
+				"q" => $get["s"],
 				"vqd" => $vqd[1],
-					"f" => $filters,
-					"p" => $nsfw
-				];
+				"f" => $filters,
+				"p" => $nsfw
+			];
 		}
 		
 		try{
@@ -2029,7 +2030,7 @@ class ddg{
 			$json =
 				$this->get(
 					$proxy,
-					"https://duckduckgo.com/" . $js_link,
+					"https://duckduckgo.com/i.js?" . http_build_query($q),
 					[],
 					ddg::req_xhr
 				);
