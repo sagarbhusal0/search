@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q") || searchParams.get("s");
+    const scraper = searchParams.get("scraper") || "ddg";
     const page = searchParams.get("p") || "1";
 
     if (!query) {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
 
-    let url = `${backendUrl}/api/v1/web.php?s=${encodeURIComponent(query)}&scraper=ddg`;
+    let url = `${backendUrl}/api/v1/web.php?s=${encodeURIComponent(query)}&scraper=${encodeURIComponent(scraper)}`;
     const npt = searchParams.get("npt");
     if (npt) url += `&npt=${encodeURIComponent(npt)}`;
     else url += `&p=${page}`;

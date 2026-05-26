@@ -10,6 +10,12 @@ interface WebResult { title: string; description: string; url: string; favicon?:
 interface VideoResult { title: string; description?: string; url: string; thumb?: { url: string }; date?: string; views?: string; author?: { name: string; url: string }; }
 interface ApiResponse { web?: WebResult[]; video?: VideoResult[]; related?: string[]; npt?: string; status?: string; }
 
+const SCRAPERS = [
+  { value: "brave", label: "Brave" }, { value: "ddg", label: "DuckDuckGo" },
+  { value: "google", label: "Google" }, { value: "yandex", label: "Yandex" },
+  { value: "qwant", label: "Qwant" }, { value: "startpage", label: "Startpage" },
+];
+
 function SkeletonBlock() {
   return (
     <div className="space-y-3">
@@ -31,8 +37,10 @@ export default function SearchResults() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get("s") || "";
+  const queryScraper = searchParams.get("scraper");
   const page = searchParams.get("p") || "1";
 
+  const [scraper, setScraper] = useState(queryScraper || "ddg");
   const [results, setResults] = useState<WebResult[]>([]);
   const [videos, setVideos] = useState<VideoResult[]>([]);
   const [related, setRelated] = useState<string[]>([]);
@@ -53,7 +61,7 @@ export default function SearchResults() {
       setError(null);
       const start = Date.now();
       try {
-        let url = `/api/search?q=${encodeURIComponent(query)}&scraper=ddg`;
+        let url = `/api/search?q=${encodeURIComponent(query)}&scraper=${encodeURIComponent(scraper)}`;
         const nptParam = searchParams.get("npt");
         if (nptParam) url += `&npt=${encodeURIComponent(nptParam)}`;
         else url += `&p=${page}`;
@@ -76,7 +84,7 @@ export default function SearchResults() {
       finally { setLoading(false); }
     };
     fetchResults();
-  }, [query, page, searchParams]);
+  }, [query, scraper, page, searchParams]);
 
   const handleNextPage = () => {
     if (!npt || isNavigating) return;
@@ -112,12 +120,21 @@ export default function SearchResults() {
 
       <div className="max-w-[var(--container)] mx-auto px-4 py-5 flex gap-10">
         <div className="flex-1 min-w-0 max-w-2xl" ref={resultsRef}>
-          {/* Stats */}
-          {!loading && results.length > 0 && (
-            <div className="flex items-center mb-5">
-              <span className="text-[12px] text-[var(--meta)]">{results.length} results ({timeTaken.toFixed(2)}s)</span>
+          {/* Scraper selector + stats */}
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <select
+                value={scraper}
+                onChange={e => { setScraper(e.target.value); const p = new URLSearchParams(searchParams.toString()); p.set("scraper", e.target.value); p.delete("npt"); router.push(`/search?${p.toString()}`); }}
+                className="appearance-none bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[12px] text-[var(--fg-2)] focus:outline-none focus:border-[var(--accent)] cursor-pointer" aria-label="Search source"
+              >
+                {SCRAPERS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+              {!loading && results.length > 0 && (
+                <span className="text-[12px] text-[var(--meta)]">{results.length} results ({timeTaken.toFixed(2)}s)</span>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Loading */}
           {loading && (
