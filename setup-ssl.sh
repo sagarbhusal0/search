@@ -74,6 +74,7 @@ ynZGXQwZQBdjSSQaxMC7IYIf17nHSgD8cMM+vZ2O8DhZNOWAkGnws4jDyvMSHzmx
 Cbu5FmNpnxevc5bFQslB7dexCwr/y93HCl2kVRYY+uWs3w==
 -----END CERTIFICATE-----
 CERT
+sed -i 's/\r$//' "$NGINX_SSL_DIR/$DOMAIN.crt"
 ok "Certificate written"
 
 # ── Write private key ──────────────────────────────────────────
@@ -109,6 +110,7 @@ wGX1qXOSe/tfNI6Jo1Idx+g=
 -----END PRIVATE KEY-----
 KEY
 chmod 600 "$NGINX_SSL_DIR/$DOMAIN.key"
+sed -i 's/\r$//' "$NGINX_SSL_DIR/$DOMAIN.key"
 ok "Private key written"
 
 # ── Write Nginx config ─────────────────────────────────────────
