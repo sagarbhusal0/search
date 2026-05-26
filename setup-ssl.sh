@@ -110,7 +110,15 @@ wGX1qXOSe/tfNI6Jo1Idx+g=
 -----END PRIVATE KEY-----
 KEY
 chmod 600 "$NGINX_SSL_DIR/$DOMAIN.key"
-sed -i 's/\r$//' "$NGINX_SSL_DIR/$DOMAIN.key"
+# Convert to traditional RSA format for broader OpenSSL compatibility
+if command -v openssl &>/dev/null; then
+    openssl pkey -in "$NGINX_SSL_DIR/$DOMAIN.key" -traditional -out "$NGINX_SSL_DIR/$DOMAIN.key.tmp" 2>/dev/null
+    if [ $? -eq 0 ] && [ -s "$NGINX_SSL_DIR/$DOMAIN.key.tmp" ]; then
+        mv "$NGINX_SSL_DIR/$DOMAIN.key.tmp" "$NGINX_SSL_DIR/$DOMAIN.key"
+    else
+        rm -f "$NGINX_SSL_DIR/$DOMAIN.key.tmp"
+    fi
+fi
 ok "Private key written"
 
 # ── Write Nginx config ─────────────────────────────────────────
