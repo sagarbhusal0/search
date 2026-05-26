@@ -6,7 +6,7 @@ set -e
 #  Run once on your VPS to terminate SSL and proxy to :3000
 # ───────────────────────────────────────────────────────────────
 
-DOMAIN="sorvx.com"
+DOMAIN="search.sorvx.com"
 FRONTEND_PORT=3000
 NGINX_SSL_DIR="/etc/nginx/ssl"
 NGINX_SITES="/etc/nginx/sites-available"
@@ -26,7 +26,7 @@ cat << 'EOF'
 
   ┌─────────────────────────────────────────────┐
   │      Sorvx Search  —  Nginx SSL Setup      │
-  │         Domain: sorvx.com → :3000           │
+  │    Domain: search.sorvx.com → :3000         │
   └─────────────────────────────────────────────┘
 
 EOF
@@ -118,7 +118,7 @@ cat > "$NGINX_SITES/$DOMAIN.conf" << NGINX
 server {
     listen 80;
     listen [::]:80;
-    server_name $DOMAIN www.$DOMAIN;
+    server_name $DOMAIN;
 
     location / {
         return 301 https://\$host\$request_uri;
@@ -128,7 +128,7 @@ server {
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name $DOMAIN www.$DOMAIN;
+    server_name $DOMAIN;
 
     ssl_certificate     $NGINX_SSL_DIR/$DOMAIN.crt;
     ssl_certificate_key $NGINX_SSL_DIR/$DOMAIN.key;
@@ -196,5 +196,5 @@ echo "  ────────────────────────
 echo -e "  \e[36mhttps://$DOMAIN\e[0m   →   \e[35mhttp://127.0.0.1:$FRONTEND_PORT\e[0m"
 echo "  ─────────────────────────────────────────────"
 echo ""
-echo "  Make sure your DNS A record points this server's IP."
+echo "  Make sure your DNS A record for search.sorvx.com points to this server's IP."
 echo "  Cloudflare SSL/TLS setting should be: Full (strict)"
