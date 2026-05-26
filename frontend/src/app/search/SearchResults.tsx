@@ -7,11 +7,10 @@ import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
 
 interface WebResult { title: string; description: string; url: string; favicon?: string; }
-interface VideoResult { title: string; description?: string; url: string; thumb?: { url: string }; date?: string; views?: string; author?: { name: string; url: string }; }
-interface ApiResponse { web?: WebResult[]; video?: VideoResult[]; related?: string[]; npt?: string; status?: string; }
+interface ApiResponse { web?: WebResult[]; related?: string[]; npt?: string; status?: string; }
 
 const SCRAPERS = [
-  { value: "brave", label: "Brave" }, { value: "ddg", label: "DuckDuckGo" },
+  { value: "ddg", label: "DuckDuckGo" }, { value: "brave", label: "Brave" },
   { value: "google", label: "Google" }, { value: "yandex", label: "Yandex" },
   { value: "qwant", label: "Qwant" }, { value: "startpage", label: "Startpage" },
 ];
@@ -40,9 +39,8 @@ export default function SearchResults() {
   const queryScraper = searchParams.get("scraper");
   const page = searchParams.get("p") || "1";
 
-  const [scraper, setScraper] = useState(queryScraper || "brave");
+  const [scraper, setScraper] = useState(queryScraper || "ddg");
   const [results, setResults] = useState<WebResult[]>([]);
-  const [videos, setVideos] = useState<VideoResult[]>([]);
   const [related, setRelated] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +69,6 @@ export default function SearchResults() {
         if (data.status && !data.web) { setError(data.status); setResults([]); }
         else {
           setResults(data.web || []);
-          setVideos(data.video || []);
           setRelated(data.related || []);
           const nptFromUrl = searchParams.get("npt");
           if (nptFromUrl && !previousNpts.includes(nptFromUrl)) {
@@ -118,8 +115,8 @@ export default function SearchResults() {
     <main className="min-h-screen bg-[var(--bg)]">
       <SearchHeader />
 
-      <div className="max-w-[var(--container)] mx-auto px-4 py-5 flex gap-10">
-        <div className="flex-1 min-w-0 max-w-2xl" ref={resultsRef}>
+      <div className="max-w-[var(--container)] mx-auto px-4 py-5">
+        <div className="min-w-0 max-w-2xl" ref={resultsRef}>
           {/* Scraper selector + stats */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
@@ -207,35 +204,7 @@ export default function SearchResults() {
           )}
         </div>
 
-          {/* Videos inline (left column like normal search) */}
-          {videos.length > 0 && !loading && (
-            <div className="mt-10 pt-6 border-t border-[var(--border)]">
-              <h3 className="text-[12px] font-semibold text-[var(--meta)] uppercase tracking-wider mb-4">Videos</h3>
-              <div className="space-y-5">
-                {videos.slice(0, 4).map((video, i) => {
-                  const thumbUrl = video.thumb?.url;
-                  const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=landscape` : null;
-                  return (
-                    <article key={i} className="group flex gap-4">
-                      <a href={video.url} target="_blank" rel="noopener noreferrer" className="relative w-48 aspect-video shrink-0 bg-black/30 border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden">
-                        {proxied ? <img src={proxied} alt="" className="size-full object-cover" loading="lazy" /> : <div className="flex items-center justify-center h-full"><Search size={20} className="text-[var(--meta)]" /></div>}
-                        {video.views && <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded-[2px]">{video.views}</div>}
-                      </a>
-                      <div className="flex-1 min-w-0">
-                        <a href={video.url} target="_blank" rel="noopener noreferrer" className="block mb-0.5">
-                          <h2 className="text-[15px] font-medium text-[var(--fg)] leading-snug line-clamp-2 group-hover:text-[var(--accent-hover)]">{video.title}</h2>
-                        </a>
-                        <div className="text-[11px] text-[var(--meta)] mb-1.5">
-                          {video.author?.name || "Video"} {video.date ? `\u00b7 ${new Date(Number(video.date) * 1000).toLocaleDateString()}` : ""}
-                        </div>
-                        <p className="text-[12px] text-[var(--fg-2)] leading-relaxed line-clamp-2">{video.description}</p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+
       </div>
 
       <BackToTop />

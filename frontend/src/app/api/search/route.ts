@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q") || searchParams.get("s");
-    const scraper = searchParams.get("scraper") || "brave";
+    const scraper = searchParams.get("scraper") || "ddg";
     const page = searchParams.get("p") || "1";
 
     if (!query) {
