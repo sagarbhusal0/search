@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q") || searchParams.get("s");
-    const scraper = searchParams.get("scraper");
     const page = searchParams.get("p") || "1";
 
     if (!query) {
@@ -12,25 +11,24 @@ export async function GET(request: NextRequest) {
     }
 
     const cookieStore = await cookies();
-    const cookieScraper = cookieStore.get("scraper_web")?.value;
     const nsfw = cookieStore.get("nsfw")?.value;
 
     const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
 
-    let url = `${backendUrl}/api/v1/web.php?s=${encodeURIComponent(query)}`;
+    let url = `${backendUrl}/api/v1/web.php?s=${encodeURIComponent(query)}&scraper=ddg`;
     const npt = searchParams.get("npt");
     if (npt) url += `&npt=${encodeURIComponent(npt)}`;
     else url += `&p=${page}`;
-    if (scraper || cookieScraper) url += `&scraper=${scraper || cookieScraper}`;
     if (nsfw) url += `&nsfw=${nsfw}`;
 
     try {
         const response = await fetch(url, { headers: { "Accept": "application/json" } });
         const data = await response.json();
-        return NextResponse.json(data);
+        const res = NextResponse.json(data);
+        res.cookies.set("scraper_web", "", { maxAge: 0, path: "/" });
+        return res;
     } catch (error) {
         console.error("Error fetching from PHP backend:", error);
-        // Graceful fallback sample results to keep UI working without backend
         const sample = {
             web: [
                 {
@@ -47,7 +45,8 @@ export async function GET(request: NextRequest) {
             related: ["privacy search", "duckduckgo", "sorvx demo"],
             status: "offline-fallback"
         };
-        return NextResponse.json(sample, { status: 200 });
+        const res = NextResponse.json(sample, { status: 200 });
+        res.cookies.set("scraper_web", "", { maxAge: 0, path: "/" });
+        return res;
     }
 }
-

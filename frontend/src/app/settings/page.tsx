@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Settings as SettingsIcon, Sun, Moon, ChevronDown } from "lucide-react";
 
 type Settings = {
-  nsfw: string; theme: string; bg_noclick: string; scraper_ac: string; scraper_web: string;
+  nsfw: string; theme: string; bg_noclick: string; scraper_ac: string;
   scraper_images: string; scraper_videos: string; scraper_news: string; scraper_music: string;
 };
 
@@ -23,10 +23,6 @@ const CATEGORIES = [
       {
         param: "scraper_ac" as keyof Settings, label: "Autocomplete",
         options: [{ v: "disabled", t: "Disabled" }, { v: "auto", t: "Auto" }, { v: "brave", t: "Brave" }, { v: "ddg", t: "DuckDuckGo" }, { v: "google", t: "Google" }, { v: "yandex", t: "Yandex" }, { v: "qwant", t: "Qwant" }, { v: "startpage", t: "Startpage" }, { v: "kagi", t: "Kagi" }, { v: "marginalia", t: "Marginalia" }],
-      },
-      {
-        param: "scraper_web" as keyof Settings, label: "Web",
-        options: [{ v: "ddg", t: "DuckDuckGo" }, { v: "brave", t: "Brave" }, { v: "google", t: "Google" }, { v: "yandex", t: "Yandex" }, { v: "qwant", t: "Qwant" }, { v: "startpage", t: "Startpage" }, { v: "mojeek", t: "Mojeek" }],
       },
       {
         param: "scraper_images" as keyof Settings, label: "Images",
@@ -50,7 +46,7 @@ const CATEGORIES = [
 
 const DEFAULTS: Settings = {
   nsfw: "no", theme: "dark", bg_noclick: "no",
-  scraper_ac: "ddg", scraper_web: "ddg", scraper_images: "ddg",
+  scraper_ac: "ddg", scraper_images: "ddg",
   scraper_videos: "yt", scraper_news: "google", scraper_music: "sc",
 };
 
@@ -68,14 +64,11 @@ function readCookies(): Partial<Settings> {
   }, {} as Partial<Settings>);
 }
 
-const BROKEN_SCRAPERS = new Set(["startpage", "brave"]);
-
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(() => {
     const fromCookies = readCookies();
-    if (fromCookies.scraper_web && BROKEN_SCRAPERS.has(fromCookies.scraper_web)) {
-      document.cookie = `scraper_web=ddg; path=/; SameSite=Lax; max-age=34560000`;
-      delete fromCookies.scraper_web;
+    if (typeof document !== "undefined") {
+      document.cookie = "scraper_web=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
     }
     return { ...DEFAULTS, ...fromCookies };
   });
