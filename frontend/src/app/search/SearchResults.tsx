@@ -40,7 +40,7 @@ export default function SearchResults() {
   const queryScraper = searchParams.get("scraper");
   const page = searchParams.get("p") || "1";
 
-  const [scraper, setScraper] = useState(queryScraper || "ddg");
+  const [scraper, setScraper] = useState(queryScraper || "brave");
   const [results, setResults] = useState<WebResult[]>([]);
   const [videos, setVideos] = useState<VideoResult[]>([]);
   const [related, setRelated] = useState<string[]>([]);
