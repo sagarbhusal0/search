@@ -2021,7 +2021,7 @@ class ddg{
 				"vqd" => $vqd[1],
 					"f" => $filters,
 					"p" => $nsfw
-				]);
+				];
 		}
 		
 		try{
