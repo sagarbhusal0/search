@@ -52,6 +52,22 @@ if ($dockerAvail) {
   if ($choice -eq "n" -or $choice -eq "N") { exit 0 }
 }
 
+# ── Pull latest changes ────────────────────────────────────────
+Write-Step "Pulling latest code from git..."
+Set-Location $ROOT
+$dirty = (git status --porcelain 2>$null) -ne $null
+if ($dirty) {
+  Write-wrn "Uncommitted changes detected — stashing them before pull"
+  git stash push -m "auto-stash by deploy-local.ps1" 2>&1 | Out-Null
+}
+$pullOk = $true
+git pull --ff-only origin main 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+  Write-wrn "Git pull failed (offline or no upstream). Continuing with local code."
+} else {
+  Write-ok "Up to date with origin/main"
+}
+
 # ── Install dependencies ───────────────────────────────────────
 Write-Step "Installing frontend dependencies..."
 Set-Location $FE

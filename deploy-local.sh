@@ -44,6 +44,19 @@ else
   if [[ "$choice" == "n" || "$choice" == "N" ]]; then exit 0; fi
 fi
 
+# ── Pull latest changes ────────────────────────────────────────
+info "Pulling latest code from git..."
+cd "$ROOT"
+if ! git diff --quiet 2>/dev/null; then
+  warn "Uncommitted changes detected — stashing them before pull"
+  git stash push -m "auto-stash by deploy-local.sh" 2>/dev/null || true
+fi
+if git pull --ff-only origin main 2>/dev/null; then
+  ok "Up to date with origin/main"
+else
+  warn "Git pull failed (offline or no upstream). Continuing with local code."
+fi
+
 # ── Install dependencies ───────────────────────────────────────
 info "Installing frontend dependencies..."
 cd "$FE"
