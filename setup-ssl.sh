@@ -79,46 +79,12 @@ ok "Certificate written"
 
 # ── Write private key ──────────────────────────────────────────
 info "Writing private key..."
-cat > "$NGINX_SSL_DIR/$DOMAIN.key" << 'KEY'
------BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDwHiiJ/CigceXO
-65TCgLou6uhru9/riQOD79y6V7djUoccitznysxybvPHjLilxsAASmfbU3g5Ozkk
-GsaI/ZloacQsU9nZ5K3pNC2CXbYDU0DknPIKDGWXVwcGQnd/5HrLKojXTxuFCIPn
-e9evkFZ/viy4rnNPTEpiWzYDeuPQyHl00ZO9ZCn3Ln8hI6FDlf462f8LYrnaDO5h
-bge/nZkDoVGuLbBRCrBQHvH+tiRtuaBrMzs2j5fXShnM2O8rpLgUVOqs3PS0a91G
-00L5MYOvSaipCd5gaJG+c/cuO/CQBZxm5wfUcX3we5QGYH6oCiblZ4uuojUfb1XP
-vwRuwA9jAgMBAAECggEAXt+jp+WUjdSC9y+Y7wMazWfunoa0kmVoGKzg+1WmNZ3J
-mcr6PrGf90UEmF9vI700Zsj/YScJVR+j07KqqDz/bMSBiPw2kwPqfT6rDpwFSyoN
-dWbXsYW1bEcsFNqVSdiWdgjf2aa9mmJDb+a8UXeH3eBf3ja7g+UCbPtaC6T2N6sC
-eXA/WiKpWU8pISHEfpMCyIGdhKKeT4bBquwxlXxtkz7sEQqp+BaQLNY7PplH6So4
-Louep+Ptl9Eq1+R9RCUaT4J2bp88EPrTg3BuoEEHbSLJWRsYDnYkaJbJRhEIJCut
-bsBzWey4zkpczvmdmSRR/eSOvVHjZj7cWAK15LWkQKBgQD4d/akyFRlSANQ71eq
-6/SixhNhN0HvGRanUHoAZN65ibNEDds2heyRQAPBsuL9e3sWvB7t86f+Sw8nBfrh
-VFhnWCgMkt5bmXfb8g6UrWgQ0Bhw9DOb4dSPpAPIRN1tJ9GgTNrt445aNlrGDuFs
-JNE/Zfk+oXxXCR4dVaJtm/zPUQKBgQD3ZWU2+ZbhECXfQ7yDg81WdV659mR+ZApR
-8b0cRaSrNfd91LFBXDA+xiwzvkScn4E7a+yArL8KomcQcebJeeOUpxIAkbXtW+CZ
-OJzbuf9cmLDwP9+BufpT02nQGo4oeyRagum++tU0+DBPOIysg1cy9FKXvyzA0fGH
-8HXZojCOcwKBgBdGTYFUDqvKGh1rvh+RqMHSoiAaJ//4rqmPnU4KJN7majd2wNET
-rHxSrcdoNWEfPwF7L76Ec3kbmNjD86NF3l4X4PCElXWpI5Qj0X/V2oiwpYl3Jpp0
-hg/KglwxLzi5YSaN7HgaN8x1iP1CiZUywbMZn0ZhpB8XCI4g5m00DnNxAoGAMxAr
-pwA3QzcJCh86Ds8ql9jb93hC38+YTbeet/Ir/ebCsacv+vSjRKG0x+1Szh0iGHi7
-NQfy2qgQq9VGtHlDHxCo55MrwNVA83866SNn8N3XT49ve6A+agTuBzUj+HkKVOBG
-jNPLJAbCOefLKWRmoC7LyWR9QUNUHiHkwUn3yb8CgYEAtl1oyZN1XN3DXbsssW40
-5k92gd1cW0UBwUvWT8HLqIn8zSNjKXnlqlNv7CwXo3XHvzupFhsFtPtmrm/d/n2z
-5gT6IdOfEr2gDGhPsshiTKkodvfmzx1QbS3KcB0bxQArzvUqiLFm0beWLlfnEWIf
-wGX1qXOSe/tfNI6Jo1Idx+g=
------END PRIVATE KEY-----
-KEY
+{
+  echo '-----BEGIN PRIVATE KEY-----'
+  echo 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDwHiiJ/CigceXO65TCgLou6uhru9/riQOD79y6V7djUoccitznysxybvPHjLilxsAASmfbU3g5OzkkGsaI/ZloacQsU9nZ5K3pNC2CXbYDU0DknPIKDGWXVwcGQnd/5HrLKojXTxuFCIPne9evkFZ/viy4rnNPTEpiWzYDeuPQyHl00ZO9ZCn3Ln8hI6FDlf462f8LYrnaDO5hbge/nZkDoVGuLbBRCrBQHvH+tiRtuaBrMzs2j5fXShnM2O8rpLgUVOqs3PS0a91G00L5MYOvSaipCd5gaJG+c/cuO/CQBZxm5wfUcX3we5QGYH6oCiblZ4uuojUfb1XPvwRuwA9jAgMBAAECggEAXt+jp+WUjdSC9y+Y7wMazWfunoa0kmVoGKzg+1WmNZ3Jmcr6PrGf90UEmF9vI700Zsj/YScJVR+j07KqqDz/bMSBiPw2kwPqfT6rDpwFSyoNdWbXsYW1bEcsFNqVSdiWdgjf2aa9mmJDb+a8UXeH3eBf3ja7g+UCbPtaC6T2N6sCeXA/WiKpWU8pISHEfpMCyIGdhKKeT4bBquwxlXxtkz7sEQqp+BaQLNY7PplH6So4Louep+Ptl9Eq1+R9RCUaT4J2bp88EPrTg3BuoEEHbSLJWRsYDnYkaJbJRhEIJCutbsBzWey4zkpczvmdmSRR/eSOvVHjZj7cWAK15LWkQKBgQD4d/akyFRlSANQ71eq6/SixhNhN0HvGRanUHoAZN65ibNEDds2heyRQAPBsuL9e3sWvB7t86f+Sw8nBfrhVFhnWCgMkt5bmXfb8g6UrWgQ0Bhw9DOb4dSPpAPIRN1tJ9GgTNrt445aNlrGDuFsJNE/Zfk+oXxXCR4dVaJtm/zPUQKBgQD3ZWU2+ZbhECXfQ7yDg81WdV659mR+ZApR8b0cRaSrNfd91LFBXDA+xiwzvkScn4E7a+yArL8KomcQcebJeeOUpxIAkbXtW+CZOJzbuf9cmLDwP9+BufpT02nQGo4oeyRagum++tU0+DBPOIysg1cy9FKXvyzA0fGH8HXZojCOcwKBgBdGTYFUDqvKGh1rvh+RqMHSoiAaJ//4rqmPnU4KJN7majd2wNETrHxSrcdoNWEfPwF7L76Ec3kbmNjD86NF3l4X4PCElXWpI5Qj0X/V2oiwpYl3Jpp0hg/KglwxLzi5YSaN7HgaN8x1iP1CiZUywbMZn0ZhpB8XCI4g5m00DnNxAoGAMxArpwA3QzcJCh86Ds8ql9jb93hC38+YTbeet/Ir/ebCsacv+vSjRKG0x+1Szh0iGHi7NQfy2qgQq9VGtHlDHxCo55MrwNVA83866SNn8N3XT49ve6A+agTuBzUj+HkKVOBGjNPLJAbCOefLKWRmoC7LyWR9QUNUHiHkwUn3yb8CgYEAtl1oyZN1XN3DXbsssW405k92gd1cW0UBwUvWT8HLqIn8zSNjKXnlqlNv7CwXo3XHvzupFhsFtPtmrm/d/n2z5gT6IdOfEr2gDGhPsshiTKkodvfmzx1QbS3KcB0bxQArzvUqiLFm0beWLlfnEWIfwGX1qXOSe/tfNI6Jo1Idx+g=' | fold -w 64
+  echo '-----END PRIVATE KEY-----'
+} > "$NGINX_SSL_DIR/$DOMAIN.key"
 chmod 600 "$NGINX_SSL_DIR/$DOMAIN.key"
-# Convert to traditional RSA format for broader OpenSSL compatibility
-if command -v openssl &>/dev/null; then
-    openssl pkey -in "$NGINX_SSL_DIR/$DOMAIN.key" -traditional -out "$NGINX_SSL_DIR/$DOMAIN.key.tmp" 2>/dev/null
-    if [ $? -eq 0 ] && [ -s "$NGINX_SSL_DIR/$DOMAIN.key.tmp" ]; then
-        mv "$NGINX_SSL_DIR/$DOMAIN.key.tmp" "$NGINX_SSL_DIR/$DOMAIN.key"
-    else
-        rm -f "$NGINX_SSL_DIR/$DOMAIN.key.tmp"
-    fi
-fi
 ok "Private key written"
 
 # ── Write Nginx config ─────────────────────────────────────────
