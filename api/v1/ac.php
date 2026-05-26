@@ -29,7 +29,7 @@ class autocomplete{
 		*/
 		if(!isset($_GET["s"])){
 			
-			$this->do404("Missing search(s) parameter");
+			$this->			$this->do404("Missing search(s) parameter");
 		}
 		
 		if(is_string($_GET["s"]) === false){
@@ -216,7 +216,7 @@ class autocomplete{
 		
 		}catch(Exception $error){
 			
-			do404("Curl error: " . $error->getMessage());
+			$this->do404("Curl error: " . $error->getMessage());
 		}
 	}
 	

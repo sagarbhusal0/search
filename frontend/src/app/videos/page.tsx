@@ -87,8 +87,8 @@ function VideosContent() {
     <main className="min-h-screen bg-[var(--bg)]">
       <SearchHeader />
 
-      <div className="max-w-[var(--container)] mx-auto px-4 py-5 flex gap-10">
-        <div className="flex-1 min-w-0 max-w-2xl">
+      <div className="max-w-[var(--container)] mx-auto px-4 py-5">
+        <div className="min-w-0 max-w-2xl">
         {loading ? (
           <div className="space-y-7">
             {[...Array(6)].map((_, i) => (

@@ -8,10 +8,10 @@ class config{
 	const VERSION = 8;
 	
 	// Will be shown pretty much everywhere.
-	const SERVER_NAME = "4get";
+	const SERVER_NAME = "Sorvx";
 	
 	// Will be shown in <meta> tag on home page
-	const SERVER_SHORT_DESCRIPTION = "4get is a proxy search engine that doesn't suck.";
+	const SERVER_SHORT_DESCRIPTION = "Sorvx — Privacy-focused metasearch engine.";
 	
 	// Will be shown in server list ping (null for no description)
 	const SERVER_LONG_DESCRIPTION = null;
@@ -31,7 +31,7 @@ class config{
 	
 	// 4play password. Please set this to something secure if you enable the 4play API.
 	// This password is used to POST sessions to /api/v2/provide_sesh
-	const FPLAY_PASSWORD = "1234";
+	const FPLAY_PASSWORD = "REPLACE_WITH_SECURE_PASSWORD";
 	
 	//
 	// BOT PROTECTION
@@ -131,7 +131,7 @@ class config{
 	const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:151.0) Gecko/20100101 Firefox/151.0";
 	
 	// User agent to use with 4get-friendly APIs
-	const USER_AGENT_FRIENDLY = "4get-scrapist (+https://4get.ca)";
+	const USER_AGENT_FRIENDLY = "Sorvx-search (+https://search.sorvx.com)";
 	
 	// Proxy pool assignments for each scraper
 	// false = Use server's raw IP

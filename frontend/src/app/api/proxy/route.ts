@@ -1,5 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function isValidImageUrl(url: string): boolean {
+    try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+        const hostname = parsed.hostname.toLowerCase();
+        if (
+            hostname === "localhost" ||
+            hostname === "127.0.0.1" ||
+            hostname === "0.0.0.0" ||
+            hostname === "[::1]" ||
+            hostname.startsWith("10.") ||
+            hostname.startsWith("172.16.") ||
+            hostname.startsWith("192.168.") ||
+            hostname.endsWith(".local") ||
+            hostname.endsWith(".internal")
+        ) return false;
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export async function GET(request: NextRequest) {
     const url = request.nextUrl.searchParams.get("i");
     const size = request.nextUrl.searchParams.get("s") || "original";
@@ -8,7 +30,10 @@ export async function GET(request: NextRequest) {
         return new NextResponse("Missing url (i) parameter", { status: 400 });
     }
 
-    // PHP backend runs on 127.0.0.1:80 inside the container
+    if (!isValidImageUrl(url)) {
+        return new NextResponse("Invalid or disallowed URL", { status: 400 });
+    }
+
     const backendUrl = process.env.PHP_BACKEND_URL || "http://127.0.0.1:80";
 
     try {
