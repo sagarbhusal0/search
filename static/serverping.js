@@ -225,7 +225,7 @@ async function fetch_server(server){
 			)
 		) ||
 		typeof data.service != "string" ||
-		data.service != "4get" ||
+		data.service != "Sorvx Search" ||
 		(
 			typeof data.server.description != "string" &&
 			data.server.description !== null

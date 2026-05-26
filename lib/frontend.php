@@ -181,7 +181,7 @@ class frontend{
 			
 			$this->drawerror(
 				"Tshh, blocked!",
-				'Your browser, IP or IP range has been blocked from this 4get instance. If this is an error, please <a href="/about">contact the administrator</a>.'
+				'Your browser, IP or IP range has been blocked from this Sorvx instance. If this is an error, please <a href="/about">contact the administrator</a>.'
 			);
 			die();
 		}
@@ -224,7 +224,7 @@ class frontend{
 			'<ul>' . 
 				'<li>Use a different scraper</li>' .
 				'<li>Remove keywords that could cause errors</li>' .
-				'<li><a href="/instances?target=' . $target . "&" . $this->buildquery($get, false) . '">Try your search on another 4get instance</a></li>' .
+				'<li><a href="/instances?target=' . $target . "&" . $this->buildquery($get, false) . '">Try your search on another instance</a></li>' .
 			'</ul><br>' .
 			'If the error persists, please <a href="/about">contact the administrator</a>.',
 			$timetaken

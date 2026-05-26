@@ -11,7 +11,7 @@ $bot_requests = apcu_fetch("captcha_gen");
 echo json_encode(
 	[
 		"status" => "ok",
-		"service" => "4get",
+		"service" => "Sorvx Search",
 		"server" => [
 			"name" => config::SERVER_NAME,
 			"description" => config::SERVER_LONG_DESCRIPTION,

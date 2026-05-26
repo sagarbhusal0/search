@@ -192,7 +192,7 @@ class imgur{
 				
 				if(stripos($json["data"]["error"], "capacity")){
 					
-					throw new Exception("Imgur IP blocked this 4get instance or request proxy. Try again");
+					throw new Exception("Imgur IP blocked this Sorvx instance or request proxy. Try again");
 				}
 			}
 			

@@ -1,10 +1,10 @@
 <?php
 class config{
-	// Welcome to the 4get configuration file
+	// Sorvx Search configuration file
 	// When updating your instance, please make sure this file isn't missing
 	// any parameters.
 	
-	// 4get version. Please keep this updated
+	// Configuration version. Please keep this updated
 	const VERSION = 8;
 	
 	// Will be shown pretty much everywhere.
@@ -24,7 +24,7 @@ class config{
 	const API_ENABLED = true;
 	
 	//
-	// 4play (session provider)
+	// Session provider (fplay)
 	//
 	// Enable 4play API?
 	const FPLAY_ENABLE_API = true;
@@ -130,7 +130,7 @@ class config{
 	// Changing this might break things.
 	const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:151.0) Gecko/20100101 Firefox/151.0";
 	
-	// User agent to use with 4get-friendly APIs
+	// User agent to use with friendly APIs
 	const USER_AGENT_FRIENDLY = "Sorvx-search (+https://search.sorvx.com)";
 	
 	// Proxy pool assignments for each scraper

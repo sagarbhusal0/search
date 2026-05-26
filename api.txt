@@ -12,7 +12,7 @@
                           4444
                            44
                  
-           + Welcome to the 4get API documentation +
+            + Welcome to the Sorvx Search API documentation +
 
 + Terms of use
     Do NOT misuse the API. Misuses can include... ::
@@ -33,7 +33,7 @@
 
 
     If you wish to engage in the activities listed under "misuses", feel
-    free to download the source code of the project and running 4get
+    free to download the source code of the project and running Sorvx Search
     under your own terms. Please respect the terms of use listed here so
     that this website may be available to all in the far future.
 
@@ -93,7 +93,7 @@
     array position on the serber's memory. The second part is an
     encryption key used to decode the data at that position. This way,
     it is impossible to supply invalid pagination data and it is
-    impossible for a 4get operator to peek at the private data of the
+    impossible for a Sorvx operator to peek at the private data of the
     user after a request has been made.
     
     The tokens will expire as soon as they are used or after a 15
@@ -106,7 +106,7 @@
 
 
 + API Parameters
-    To construct a valid request, you can use the 4get web interface
+    To construct a valid request, you can use the Sorvx Search web interface
     to craft a valid request, and replace "/web" with "/api/v1/web".
 
 
@@ -127,7 +127,7 @@
                           /_/                              
 
 + /ami4get
-    Tells you basic information about the 4get instance. CORS requests
+    Tells you basic information about the Sorvx instance. CORS requests
     are allowed on this endpoint.
 
 
@@ -284,7 +284,7 @@
     URL should return a valid HTTP audio stream. To access the endpoint,
     you must add the following prefix in your request, like so:
 	
-        https://4get.ca/audio/<endpoint>?s=<url>
+        https://search.sorvx.com/audio/<endpoint>?s=<url>
 
 
 + /favicon

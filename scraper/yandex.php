@@ -390,7 +390,7 @@ class yandex{
 			$title[0]["innerHTML"] == "403"
 		){
 			
-			throw new Exception("Yandex blocked this proxy or 4get instance.");
+			throw new Exception("Yandex blocked this proxy or Sorvx instance.");
 		}
 		
 		// get nextpage
@@ -733,7 +733,7 @@ class yandex{
 			$json["type"] == "captcha"
 		){
 			
-			throw new Exception("Yandex blocked this 4get instance. Please try again in ~7 minutes.");
+			throw new Exception("Yandex blocked this Sorvx instance. Please try again in ~7 minutes.");
 		}
 		
 		$out = [
