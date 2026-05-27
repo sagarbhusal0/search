@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ───────────────────────────────────────────────────────────
-#  4get full-stack deploy script (Rust backend + Next.js)
+#  Sorvx Search full-stack deploy script (Rust backend + Next.js)
 #  Run this ON the VPS after cloning the repo.
 # ───────────────────────────────────────────────────────────
 

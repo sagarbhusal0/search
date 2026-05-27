@@ -1,8 +1,8 @@
 [package]
-name = "4get"
+name = "sorvx"
 version = "0.1.0"
 edition = "2021"
-description = "4get search engine Rust backend - API server with 35 scraper engines"
+description = "Sorvx Search Rust backend - API server with 35 scraper engines"
 
 [dependencies]
 axum = { version = "0.8", features = ["macros"] }

@@ -10,8 +10,8 @@ RUN cargo build --release
 FROM alpine:3.21
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
-COPY --from=builder /app/target/release/4get /app/4get
+COPY --from=builder /app/target/release/sorvx /app/sorvx
 COPY config.toml /app/config.toml
 RUN mkdir -p /app/data/cache /app/data/icons
 EXPOSE 3001
-CMD ["/app/4get", "--config", "/app/config.toml"]
+CMD ["/app/sorvx", "--config", "/app/config.toml"]

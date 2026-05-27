@@ -3,7 +3,7 @@
 # 4get search
 **4get** is a proxy search engine that doesn't suck.
 
-This branch (`rust`) replaces the PHP backend with a **Rust/Axum JSON API server**. The Next.js frontend stays unchanged.
+**Sorvx Search** — a privacy-focused metasearch engine. This branch (`rust`) replaces the PHP backend with a **Rust/Axum JSON API server**. The Next.js frontend stays unchanged.
 
 ## Architecture
 
@@ -26,7 +26,7 @@ This branch (`rust`) replaces the PHP backend with a **Rust/Axum JSON API server
                                    └──────────────┘
 ```
 
-- **Rust backend** (`4get-rs/`) — Axum server on `:3001`, JSON API only
+- **Rust backend** (`sorvx-rs/`) — Axum server on `:3001`, JSON API only
 - **Next.js frontend** (`frontend/`) — UI on `:3000`, proxies API calls
 - **No PHP / Apache required**
 
@@ -89,7 +89,7 @@ All return JSON. The frontend calls these via its own `/api/*` proxies.
 |              | FindThatMeme |              |              |            |              |
 
 ## Features
-1. Rust rewrite (no PHP/Apache dependency)
+1. Rust rewrite of original 4get PHP backend (no PHP/Apache dependency)
 2. 35 scraper engines with default fallbacks
 3. Rotating proxy pools on a per-scraper basis
 4. Search filters

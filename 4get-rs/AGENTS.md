@@ -1,7 +1,7 @@
-# 4get-rs Rust Backend
+# Sorvx Search — Rust Backend
 
 ## Project Overview
-A Rust rewrite of the 4get metasearch engine backend. Provides JSON API endpoints that replace the PHP backend. The frontend remains a Next.js app that proxies API requests to this Rust server.
+A Rust rewrite of the Sorvx Search (formerly 4get) metasearch engine backend. Provides JSON API endpoints. The frontend is a Next.js app that proxies API requests to this Rust server.
 
 ## Architecture
 ```

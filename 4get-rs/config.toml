@@ -1,18 +1,15 @@
 [server]
-name = "4get"
-short_description = "4get — Privacy-focused metasearch engine."
+name = "Sorvx"
+short_description = "Sorvx — Privacy-focused metasearch engine."
 long_description = ""
 default_theme = "Dark"
-host = "127.0.0.1"
+host = "0.0.0.0"
 port = 3001
 data_dir = "data"
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:151.0) Gecko/20100101 Firefox/151.0"
-user_agent_friendly = "4get-search (+https://search.sorvx.com)"
+user_agent_friendly = "Sorvx-search (+https://search.sorvx.com)"
 api_enabled = true
-instances = [
-    "https://4get.ca",
-    "https://4get.zzls.xyz",
-]
+instances = []
 alt_addresses = []
 
 [bot_protection]
