@@ -20,11 +20,35 @@ info()  { echo -e "${GREEN}[✓]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[!]${NC} $1"; }
 err()   { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 
-# ── checks ──
-command -v docker >/dev/null 2>&1 || err "Docker is not installed"
-command -v docker compose >/dev/null 2>&1 || err "Docker Compose plugin is not installed"
-
 cd "$REPO_DIR"
+
+# ── install docker if missing ──
+if ! command -v docker &>/dev/null; then
+    warn "Docker not found — installing docker.io..."
+    apt-get update -qq
+    apt-get install -y -qq docker.io docker-compose
+    info "Docker installed"
+fi
+
+# ── start docker daemon if not running ──
+if ! docker info &>/dev/null; then
+    warn "Docker daemon not running — starting..."
+    systemctl start docker
+    sleep 3
+    docker info &>/dev/null || err "Failed to start Docker daemon"
+    info "Docker daemon started"
+fi
+
+# ── detect compose command ──
+COMPOSE_CMD=""
+if docker compose version &>/dev/null; then
+    COMPOSE_CMD="docker compose"
+elif command -v docker-compose &>/dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    err "Neither 'docker compose' plugin nor 'docker-compose' found"
+fi
+info "Using: $COMPOSE_CMD"
 
 # ── build frontend .env ──
 info "Writing $FRONTEND_ENV_FILE"
@@ -34,9 +58,9 @@ EOF
 
 # ── build & start ──
 info "Building and starting all services..."
-docker compose -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
-docker compose -f "$COMPOSE_FILE" build --pull
-docker compose -f "$COMPOSE_FILE" up -d
+$COMPOSE_CMD -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
+$COMPOSE_CMD -f "$COMPOSE_FILE" build --pull
+$COMPOSE_CMD -f "$COMPOSE_FILE" up -d
 
 # ── health check ──
 info "Waiting for services to become healthy..."
@@ -45,7 +69,7 @@ sleep 10
 check_service() {
     local name=$1 url=$2
     for i in $(seq 1 12); do
-        if docker compose -f "$COMPOSE_FILE" exec -T "$name" wget --no-verbose --tries=1 --spider "$url" 2>/dev/null; then
+        if $COMPOSE_CMD -f "$COMPOSE_FILE" exec -T "$name" wget --no-verbose --tries=1 --spider "$url" 2>/dev/null; then
             info "$name is healthy"
             return 0
         fi
@@ -65,6 +89,6 @@ echo ""
 echo "  Frontend:  http://$(curl -s ifconfig.me 2>/dev/null || echo 'YOUR_VPS_IP'):3000"
 echo "  Backend:   http://localhost:3001 (internal)"
 echo ""
-echo "  Logs:      docker compose -f $COMPOSE_FILE logs -f"
-echo "  Stop:      docker compose -f $COMPOSE_FILE down"
+echo "  Logs:      $COMPOSE_CMD -f $COMPOSE_FILE logs -f"
+echo "  Stop:      $COMPOSE_CMD -f $COMPOSE_FILE down"
 echo ""
