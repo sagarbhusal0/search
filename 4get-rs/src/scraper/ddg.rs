@@ -16,7 +16,7 @@ impl DDG {
     }
 
     fn vqd(&self, html: &str) -> Option<String> {
-        let re = Regex::new(r"vqd=['\"](\d+(?:-\d+)*)['\"]").ok()?;
+        let re = Regex::new(r#"vqd=['"](\d+(?:-\d+)*)['"]"#).ok()?;
         re.captures(html).and_then(|c| c.get(1).map(|m| m.as_str().to_string()))
     }
 
