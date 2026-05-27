@@ -3,33 +3,66 @@
 # 4get search
 **4get** is a proxy search engine that doesn't suck.
 
-## About 4get
-https://4get.ca/about
+This branch (`rust`) replaces the PHP backend with a **Rust/Axum JSON API server**. The Next.js frontend stays unchanged.
 
-## Official instance
-https://4get.ca , or visit the official instance list: https://4get.ca/instances
+## Architecture
 
-_NOT to be confused with 4get.ch, 4get.lol and friends! I **don't** host these._
+```
+┌──────────┐     proxies /api/*     ┌──────────────┐
+│  Browser  │ ──────────────────►   │  Next.js     │
+│           │ ◄──────────────────── │  (public)    │
+└──────────┘     HTML/CSS/JS        └──────┬───────┘
+                                           │
+                                    PHP_BACKEND_URL
+                                           ▼
+                                   ┌──────────────┐
+                                   │  Rust/Axum   │
+                                   │  (internal)   │
+                                   │  :3001        │
+                                   │               │
+                                   │  35 scrapers  │
+                                   │  + proxy      │
+                                   │  + favicon    │
+                                   └──────────────┘
+```
 
-## Totally unbiased comparison between alternatives
+- **Rust backend** (`4get-rs/`) — Axum server on `:3001`, JSON API only
+- **Next.js frontend** (`frontend/`) — UI on `:3000`, proxies API calls
+- **No PHP / Apache required**
 
-|                            | 4get                    | searx(ng) | whoogle    | degoog                                    |
-|----------------------------|-------------------------|-----------|------------|-------------------------------------------|
-| RAM usage                  | 100-400mb~              | 400mb-1GB | 100mb      | 100mb-250mb                               |
-| Does it suck               | no (debunked by snopes) | yes       | kind of?   | hit and miss with search filters          |
-| Does it work               | ye                      | lmao      | shits dead | works $rightNow, it's actually kinda cool |
+## VPS Deployment (Docker)
 
-## Features
-1. Rotating proxies on a per-scraper basis
-2. Search filters, which SearxNG lacks for the most part
-3. Bot protection that *actually* filters out the bots (when configured)
-4. Interface doesn't require javascript
-5. Favicon fetcher with caching support & image proxy
-6. Bunch of other shits
+```bash
+git clone -b rust https://github.com/sagarbhusal0/search.git
+cd search
+chmod +x deploy-vps.sh
+./deploy-vps.sh
+```
 
-tl;dr 4get is the best way to browse for shit.
+This builds both services, starts them via `docker compose`, and runs health checks.
 
-# Supported websites
+| Service  | Port  | Health           |
+|----------|-------|------------------|
+| Frontend | 3000  | `/api/health`    |
+| Backend  | 3001  | `/healthz.php`   |
+
+## API Endpoints (Rust Backend)
+
+All return JSON. The frontend calls these via its own `/api/*` proxies.
+
+| Endpoint | Params | Default Scraper |
+|----------|--------|-----------------|
+| `GET /api/v1/web.php` | `s`, `scraper`, `p`, `npt`, `nsfw`, `safe`, `spellcheck` | ddg |
+| `GET /api/v1/images.php` | `s`, `scraper`, `p`, `npt`, `nsfw` | pixabay |
+| `GET /api/v1/videos.php` | `s`, `scraper`, `p`, `npt`, `nsfw` | yt |
+| `GET /api/v1/news.php` | `s`, `scraper`, `p`, `npt`, `nsfw` | ddg |
+| `GET /api/v1/music.php` | `s`, `scraper`, `p`, `npt` | sc |
+| `GET /api/v1/ac.php` | `s`, `scraper` | brave |
+| `GET /proxy.php` | `i` (URL), `s` (size) | — |
+| `GET /favicon.php` | `s` (site URL) | — |
+| `GET /healthz.php` | — | — |
+
+## Supported websites (35 scrapers)
 
 | web          | images       | videos       | news         | music      | autocomplete |
 |--------------|--------------|--------------|--------------|------------|--------------|
@@ -55,8 +88,32 @@ tl;dr 4get is the best way to browse for shit.
 |              | Imgur        |              |              |            |              |
 |              | FindThatMeme |              |              |            |              |
 
-# Installation
-Refer to the <a href="https://git.lolcat.ca/lolcat/4get/src/branch/master/docs/">documentation index</a>. I recommend following the <a href="https://git.lolcat.ca/lolcat/4get/src/branch/master/docs/apache2.md">apache2 guide</a>.
+## Features
+1. Rust rewrite (no PHP/Apache dependency)
+2. 35 scraper engines with default fallbacks
+3. Rotating proxy pools on a per-scraper basis
+4. Search filters
+5. Sled-embedded disk cache with TTL
+6. Favicon fetcher with HTML scraping, image conversion, and disk caching
+7. Image proxy with resize (portrait/landscape/square/thumb/cover)
+8. Bot protection support (captcha)
+9. JSON-only API — frontend renders all UI
+
+## About 4get
+https://4get.ca/about
+
+## Official instance
+https://4get.ca , or visit the official instance list: https://4get.ca/instances
+
+_NOT to be confused with 4get.ch, 4get.lol and friends! I **don't** host these._
+
+## Totally unbiased comparison between alternatives
+
+|                            | 4get                    | searx(ng) | whoogle    | degoog                                    |
+|----------------------------|-------------------------|-----------|------------|-------------------------------------------|
+| RAM usage                  | 100-400mb~              | 400mb-1GB | 100mb      | 100mb-250mb                               |
+| Does it suck               | no (debunked by snopes) | yes       | kind of?   | hit and miss with search filters          |
+| Does it work               | ye                      | lmao      | shits dead | works $rightNow, it's actually kinda cool |
 
 ## Contact
 Shit breaks all the time but I repair it all the time too. Email me here: <b>will (at) lolcat.ca</b> or create an issue.
