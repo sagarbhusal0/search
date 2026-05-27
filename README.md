@@ -1,8 +1,4 @@
-## <a href="https://4get.ca/donate">Donate to the project here!</a>
-
-# 4get search
-**4get** is a proxy search engine that doesn't suck.
-
+# Sorvx Search
 **Sorvx Search** — a privacy-focused metasearch engine. This branch (`rust`) replaces the PHP backend with a **Rust/Axum JSON API server**. The Next.js frontend stays unchanged.
 
 ## Architecture
@@ -89,7 +85,7 @@ All return JSON. The frontend calls these via its own `/api/*` proxies.
 |              | FindThatMeme |              |              |            |              |
 
 ## Features
-1. Rust rewrite of original 4get PHP backend (no PHP/Apache dependency)
+1. Rust rewrite of original PHP backend (no PHP/Apache dependency)
 2. 35 scraper engines with default fallbacks
 3. Rotating proxy pools on a per-scraper basis
 4. Search filters
@@ -99,21 +95,8 @@ All return JSON. The frontend calls these via its own `/api/*` proxies.
 8. Bot protection support (captcha)
 9. JSON-only API — frontend renders all UI
 
-## About 4get
-https://4get.ca/about
-
-## Official instance
-https://4get.ca , or visit the official instance list: https://4get.ca/instances
-
-_NOT to be confused with 4get.ch, 4get.lol and friends! I **don't** host these._
-
-## Totally unbiased comparison between alternatives
-
-|                            | 4get                    | searx(ng) | whoogle    | degoog                                    |
-|----------------------------|-------------------------|-----------|------------|-------------------------------------------|
-| RAM usage                  | 100-400mb~              | 400mb-1GB | 100mb      | 100mb-250mb                               |
-| Does it suck               | no (debunked by snopes) | yes       | kind of?   | hit and miss with search filters          |
-| Does it work               | ye                      | lmao      | shits dead | works $rightNow, it's actually kinda cool |
+## Upstream
+This project is a fork of [4get](https://4get.ca).
 
 ## Contact
 Shit breaks all the time but I repair it all the time too. Email me here: <b>will (at) lolcat.ca</b> or create an issue.
