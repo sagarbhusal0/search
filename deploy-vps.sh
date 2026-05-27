@@ -32,17 +32,20 @@ fi
 export PATH="/usr/bin:$PATH"
 
 # ── start docker daemon if not running ──
-if ! docker info &>/dev/null; then
+docker_ok() {
+    [ -S /var/run/docker.sock ] && docker info &>/dev/null
+}
+if ! docker_ok; then
     warn "Docker daemon not running — starting..."
-    systemctl start docker
-    for i in $(seq 1 10); do
+    systemctl start docker 2>/dev/null || dockerd &>/dev/null &
+    for i in $(seq 1 15); do
         sleep 2
-        if docker info &>/dev/null; then
+        if docker_ok; then
             info "Docker daemon started"
             break
         fi
     done
-    docker info &>/dev/null || err "Failed to start Docker daemon after 20s"
+    docker_ok || err "Failed to start Docker daemon after 30s"
 fi
 
 # ── detect compose command ──
