@@ -1,9 +1,16 @@
-FROM rust:latest AS builder
+FROM rust:latest AS chef
+RUN cargo install cargo-chef
+
+FROM chef AS planner
 WORKDIR /app
-COPY Cargo.toml Cargo.lock* ./
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-RUN cargo build --release 2>/dev/null || true
-COPY src ./src
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+WORKDIR /app
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim
