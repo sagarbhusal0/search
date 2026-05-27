@@ -27,6 +27,8 @@ if ! command -v docker &>/dev/null; then
     warn "Docker not found — installing docker.io..."
     apt-get update -qq
     apt-get install -y -qq docker.io docker-compose
+    hash -r
+    command -v docker &>/dev/null || err "docker still not found after install"
     info "Docker installed"
 fi
 
@@ -34,9 +36,14 @@ fi
 if ! docker info &>/dev/null; then
     warn "Docker daemon not running — starting..."
     systemctl start docker
-    sleep 3
-    docker info &>/dev/null || err "Failed to start Docker daemon"
-    info "Docker daemon started"
+    for i in $(seq 1 10); do
+        sleep 2
+        if docker info &>/dev/null; then
+            info "Docker daemon started"
+            break
+        fi
+    done
+    docker info &>/dev/null || err "Failed to start Docker daemon after 20s"
 fi
 
 # ── detect compose command ──
