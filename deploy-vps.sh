@@ -23,14 +23,13 @@ err()   { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 cd "$REPO_DIR"
 
 # ── install docker if missing ──
-if ! command -v docker &>/dev/null; then
+if [ ! -x /usr/bin/docker ]; then
     warn "Docker not found — installing docker.io..."
     apt-get update -qq
-    apt-get install -y -qq docker.io docker-compose
-    hash -r
-    command -v docker &>/dev/null || err "docker still not found after install"
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq docker.io docker-compose
     info "Docker installed"
 fi
+export PATH="/usr/bin:$PATH"
 
 # ── start docker daemon if not running ──
 if ! docker info &>/dev/null; then
