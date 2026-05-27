@@ -24,16 +24,19 @@ cd "$REPO_DIR"
 
 # ── install docker if missing ──
 if [ ! -x /usr/bin/docker ]; then
-    warn "Docker not found — installing docker.io..."
+    warn "Docker not found — installing..."
     apt-get update -qq
-    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq docker.io docker-compose
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq docker.io docker-cli docker-compose
+    if [ ! -x /usr/bin/docker ] && [ -x /usr/bin/docker-cli ]; then
+        ln -sf /usr/bin/docker-cli /usr/bin/docker
+    fi
+    [ -x /usr/bin/docker ] || err "docker CLI still missing after install"
     info "Docker installed"
 fi
-export PATH="/usr/bin:$PATH"
 
 # ── start docker daemon if not running ──
 docker_ok() {
-    [ -S /var/run/docker.sock ] && docker info &>/dev/null
+    docker info &>/dev/null
 }
 if ! docker_ok; then
     warn "Docker daemon not running — starting..."
