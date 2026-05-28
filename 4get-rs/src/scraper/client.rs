@@ -113,6 +113,15 @@ impl ProxyPool {
     }
 }
 
+impl Clone for ProxyPool {
+    fn clone(&self) -> Self {
+        ProxyPool {
+            proxies: self.proxies.clone(),
+            counter: AtomicU64::new(self.counter.load(Ordering::Relaxed)),
+        }
+    }
+}
+
 pub struct HttpClient {
     pub client: Client,
     pub proxy_pools: Vec<(String, ProxyPool)>,

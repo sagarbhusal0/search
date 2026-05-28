@@ -12,7 +12,7 @@ use crate::cache::CacheStore;
 use crate::config::Config;
 use crate::scraper::client::HttpClient;
 use crate::scraper::ScraperRegistry;
-use axum::routing::{get, Router};
+use axum::routing::get;
 use axum::Router as AxumRouter;
 use std::sync::Arc;
 

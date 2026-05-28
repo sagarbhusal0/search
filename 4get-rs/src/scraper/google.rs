@@ -142,11 +142,12 @@ impl Scraper for Google {
                 .select(&title_sel)
                 .next()
                 .and_then(|e| e.value().attr("aria-label"))
+                .map(|s| s.to_string())
                 .or_else(|| {
                     container
                         .select(&Selector::parse("div:not([class])").unwrap())
                         .next()
-                        .and_then(|e| e.text().collect::<String>().into())
+                        .and_then(|e| Some(e.text().collect::<String>()))
                 })
                 .unwrap_or_default();
 

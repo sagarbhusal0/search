@@ -43,7 +43,8 @@ impl PaginationStore {
             buf
         };
         let nonce = Nonce::from_slice(&nonce_bytes);
-        let encrypted = self.cipher.encrypt(nonce, compressed.as_ref())?;
+        let encrypted = self.cipher.encrypt(nonce, compressed.as_ref())
+            .map_err(|e| format!("encrypt error: {}", e))?;
 
         let page_letter = page.chars().next().unwrap_or('w');
         let apcu_key = format!("{}.{}{}", page_letter, scraper, request_id);
@@ -107,7 +108,8 @@ impl PaginationStore {
         let proxy = String::from_utf8(store_data[16..16 + proxy_len].to_vec())?;
         let encrypted = &store_data[16 + proxy_len..];
 
-        let decrypted = self.cipher.decrypt(nonce, encrypted)?;
+        let decrypted = self.cipher.decrypt(nonce, encrypted)
+            .map_err(|e| format!("decrypt error: {}", e))?;
 
         let mut decoder = DeflateDecoder::new(decrypted.as_slice());
         let mut decompressed = Vec::new();

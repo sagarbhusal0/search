@@ -33,9 +33,9 @@ impl Scraper for GoogleApi {
             .client
             .get("https://www.googleapis.com/customsearch/v1")
             .query(&[
-                ("key", &self.cx),
-                ("cx", &self.cx),
-                ("q", &query.q),
+                ("key", self.cx.as_str()),
+                ("cx", self.cx.as_str()),
+                ("q", query.q.as_str()),
                 ("hl", "en"),
             ])
             .send()

@@ -48,7 +48,7 @@ impl Scraper for DDG {
             ("q", query.q.as_str()),
             ("vqd", &vqd),
             ("kl", "wt-wt"),
-            ("sp", if query.nsfw.to_string() == "yes" { "1" } else { "0" }),
+            ("sp", if matches!(query.nsfw, crate::types::NsfwLevel::Yes) { "1" } else { "0" }),
             ("ex", if query.extended_search { "-1" } else { "1" }),
         ];
 

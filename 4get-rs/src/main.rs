@@ -60,7 +60,7 @@ async fn main() {
         .nest("/", routes::static_routes())
         .layer(cors)
         .layer(compression)
-        .with_state(state);
+        .with_state(state.clone());
 
     let addr = format!("{}:{}", &state.config.server.host, state.config.server.port);
     tracing::info!("Starting server on {}", addr);

@@ -65,7 +65,7 @@ impl Scraper for Yandex {
             let description: String = result
                 .select(&desc_sel)
                 .next()
-                .map(|e| e.text().collect())
+                .map(|e| e.text().collect::<String>())
                 .unwrap_or_default()
                 .trim()
                 .to_string();

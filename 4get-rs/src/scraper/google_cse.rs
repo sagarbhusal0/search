@@ -33,9 +33,9 @@ impl Scraper for GoogleCse {
             .client
             .get("https://www.googleapis.com/customsearch/v1")
             .query(&[
-                ("key", &self.cx),
+                ("key", self.cx.as_str()),
                 ("cx", "017466674625512407126:d4e68b99b876541f0"),
-                ("q", &query.q),
+                ("q", query.q.as_str()),
                 ("hl", "en"),
             ])
             .send()

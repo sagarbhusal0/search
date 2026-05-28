@@ -1,7 +1,6 @@
 use axum::extract::{Query, State};
 use axum::http::{HeaderMap, StatusCode, header};
-use axum::response::Response;
-use image::GenericImageView;
+use axum::response::{IntoResponse, Response};
 use scraper::{Html, Selector};
 use serde::Deserialize;
 use std::io::Cursor;
@@ -18,7 +17,7 @@ pub struct FaviconParams {
 fn default_favicon() -> Vec<u8> {
     let mut img = image::ImageBuffer::new(16, 16);
     for pixel in img.pixels_mut() {
-        *pixel = image::Rgba([200, 200, 200, 255]);
+        *pixel = image::Rgba([200u8, 200u8, 200u8, 255u8]);
     }
     let mut buf = Cursor::new(Vec::new());
     let _ = img.write_to(&mut buf, image::ImageFormat::Png);
