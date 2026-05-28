@@ -117,6 +117,7 @@ impl Scraper for Startpage {
             if !img_url.is_empty() && !img_url.starts_with("data:") {
                 response.image.push(ImageResult {
                     title,
+                    url: img_url.clone(),
                     source: vec![ImageSource {
                         url: img_url,
                         width: None,
@@ -169,6 +170,7 @@ impl Scraper for Startpage {
                     description,
                     date: None,
                     source: None,
+                    thumb: None,
                 });
             }
         }
@@ -218,6 +220,7 @@ impl Scraper for Startpage {
                     date: None,
                     description: None,
                     source: Some("startpage".into()),
+                    author: None,
                     thumb: None,
                 });
             }

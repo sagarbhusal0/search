@@ -59,7 +59,7 @@ impl Scraper for Pixabay {
                             height: None,
                         });
                     }
-                    response.image.push(ImageResult { title, source: sources });
+                    response.image.push(ImageResult { title, url: sources[0].url.clone(), source: sources });
                 }
             }
         }

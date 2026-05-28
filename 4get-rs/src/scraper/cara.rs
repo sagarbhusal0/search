@@ -53,6 +53,7 @@ impl Scraper for Cara {
                     if !img_url.is_empty() {
                         response.image.push(ImageResult {
                             title: title.clone(),
+                            url: img_url.clone(),
                             source: vec![ImageSource {
                                 url: img_url,
                                 width: width.map(|w| w as u32),

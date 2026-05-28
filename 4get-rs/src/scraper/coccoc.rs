@@ -95,6 +95,7 @@ impl Scraper for CocCoc {
                     date: None,
                     description: None,
                     source: Some("coccoc".into()),
+                    author: None,
                     thumb: None,
                 });
             }

@@ -68,7 +68,7 @@ impl Scraper for Flickr {
                             height: None,
                         });
                     }
-                    response.image.push(ImageResult { title, source: sources });
+                    response.image.push(ImageResult { title, url: sources[0].url.clone(), source: sources });
                 }
             }
         }

@@ -146,6 +146,7 @@ impl Scraper for DDG {
 
                         response.image.push(ImageResult {
                             title,
+                            url: sources[0].url.clone(),
                             source: sources,
                         });
                     }
@@ -194,6 +195,7 @@ impl Scraper for DDG {
                             description: desc,
                             date,
                             source,
+                            thumb: None,
                         });
                     }
                 }

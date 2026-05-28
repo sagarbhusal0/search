@@ -26,7 +26,7 @@ function NewsContent() {
     const m = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
     return m ? decodeURIComponent(m.split("=")[1]) : null;
   };
-  const [scraper] = useState(getCookie("scraper_news") || "google");
+  const [scraper] = useState(getCookie("scraper_news") || "ddg");
 
   useEffect(() => {
     if (!query) return;
@@ -105,11 +105,12 @@ function NewsContent() {
             {results.map((result, i) => {
               const thumbUrl = typeof result.thumb === "string" ? result.thumb : result.thumb?.url || "";
               const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
+              const authorName = result.author || result.source || "News";
               return (
                 <article key={i} className="group flex gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 text-[11px] text-[var(--meta)] mb-0.5">
-                      <span className="font-semibold uppercase tracking-tight">{result.author || "News"}</span>
+                      <span className="font-semibold uppercase tracking-tight">{authorName}</span>
                       {result.date && <span>&middot; {new Date(result.date * 1000).toLocaleDateString()}</span>}
                     </div>
                     <a href={result.url} target="_blank" rel="noopener noreferrer" className="block mb-0.5">

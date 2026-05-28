@@ -86,8 +86,9 @@ impl Scraper for YouTube {
                                         duration,
                                         date: None,
                                         description: None,
-                                        source: Some("yt".into()),
-                                        thumb: None,
+                    source: Some("yt".into()),
+                    author: None,
+                    thumb: None,
                                     });
                                 }
                             }

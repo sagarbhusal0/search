@@ -112,6 +112,7 @@ impl Scraper for Baidu {
             if !img_url.is_empty() && !img_url.starts_with("data:") {
                 response.image.push(ImageResult {
                     title,
+                    url: img_url.clone(),
                     source: vec![ImageSource {
                         url: img_url,
                         width: None,
@@ -163,6 +164,7 @@ impl Scraper for Baidu {
                     description,
                     date: None,
                     source: Some(source).filter(|s| !s.is_empty()),
+                    thumb: None,
                 });
             }
         }
@@ -209,6 +211,7 @@ impl Scraper for Baidu {
                     date: None,
                     description: None,
                     source: Some("baidu".into()),
+                    author: None,
                     thumb: None,
                 });
             }

@@ -141,6 +141,7 @@ impl Scraper for Brave {
             if !final_url.is_empty() {
                 response.image.push(ImageResult {
                     title,
+                    url: final_url.clone(),
                     source: vec![ImageSource {
                         url: final_url,
                         width: None,
@@ -204,6 +205,7 @@ impl Scraper for Brave {
                     date: None,
                     description: None,
                     source: Some("brave".into()),
+                    author: None,
                     thumb: None,
                 });
             }
@@ -268,6 +270,7 @@ impl Scraper for Brave {
                     description,
                     date: None,
                     source,
+                    thumb: None,
                 });
             }
         }

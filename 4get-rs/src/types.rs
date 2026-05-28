@@ -78,6 +78,7 @@ pub struct ImageSource {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImageResult {
     pub title: String,
+    pub url: String,
     pub source: Vec<ImageSource>,
 }
 
@@ -90,6 +91,7 @@ pub struct VideoResult {
     pub date: Option<i64>,
     pub description: Option<String>,
     pub source: Option<String>,
+    pub author: Option<String>,
     pub thumb: Option<String>,
 }
 
@@ -100,6 +102,7 @@ pub struct NewsResult {
     pub description: String,
     pub date: Option<i64>,
     pub source: Option<String>,
+    pub thumb: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

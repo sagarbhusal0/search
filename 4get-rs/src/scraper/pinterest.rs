@@ -49,7 +49,7 @@ impl Scraper for Pinterest {
                 let sources = vec![
                     ImageSource { url: img_url.clone(), width: None, height: None },
                 ];
-                response.image.push(ImageResult { title, source: sources });
+                response.image.push(ImageResult { title, url: sources[0].url.clone(), source: sources });
             }
         }
 

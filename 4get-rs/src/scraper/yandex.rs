@@ -122,6 +122,7 @@ impl Scraper for Yandex {
             if !img_url.is_empty() && !img_url.starts_with("data:") {
                 response.image.push(ImageResult {
                     title,
+                    url: img_url.clone(),
                     source: vec![ImageSource {
                         url: img_url,
                         width: None,
@@ -177,6 +178,7 @@ impl Scraper for Yandex {
                     date: None,
                     description: None,
                     source: Some("yandex".into()),
+                    author: None,
                     thumb: None,
                 });
             }

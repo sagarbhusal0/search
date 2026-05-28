@@ -48,6 +48,7 @@ impl Scraper for FiveHundredPx {
             if !img_url.is_empty() && !img_url.starts_with("data:") && !img_url.contains("avatar") {
                 response.image.push(ImageResult {
                     title,
+                    url: img_url.clone(),
                     source: vec![ImageSource { url: img_url, width: None, height: None }],
                 });
             }

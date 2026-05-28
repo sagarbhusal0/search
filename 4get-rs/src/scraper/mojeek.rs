@@ -95,6 +95,7 @@ impl Scraper for Mojeek {
                     description,
                     date: None,
                     source: None,
+                    thumb: None,
                 });
             }
         }

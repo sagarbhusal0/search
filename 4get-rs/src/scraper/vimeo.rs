@@ -67,6 +67,7 @@ impl Scraper for Vimeo {
                     date: None,
                     description: None,
                     source: Some("vimeo".into()),
+                    author: None,
                     thumb: None,
                 });
             }

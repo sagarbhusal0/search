@@ -173,6 +173,7 @@ impl Scraper for Google {
             if !img_url.is_empty() && !img_url.starts_with("data:") {
                 response.image.push(ImageResult {
                     title,
+                    url: img_url.clone(),
                     source: vec![ImageSource {
                         url: img_url,
                         width,
@@ -244,6 +245,7 @@ impl Scraper for Google {
                     description,
                     date: None,
                     source,
+                    thumb: None,
                 });
             }
         }
@@ -293,6 +295,7 @@ impl Scraper for Google {
                     date: None,
                     description: None,
                     source: Some("google".into()),
+                    author: None,
                     thumb: None,
                 });
             }

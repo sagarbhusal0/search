@@ -67,6 +67,7 @@ impl Scraper for SepiaSearch {
                     date: None,
                     description: None,
                     source: Some("sepiasearch".into()),
+                    author: None,
                     thumb: None,
                 });
             }

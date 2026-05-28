@@ -27,7 +27,8 @@ export default function SearchBar({ initialQuery = "", placeholder = "Search wit
       try {
         const res = await fetch(`/api/autocomplete?s=${encodeURIComponent(query)}`);
         const data = await res.json();
-        if (Array.isArray(data) && data[1]) setSuggestions(data[1].slice(0, 8));
+        const items = data.suggestions || (Array.isArray(data) && data[1]) || [];
+        setSuggestions(items.slice(0, 8));
       } catch { setSuggestions([]); }
     }, 100);
     return () => clearTimeout(timer);

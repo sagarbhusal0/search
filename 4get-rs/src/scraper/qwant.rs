@@ -106,6 +106,7 @@ impl Scraper for Qwant {
                     }
                     response.image.push(ImageResult {
                         title,
+                        url: sources[0].url.clone(),
                         source: sources,
                     });
                 }
@@ -147,6 +148,7 @@ impl Scraper for Qwant {
                         description,
                         date: None,
                         source,
+                        thumb: None,
                     });
                 }
             }
@@ -188,8 +190,9 @@ impl Scraper for Qwant {
                         duration: duration.map(|d| d.to_string()),
                         date: None,
                         description: None,
-                        source: Some("qwant".into()),
-                        thumb: None,
+                    source: Some("qwant".into()),
+                    author: None,
+                    thumb: None,
                     });
                 }
             }

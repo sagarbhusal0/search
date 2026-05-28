@@ -85,6 +85,7 @@ impl Scraper for YahooJapan {
             if !img_url.is_empty() && !img_url.starts_with("data:") {
                 response.image.push(ImageResult {
                     title,
+                    url: img_url.clone(),
                     source: vec![ImageSource { url: img_url, width: None, height: None }],
                 });
             }
@@ -122,6 +123,7 @@ impl Scraper for YahooJapan {
                     description,
                     date: None,
                     source: None,
+                    thumb: None,
                 });
             }
         }
@@ -160,6 +162,7 @@ impl Scraper for YahooJapan {
                     date: None,
                     description: None,
                     source: Some("yahoo_japan".into()),
+                    author: None,
                     thumb: None,
                 });
             }

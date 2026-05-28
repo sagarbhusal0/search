@@ -63,7 +63,7 @@ impl Scraper for Pexels {
                                 height: None,
                             });
                         }
-                        response.image.push(ImageResult { title: alt, source: sources });
+                        response.image.push(ImageResult { title: alt, url: sources[0].url.clone(), source: sources });
                     }
                 }
             }
