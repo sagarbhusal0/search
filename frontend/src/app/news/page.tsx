@@ -7,7 +7,7 @@ import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
 
 interface NewsResult {
-  title: string; description: string; url: string; author?: string; date?: number; thumb?: { url?: string } | string;
+  title: string; description: string; url: string; author?: string; source?: string; date?: number; thumb?: { url?: string } | string;
 }
 
 function NewsContent() {

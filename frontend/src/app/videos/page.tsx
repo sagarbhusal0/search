@@ -7,7 +7,7 @@ import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
 
 interface VideoResult {
-  title: string; description?: string; url: string; author?: { name: string }; date?: number; duration?: number; thumb?: { url?: string };
+  title: string; description?: string; url: string; author?: { name: string } | string; source?: string; date?: number; duration?: number; thumb?: { url?: string } | string;
 }
 
 function VideosContent() {
