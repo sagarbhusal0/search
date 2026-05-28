@@ -111,7 +111,7 @@ function VideosContent() {
             {results.map((result, i) => {
               const thumbUrl = typeof result.thumb === "string" ? result.thumb : result.thumb?.url || "";
               const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=landscape` : null;
-              const authorName = result.author?.name || result.author || result.source || "Video";
+              const authorName = (typeof result.author === "object" ? result.author?.name : result.author) || result.source || "Video";
               const durationNum = typeof result.duration === "number" ? result.duration : 0;
               return (
                 <article key={i} className="group flex gap-4">
