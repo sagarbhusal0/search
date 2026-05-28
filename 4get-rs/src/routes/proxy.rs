@@ -1,9 +1,7 @@
 use axum::body::Body;
 use axum::extract::{Query, State};
-use axum::http::{HeaderMap, StatusCode, header};
+use axum::http::{HeaderMap, header};
 use axum::response::{IntoResponse, Response};
-use bytes::Bytes;
-use image::GenericImageView;
 use serde::Deserialize;
 use std::io::Cursor;
 

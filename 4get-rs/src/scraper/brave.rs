@@ -3,7 +3,6 @@ use crate::scraper::client::HttpClient;
 use crate::scraper::Scraper;
 use crate::types::*;
 use async_trait::async_trait;
-use regex::Regex;
 use scraper::{Html, Selector};
 
 pub struct Brave {
@@ -175,7 +174,7 @@ impl Scraper for Brave {
         let vid_sel = Selector::parse("div.video-card").unwrap();
         let title_sel = Selector::parse("a.video-title").unwrap();
         let dur_sel = Selector::parse("span.video-duration").unwrap();
-        let views_sel = Selector::parse("span.video-views").unwrap();
+        let _views_sel = Selector::parse("span.video-views").unwrap();
 
         for card in document.select(&vid_sel) {
             let title = card
@@ -236,7 +235,7 @@ impl Scraper for Brave {
         let title_sel = Selector::parse("a.news-title").unwrap();
         let desc_sel = Selector::parse("div.news-description").unwrap();
         let src_sel = Selector::parse("span.news-source").unwrap();
-        let date_sel = Selector::parse("time.news-date").unwrap();
+        let _date_sel = Selector::parse("time.news-date").unwrap();
 
         for card in document.select(&news_sel) {
             let title = card

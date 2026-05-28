@@ -4,7 +4,6 @@ use crate::scraper::Scraper;
 use crate::types::*;
 use async_trait::async_trait;
 use regex::Regex;
-use scraper::{Html, Selector};
 
 pub struct DDG {
     http: HttpClient,

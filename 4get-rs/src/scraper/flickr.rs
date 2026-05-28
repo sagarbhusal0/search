@@ -3,7 +3,6 @@ use crate::scraper::client::HttpClient;
 use crate::scraper::Scraper;
 use crate::types::*;
 use async_trait::async_trait;
-use regex::Regex;
 
 pub struct Flickr {
     http: HttpClient,

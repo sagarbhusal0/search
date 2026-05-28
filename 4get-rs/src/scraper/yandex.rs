@@ -3,7 +3,6 @@ use crate::scraper::client::HttpClient;
 use crate::scraper::Scraper;
 use crate::types::*;
 use async_trait::async_trait;
-use regex::Regex;
 use scraper::{Html, Selector};
 
 pub struct Yandex {
@@ -156,7 +155,7 @@ impl Scraper for Yandex {
         let vid_sel = Selector::parse("div.video-card, div.thumb-wrap").unwrap();
         let title_sel = Selector::parse("a.video-card__title, h3").unwrap();
         let dur_sel = Selector::parse("span.video-card__duration, span.duration").unwrap();
-        let views_sel = Selector::parse("span.video-card__views, span.views").unwrap();
+        let _views_sel = Selector::parse("span.video-card__views, span.views").unwrap();
 
         for card in document.select(&vid_sel) {
             let title: String = card.select(&title_sel).next().map(|e| e.text().collect()).unwrap_or_default();

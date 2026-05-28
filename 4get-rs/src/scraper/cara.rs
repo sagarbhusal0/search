@@ -3,7 +3,6 @@ use crate::scraper::client::HttpClient;
 use crate::scraper::Scraper;
 use crate::types::*;
 use async_trait::async_trait;
-use scraper::{Html, Selector};
 
 pub struct Cara {
     http: HttpClient,

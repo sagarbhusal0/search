@@ -1,7 +1,6 @@
 use crate::config::Config;
 use reqwest::{Client, Proxy};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct ProxyConfig {
