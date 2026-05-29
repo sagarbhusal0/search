@@ -27,3 +27,7 @@ data/captcha/minecraft/
 scraper/curlie.html
 icons/*
 data/api_keys/
+data/cache/
+4get-rs/data/
+brave_test.html
+dev.sh

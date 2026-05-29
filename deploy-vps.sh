@@ -65,7 +65,7 @@ info "Using: $COMPOSE_CMD"
 # ── build frontend .env ──
 info "Writing $FRONTEND_ENV_FILE"
 cat > "$FRONTEND_ENV_FILE" <<EOF
-PHP_BACKEND_URL=http://backend:3001
+BACKEND_URL=http://backend:3001
 EOF
 
 # ── build & start ──

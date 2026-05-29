@@ -23,7 +23,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - PHP_BACKEND_URL=http://backend:3001
+      - BACKEND_URL=http://backend:3001
     depends_on:
       backend:
         condition: service_started
