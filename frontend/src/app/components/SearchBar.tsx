@@ -39,7 +39,7 @@ export default function SearchBar({ initialQuery = "", placeholder = "Search wit
     if (!searchQ.trim()) return;
     const scraper = searchParams?.get("scraper");
     const params = new URLSearchParams();
-    params.set("s", encodeURIComponent(searchQ.trim()));
+    params.set("s", searchQ.trim());
     if (scraper) params.set("scraper", scraper);
     const base = scoped ? "" : "/search";
     router.push(`${base}?${params.toString()}`);

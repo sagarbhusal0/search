@@ -11,7 +11,7 @@ function isValidImageUrl(url: string): boolean {
             hostname === "0.0.0.0" ||
             hostname === "[::1]" ||
             hostname.startsWith("10.") ||
-            hostname.startsWith("172.16.") ||
+            (hostname.startsWith("172.") && (() => { const octet = parseInt(hostname.split(".")[1]); return octet >= 16 && octet <= 31; })()) ||
             hostname.startsWith("192.168.") ||
             hostname.endsWith(".local") ||
             hostname.endsWith(".internal")

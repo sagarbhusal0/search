@@ -79,7 +79,7 @@ export default function SearchResults() {
         const res = await fetch(url);
         const data: ApiResponse = await res.json();
         setTimeTaken((Date.now() - start) / 1000);
-        if (data.status) { setError(data.status); setResults([]); }
+        if (data.status && data.status !== "ok") { setError(data.status); setResults([]); }
         else {
           setResults(data.web || []);
           setRelated(data.related || []);

@@ -376,28 +376,44 @@ impl Scraper for DDG {
     async fn image(&self, query: &SearchQuery) -> Result<ImageResponse, AppError> {
         let mut response = ImageResponse::empty();
 
-        let (js_url, vqd_val) = if let Some(npt) = &query.npt {
+        let (js_url, vqd_val, proxy_label) = if let Some(npt) = &query.npt {
             let parts: Vec<&str> = npt.splitn(2, ',').collect();
             if parts.len() == 2 {
-                (parts[1].to_string(), None)
+                (parts[1].to_string(), None, None)
             } else {
                 return Ok(response);
             }
         } else {
-            let html = self
-                .http
-                .client
+            let nsfw = match query.nsfw {
+                NsfwLevel::Yes => "-1",
+                _ => "1",
+            };
+
+            let get_filters = vec![
+                ("q".to_string(), query.q.clone()),
+                ("iax".to_string(), "images".to_string()),
+                ("ia".to_string(), "images".to_string()),
+                ("kp".to_string(), nsfw.to_string()),
+            ];
+
+            let (client, proxy_label) = self.http.get_or_raw_client(Some("ddg"));
+
+            let html = client
                 .get("https://duckduckgo.com/")
-                .query(&[
-                    ("q", query.q.as_str()),
-                    ("iax", "images"),
-                    ("ia", "images"),
-                ])
+                .query(&get_filters)
                 .header(
                     "Accept",
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 )
                 .header("Accept-Language", "en-US,en;q=0.5")
+                .header("DNT", "1")
+                .header("Sec-GPC", "1")
+                .header("Connection", "keep-alive")
+                .header("Upgrade-Insecure-Requests", "1")
+                .header("Sec-Fetch-Dest", "document")
+                .header("Sec-Fetch-Mode", "navigate")
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Sec-Fetch-User", "?1")
                 .send()
                 .await?
                 .text()
@@ -410,21 +426,25 @@ impl Scraper for DDG {
                 "o=json&q={}&vqd={}&f=&p={}",
                 url::form_urlencoded::byte_serialize(query.q.as_bytes()).collect::<String>(),
                 vqd,
-                match query.nsfw {
-                    NsfwLevel::Yes => "-1",
-                    _ => "1",
-                }
+                nsfw
             );
 
-            (format!("https://duckduckgo.com/i.js?{}", qs), Some(vqd))
+            (format!("https://duckduckgo.com/i.js?{}", qs), Some(vqd), proxy_label)
         };
 
-        let json_text = self
-            .http
-            .client
+        let (client, _) = self.http.get_or_raw_client(if proxy_label.is_some() { Some("ddg") } else { None });
+
+        let json_text = client
             .get(&js_url)
             .header("Accept", "*/*")
+            .header("Accept-Language", "en-US,en;q=0.5")
             .header("Referer", "https://duckduckgo.com/")
+            .header("DNT", "1")
+            .header("Sec-GPC", "1")
+            .header("Connection", "keep-alive")
+            .header("Sec-Fetch-Dest", "script")
+            .header("Sec-Fetch-Mode", "no-cors")
+            .header("Sec-Fetch-Site", "same-site")
             .send()
             .await?
             .text()
@@ -502,20 +522,37 @@ impl Scraper for DDG {
                 return Ok(response);
             }
         } else {
-            let html = self
-                .http
-                .client
+            let nsfw = match query.nsfw {
+                NsfwLevel::Yes => "-2",
+                NsfwLevel::Maybe => "-1",
+                NsfwLevel::No => "1",
+            };
+
+            let get_filters = vec![
+                ("q".to_string(), query.q.clone()),
+                ("iax".to_string(), "videos".to_string()),
+                ("ia".to_string(), "videos".to_string()),
+                ("kp".to_string(), nsfw.to_string()),
+            ];
+
+            let (client, _) = self.http.get_or_raw_client(Some("ddg"));
+
+            let html = client
                 .get("https://duckduckgo.com/")
-                .query(&[
-                    ("q", query.q.as_str()),
-                    ("iax", "videos"),
-                    ("ia", "videos"),
-                ])
+                .query(&get_filters)
                 .header(
                     "Accept",
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 )
                 .header("Accept-Language", "en-US,en;q=0.5")
+                .header("DNT", "1")
+                .header("Sec-GPC", "1")
+                .header("Connection", "keep-alive")
+                .header("Upgrade-Insecure-Requests", "1")
+                .header("Sec-Fetch-Dest", "document")
+                .header("Sec-Fetch-Mode", "navigate")
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Sec-Fetch-User", "?1")
                 .send()
                 .await?
                 .text()
@@ -524,28 +561,29 @@ impl Scraper for DDG {
             let vqd =
                 Self::vqd(&html).ok_or_else(|| AppError::ScraperError("Failed to get VQD".into()))?;
 
-            let p = match query.nsfw {
-                NsfwLevel::Yes => "-2",
-                NsfwLevel::Maybe => "-1",
-                NsfwLevel::No => "1",
-            };
-
             let qs = format!(
                 "l=wt-wt&o=json&sr=1&q={}&vqd={}&f=&p={}",
                 url::form_urlencoded::byte_serialize(query.q.as_bytes()).collect::<String>(),
                 vqd,
-                p
+                nsfw
             );
 
             format!("https://duckduckgo.com/v.js?{}", qs)
         };
 
-        let json_text = self
-            .http
-            .client
+        let (client, _) = self.http.get_or_raw_client(Some("ddg"));
+
+        let json_text = client
             .get(&js_url)
             .header("Accept", "*/*")
+            .header("Accept-Language", "en-US,en;q=0.5")
             .header("Referer", "https://duckduckgo.com/")
+            .header("DNT", "1")
+            .header("Sec-GPC", "1")
+            .header("Connection", "keep-alive")
+            .header("Sec-Fetch-Dest", "script")
+            .header("Sec-Fetch-Mode", "no-cors")
+            .header("Sec-Fetch-Site", "same-site")
             .send()
             .await?
             .text()

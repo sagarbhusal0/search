@@ -7,6 +7,7 @@ pub struct Config {
     pub server: ServerConfig,
     #[allow(dead_code)]
     pub bot_protection: BotProtectionConfig,
+    #[allow(dead_code)]
     pub scrapers: ScrapersConfig,
     #[allow(dead_code)]
     pub proxies: HashMap<String, Option<String>>,
@@ -54,13 +55,8 @@ pub struct CaptchaDatasetEntry {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-pub struct ScrapersConfig {
-    pub google_cx_endpoint: Option<String>,
-    pub marginalia_api_key: Option<String>,
-    pub yep_use_api: bool,
-    pub unsplash_api_key: Option<String>,
-    pub pixabay_api_key: Option<String>,
-}
+#[allow(dead_code)]
+pub struct ScrapersConfig {}
 
 #[derive(Debug, Clone, Deserialize)]
 #[allow(dead_code)]

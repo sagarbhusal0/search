@@ -3,7 +3,6 @@ use reqwest::{Client, Proxy};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct ProxyConfig {
     pub proxy_type: ProxyType,
     pub address: String,
@@ -13,7 +12,6 @@ pub struct ProxyConfig {
 }
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub enum ProxyType {
     Http,
     Https,
@@ -22,8 +20,16 @@ pub enum ProxyType {
     Socks5Hostname,
 }
 
-#[allow(dead_code)]
 impl ProxyConfig {
+    pub fn proxy_type_str(&self) -> &str {
+        match self.proxy_type {
+            ProxyType::Http => "http",
+            ProxyType::Https => "https",
+            ProxyType::Socks4 => "socks4",
+            ProxyType::Socks5 => "socks5",
+            ProxyType::Socks5Hostname => "socks5h",
+        }
+    }
     pub fn from_line(line: &str) -> Option<Self> {
         let parts: Vec<&str> = line.splitn(5, ':').collect();
         if parts.len() < 3 {
@@ -71,13 +77,11 @@ impl ProxyConfig {
     }
 }
 
-#[allow(dead_code)]
 pub struct ProxyPool {
     pub proxies: Vec<ProxyConfig>,
     counter: AtomicU64,
 }
 
-#[allow(dead_code)]
 impl ProxyPool {
     pub fn new(proxies: Vec<ProxyConfig>) -> Self {
         ProxyPool {
@@ -112,6 +116,7 @@ impl ProxyPool {
         Some(&self.proxies[idx as usize])
     }
 
+    #[allow(dead_code)]
     pub fn is_empty(&self) -> bool {
         self.proxies.is_empty()
     }
@@ -154,7 +159,6 @@ impl HttpClient {
         })
     }
 
-    #[allow(dead_code)]
     pub fn load_proxy_pool(&mut self, name: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
         let pool = ProxyPool::from_file(path)?;
         self.proxy_pools.push((name.to_string(), pool));
@@ -167,6 +171,31 @@ impl HttpClient {
             .iter()
             .find(|(n, _)| n == name)
             .map(|(_, p)| p)
+    }
+
+    pub fn get_or_raw_client(&self, pool_name: Option<&str>) -> (Client, Option<String>) {
+        if let Some(name) = pool_name {
+            if let Some(pool) = self.get_proxy_pool(name) {
+                if let Some(proxy_config) = pool.next() {
+                    if let Ok(proxy) = proxy_config.to_reqwest_proxy() {
+                        if let Ok(client) = Client::builder()
+                            .user_agent(&self.user_agent)
+                            .proxy(proxy)
+                            .gzip(true)
+                            .brotli(true)
+                            .danger_accept_invalid_certs(false)
+                            .connect_timeout(std::time::Duration::from_secs(15))
+                            .timeout(std::time::Duration::from_secs(30))
+                            .build()
+                        {
+                            let label = format!("{}:{}:{}", proxy_config.proxy_type_str(), proxy_config.address, proxy_config.port);
+                            return (client, Some(label));
+                        }
+                    }
+                }
+            }
+        }
+        (self.client.clone(), None)
     }
 }
 

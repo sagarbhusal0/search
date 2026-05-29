@@ -14,6 +14,23 @@ pub struct ProxyParams {
     pub s: Option<String>,
 }
 
+fn is_private_ip(host: &str) -> bool {
+    if host.starts_with("10.") {
+        return true;
+    }
+    if let Some(rest) = host.strip_prefix("172.") {
+        if let Some(doctet) = rest.split('.').next() {
+            if let Ok(n) = doctet.parse::<u8>() {
+                return (16..=31).contains(&n);
+            }
+        }
+    }
+    if host.starts_with("192.168.") {
+        return true;
+    }
+    false
+}
+
 fn is_safe_url(url: &str) -> bool {
     let Ok(parsed) = url::Url::parse(url) else {
         return false;
@@ -26,9 +43,7 @@ fn is_safe_url(url: &str) -> bool {
         || host == "127.0.0.1"
         || host == "0.0.0.0"
         || host == "[::1]"
-        || host.starts_with("10.")
-        || host.starts_with("172.16.")
-        || host.starts_with("192.168.")
+        || is_private_ip(host)
         || host.ends_with(".local")
         || host.ends_with(".internal")
     {

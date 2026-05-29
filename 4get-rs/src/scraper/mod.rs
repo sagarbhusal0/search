@@ -2,18 +2,14 @@ pub mod client;
 pub mod ddg;
 pub mod brave;
 pub mod google;
-pub mod google_api;
-pub mod google_cse;
 pub mod yandex;
 pub mod baidu;
 pub mod startpage;
 pub mod qwant;
 pub mod yahoo_japan;
 pub mod ghostery;
-pub mod yep;
 pub mod mwmbl;
 pub mod mojeek;
-pub mod marginalia;
 pub mod wiby;
 pub mod coccoc;
 pub mod solofield;
@@ -25,8 +21,6 @@ pub mod swisscows;
 pub mod spotify;
 pub mod pinterest;
 pub mod flickr;
-pub mod pixabay;
-pub mod unsplash;
 pub mod pexels;
 pub mod fivehpx;
 pub mod vsco;
@@ -87,24 +81,20 @@ pub trait Scraper: Send + Sync {
 
 pub type ScraperRegistry = HashMap<&'static str, Box<dyn Scraper>>;
 
-pub fn build_registry(http: client::HttpClient, config: &crate::config::Config) -> ScraperRegistry {
+pub fn build_registry(http: client::HttpClient, _config: &crate::config::Config) -> ScraperRegistry {
     let mut r: ScraperRegistry = HashMap::new();
 
     r.insert("ddg", Box::new(ddg::DDG::new(http.clone())) as Box<dyn Scraper>);
     r.insert("brave", Box::new(brave::Brave::new(http.clone())));
     r.insert("google", Box::new(google::Google::new(http.clone())));
-    r.insert("google_api", Box::new(google_api::GoogleApi::new(http.clone(), config)));
-    r.insert("google_cse", Box::new(google_cse::GoogleCse::new(http.clone(), config)));
     r.insert("yandex", Box::new(yandex::Yandex::new(http.clone())));
     r.insert("baidu", Box::new(baidu::Baidu::new(http.clone())));
     r.insert("startpage", Box::new(startpage::Startpage::new(http.clone())));
     r.insert("qwant", Box::new(qwant::Qwant::new(http.clone())));
     r.insert("yahoo_japan", Box::new(yahoo_japan::YahooJapan::new(http.clone())));
     r.insert("ghostery", Box::new(ghostery::Ghostery::new(http.clone())));
-    r.insert("yep", Box::new(yep::Yep::new(http.clone(), config)));
     r.insert("mwmbl", Box::new(mwmbl::Mwmbl::new(http.clone())));
     r.insert("mojeek", Box::new(mojeek::Mojeek::new(http.clone())));
-    r.insert("marginalia", Box::new(marginalia::Marginalia::new(http.clone(), config)));
     r.insert("wiby", Box::new(wiby::Wiby::new(http.clone())));
     r.insert("coccoc", Box::new(coccoc::CocCoc::new(http.clone())));
     r.insert("solofield", Box::new(solofield::Solofield::new(http.clone())));
@@ -116,8 +106,6 @@ pub fn build_registry(http: client::HttpClient, config: &crate::config::Config) 
     r.insert("spotify", Box::new(spotify::Spotify::new(http.clone())));
     r.insert("pinterest", Box::new(pinterest::Pinterest::new(http.clone())));
     r.insert("flickr", Box::new(flickr::Flickr::new(http.clone())));
-    r.insert("pixabay", Box::new(pixabay::Pixabay::new(http.clone(), config)));
-    r.insert("unsplash", Box::new(unsplash::Unsplash::new(http.clone(), config)));
     r.insert("pexels", Box::new(pexels::Pexels::new(http.clone())));
     r.insert("fivehpx", Box::new(fivehpx::FiveHundredPx::new(http.clone())));
     r.insert("vsco", Box::new(vsco::VSCO::new(http.clone())));

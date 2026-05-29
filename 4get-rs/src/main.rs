@@ -32,7 +32,23 @@ async fn main() {
     let args = Args::parse();
     let config = Config::load(&args.config).expect("Failed to load config");
 
-    let http = HttpClient::new(&config).expect("Failed to create HTTP client");
+    let mut http = HttpClient::new(&config).expect("Failed to create HTTP client");
+
+    for (scraper_name, proxy_path) in &config.proxies {
+        if let Some(path) = proxy_path {
+            match http.load_proxy_pool(scraper_name, path) {
+                Ok(()) => {
+                    let count = http.get_proxy_pool(scraper_name).map_or(0, |p| p.proxies.len());
+                    if count > 0 {
+                        tracing::info!("Loaded {} proxies for {}", count, scraper_name);
+                    } else {
+                        tracing::info!("No proxies configured for {} (direct connections)", scraper_name);
+                    }
+                }
+                Err(e) => tracing::warn!("Failed to load proxies for {}: {}", scraper_name, e),
+            }
+        }
+    }
 
     let cache = CacheStore::open(&config.data_path("cache"))
         .expect("Failed to open cache");

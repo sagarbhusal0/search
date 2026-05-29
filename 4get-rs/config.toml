@@ -20,13 +20,14 @@ filtered_header_keys = []
 captcha_dataset = []
 
 [scrapers]
-google_cx_endpoint = ""
-marginalia_api_key = ""
-yep_use_api = false
-unsplash_api_key = ""
-pixabay_api_key = ""
 
 [oracles]
 enabled = true
 
 [proxies]
+# Format: scraper_name = "path/to/proxy_list.txt"
+# Proxy list format per line: type:address:port:username:password
+# Supported types: http, https, socks4, socks5, socks5h
+# Example: http:1.2.3.4:8080:user:pass
+# Lines starting with # are comments
+ddg = "data/proxies/ddg.txt"

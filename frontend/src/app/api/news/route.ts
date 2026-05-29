@@ -27,7 +27,16 @@ export async function GET(request: NextRequest) {
 
     try {
         const response = await fetch(url, { headers: { "Accept": "application/json" } });
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+            const text = await response.text();
+            console.error("Non-JSON response from backend (news):", text.slice(0, 200));
+            return NextResponse.json({ status: "Backend returned an invalid response. It may be offline or misconfigured.", news: [] }, { status: 502 });
+        }
         const data = await response.json();
+        if (data.status && data.status !== "ok") {
+            return NextResponse.json({ status: data.status, news: [] }, { status: 502 });
+        }
         return NextResponse.json(data);
     } catch (error) {
         console.error("News API error:", error);
