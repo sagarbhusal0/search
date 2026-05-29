@@ -15,6 +15,7 @@ pub struct NewsSearchParams {
     pub nsfw: Option<String>,
     pub safe: Option<String>,
     #[serde(flatten)]
+    #[allow(dead_code)]
     pub extra: HashMap<String, String>,
 }
 

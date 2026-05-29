@@ -116,8 +116,8 @@ pub fn build_registry(http: client::HttpClient, config: &crate::config::Config) 
     r.insert("spotify", Box::new(spotify::Spotify::new(http.clone())));
     r.insert("pinterest", Box::new(pinterest::Pinterest::new(http.clone())));
     r.insert("flickr", Box::new(flickr::Flickr::new(http.clone())));
-    r.insert("pixabay", Box::new(pixabay::Pixabay::new(http.clone())));
-    r.insert("unsplash", Box::new(unsplash::Unsplash::new(http.clone())));
+    r.insert("pixabay", Box::new(pixabay::Pixabay::new(http.clone(), config)));
+    r.insert("unsplash", Box::new(unsplash::Unsplash::new(http.clone(), config)));
     r.insert("pexels", Box::new(pexels::Pexels::new(http.clone())));
     r.insert("fivehpx", Box::new(fivehpx::FiveHundredPx::new(http.clone())));
     r.insert("vsco", Box::new(vsco::VSCO::new(http.clone())));

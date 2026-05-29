@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const cookieScraper = cookieStore.get("scraper_images")?.value;
     const nsfw = cookieStore.get("nsfw")?.value;
 
-    const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
+    const backendUrl = process.env.BACKEND_URL || process.env.PHP_BACKEND_URL || "http://localhost:3001";
 
     let url = `${backendUrl}/api/v1/images.php?s=${encodeURIComponent(query)}`;
     const npt = searchParams.get("npt");

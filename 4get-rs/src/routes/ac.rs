@@ -9,6 +9,7 @@ use serde::Deserialize;
 pub struct AutocompleteParams {
     pub s: Option<String>,
     pub scraper: Option<String>,
+    #[allow(dead_code)]
     pub nsfw: Option<String>,
 }
 

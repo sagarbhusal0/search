@@ -19,6 +19,7 @@ use std::sync::Arc;
 pub struct AppState {
     pub config: Config,
     pub http: HttpClient,
+    #[allow(dead_code)]
     pub cache: CacheStore,
     pub scraper_registry: ScraperRegistry,
 }

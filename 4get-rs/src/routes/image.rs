@@ -15,6 +15,7 @@ pub struct ImageSearchParams {
     pub nsfw: Option<String>,
     pub safe: Option<String>,
     #[serde(flatten)]
+    #[allow(dead_code)]
     pub extra: HashMap<String, String>,
 }
 
@@ -27,7 +28,7 @@ pub async fn image_search(
         return Ok(Json(ImageResponse::empty()));
     }
 
-    let scraper_name = params.scraper.as_deref().unwrap_or("pixabay");
+    let scraper_name = params.scraper.as_deref().unwrap_or("brave");
     let scraper = state
         .scraper_registry
         .get(scraper_name)

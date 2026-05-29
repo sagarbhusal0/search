@@ -3,10 +3,12 @@ pub mod pagination;
 use sled::{Db, Tree};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+#[allow(dead_code)]
 pub struct CacheStore {
     db: Db,
 }
 
+#[allow(dead_code)]
 impl CacheStore {
     pub fn open(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         let db = sled::open(path)?;

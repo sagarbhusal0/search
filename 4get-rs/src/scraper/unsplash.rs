@@ -1,16 +1,24 @@
+use crate::config::Config;
 use crate::errors::AppError;
 use crate::scraper::client::HttpClient;
 use crate::scraper::Scraper;
 use crate::types::*;
 use async_trait::async_trait;
+use std::collections::HashMap;
 
 pub struct Unsplash {
     http: HttpClient,
+    api_key: String,
 }
 
 impl Unsplash {
-    pub fn new(http: HttpClient) -> Self {
-        Unsplash { http }
+    pub fn new(http: HttpClient, config: &Config) -> Self {
+        let api_key = config
+            .scrapers
+            .unsplash_api_key
+            .clone()
+            .unwrap_or_default();
+        Unsplash { http, api_key }
     }
 }
 
@@ -21,16 +29,61 @@ impl Scraper for Unsplash {
     }
 
     async fn image(&self, query: &SearchQuery) -> Result<ImageResponse, AppError> {
-        let resp = self
+        let mut filter: HashMap<String, String> = if let Some(npt) = &query.npt {
+            serde_json::from_str(npt).unwrap_or_default()
+        } else {
+            let mut f = HashMap::new();
+            f.insert("page".to_string(), "1".to_string());
+            f.insert("per_page".to_string(), "20".to_string());
+            f.insert("query".to_string(), query.q.clone());
+
+            if let Some(order_by) = query.filters.get("f_order_by") {
+                if order_by != "relevance" {
+                    f.insert("order_by".to_string(), order_by.clone());
+                }
+            }
+            if let Some(orientation) = query.filters.get("f_orientation") {
+                if orientation != "any" {
+                    f.insert("orientation".to_string(), orientation.clone());
+                }
+            }
+            if let Some(license) = query.filters.get("f_license") {
+                if license != "any" {
+                    f.insert("plus".to_string(), license.clone());
+                }
+            }
+
+            f
+        };
+
+        let search_term = filter.get("query").cloned().unwrap_or_default();
+        let referer = format!(
+            "https://unsplash.com/s/photos/{}",
+            search_term.replace(' ', "-")
+        );
+
+        let mut req = self
             .http
             .client
-            .get("https://api.unsplash.com/search/photos")
-            .query(&[
-                ("query", query.q.as_str()),
-                ("per_page", "20"),
-            ])
-            .header("Accept", "application/json")
-            .header("User-Agent", &self.http.user_agent_friendly)
+            .get("https://unsplash.com/napi/search/photos")
+            .query(&filter)
+            .header("Accept", "*/*")
+            .header("Accept-Language", "en-US")
+            .header("Referer", &referer)
+            .header("client-geo-region", "global")
+            .header("x-client-version", "8999df28be3f138bf2c646df5d656e4dc6970ba0")
+            .header("DNT", "1")
+            .header("Sec-GPC", "1")
+            .header("Connection", "keep-alive")
+            .header("Sec-Fetch-Dest", "empty")
+            .header("Sec-Fetch-Mode", "cors")
+            .header("Sec-Fetch-Site", "same-origin");
+
+        if !self.api_key.is_empty() {
+            req = req.header("Authorization", format!("Client-ID {}", self.api_key));
+        }
+
+        let json = req
             .send()
             .await?
             .json::<serde_json::Value>()
@@ -38,38 +91,110 @@ impl Scraper for Unsplash {
 
         let mut response = ImageResponse::empty();
 
-        if let Some(results) = resp.get("results").and_then(|v| v.as_array()) {
-            for result in results {
-                let title = result.get("alt_description").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                let description = result.get("description").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                let title = if title.is_empty() { description } else { title };
+        let results = match json.get("results").and_then(|v| v.as_array()) {
+            Some(r) => r,
+            None => return Ok(response),
+        };
 
-                if let Some(urls) = result.get("urls") {
-                    let full = urls.get("full").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                    let thumb = urls.get("thumb").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                    let small = urls.get("small").and_then(|v| v.as_str()).unwrap_or("").to_string();
+        for image in results {
+            let raw_url = image
+                .get("urls")
+                .and_then(|u| u.get("raw"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
 
-                    let width = result.get("width").and_then(|v| v.as_u64());
-                    let height = result.get("height").and_then(|v| v.as_u64());
-                    let primary = if !small.is_empty() { small } else { full };
-
-                    if !primary.is_empty() {
-                        let mut sources = vec![ImageSource {
-                            url: primary,
-                            width: width.map(|w| w as u32),
-                            height: height.map(|h| h as u32),
-                        }];
-                        if !thumb.is_empty() {
-                            sources.push(ImageSource {
-                                url: thumb,
-                                width: None,
-                                height: None,
-                            });
-                        }
-                        response.image.push(ImageResult { title, url: sources[0].url.clone(), source: sources });
-                    }
-                }
+            if raw_url.is_empty() {
+                continue;
             }
+
+            let base = raw_url.split('?').next().unwrap_or(raw_url);
+
+            let is_premium = image.get("premium").and_then(|v| v.as_bool()).unwrap_or(false);
+            let is_plus = image.get("plus").and_then(|v| v.as_bool()).unwrap_or(false);
+
+            let width = image.get("width").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+            let height = image.get("height").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+
+            let mut sources = Vec::new();
+
+            if is_premium || is_plus {
+                let x900_w = 900u32;
+                let x900_h = ((height as f64) * (900.0 / (width as f64))) as u32;
+                let x500_w = 500u32;
+                let x500_h = ((height as f64) * (500.0 / (width as f64))) as u32;
+
+                sources.push(ImageSource {
+                    url: base.to_string(),
+                    width: Some(width),
+                    height: Some(height),
+                });
+                sources.push(ImageSource {
+                    url: format!("{}?w=900", base),
+                    width: Some(x900_w),
+                    height: Some(x900_h),
+                });
+                sources.push(ImageSource {
+                    url: format!("{}?w=500", base),
+                    width: Some(x500_w),
+                    height: Some(x500_h),
+                });
+            } else {
+                let x500_w = 500u32;
+                let x500_h = ((height as f64) * (500.0 / (width as f64))) as u32;
+
+                sources.push(ImageSource {
+                    url: base.to_string(),
+                    width: Some(width),
+                    height: Some(height),
+                });
+                sources.push(ImageSource {
+                    url: format!("{}?w=500", base),
+                    width: Some(x500_w),
+                    height: Some(x500_h),
+                });
+            }
+
+            let desc = image
+                .get("description")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .trim();
+            let alt_desc = image
+                .get("alt_description")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .trim();
+
+            let title = match (desc, alt_desc) {
+                ("", "") => String::new(),
+                ("", b) => b.to_string(),
+                (a, "") => a.to_string(),
+                (a, b) => format!("{}: {}", a, b),
+            };
+
+            let slug = image.get("slug").and_then(|v| v.as_str()).unwrap_or("");
+            let page_url = format!("https://unsplash.com/photos/{}", slug);
+
+            response.image.push(ImageResult {
+                title,
+                url: page_url,
+                source: sources,
+            });
+        }
+
+        let total_pages = json
+            .get("total_pages")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0);
+
+        let current_page = filter
+            .get("page")
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(1);
+
+        if current_page < total_pages {
+            filter.insert("page".to_string(), (current_page + 1).to_string());
+            response.npt = Some(serde_json::to_string(&filter).unwrap_or_default());
         }
 
         Ok(response)

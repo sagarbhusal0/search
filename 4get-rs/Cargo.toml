@@ -8,6 +8,7 @@ description = "Sorvx Search Rust backend - API server with 35 scraper engines"
 axum = { version = "0.8", features = ["macros"] }
 tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.12", features = ["json", "gzip", "brotli", "socks", "stream"] }
+openssl-sys = { version = "0.9", features = ["vendored"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 scraper = "0.22"

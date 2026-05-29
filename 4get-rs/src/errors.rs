@@ -6,16 +6,19 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum AppError {
+    #[allow(dead_code)]
     NotFound(String),
     BadRequest(String),
     ScraperError(String),
     ScraperNotSupported(String),
+    #[allow(dead_code)]
     CacheError(String),
     ProxyError(String),
     ImageError(String),
     IoError(std::io::Error),
     ReqwestError(reqwest::Error),
     SerdeError(serde_json::Error),
+    #[allow(dead_code)]
     Internal(String),
 }
 

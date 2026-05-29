@@ -32,7 +32,7 @@ function ImageGrid() {
     const m = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
     return m ? decodeURIComponent(m.split("=")[1]) : null;
   };
-  const [scraper] = useState(getCookie("scraper_images") || "ddg");
+  const [scraper, setScraper] = useState(getCookie("scraper_images") || "brave");
 
   useEffect(() => {
     if (!query) return;
@@ -136,6 +136,26 @@ function ImageGrid() {
           </div>
         ) : (
           <>
+            <div className="flex items-center gap-2 mb-4">
+              <label className="text-[12px] text-[var(--meta)]">Scraper:</label>
+              <select
+                value={scraper}
+                onChange={e => {
+                  setScraper(e.target.value);
+                  document.cookie = `scraper_images=${e.target.value};path=/;max-age=31536000`;
+                  const p = new URLSearchParams(searchParams.toString());
+                  p.set("scraper", e.target.value);
+                  p.delete("npt");
+                  router.push(`/images?${p.toString()}`);
+                }}
+                className="appearance-none bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[12px] text-[var(--fg-2)] focus:outline-none focus:border-[var(--accent)] cursor-pointer"
+              >
+                <option value="brave">Brave</option>
+                <option value="unsplash">Unsplash</option>
+                <option value="pixabay">Pixabay</option>
+              </select>
+            </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {results.map((result, i) => {
                 const thumbUrl = result.source?.length > 0 ? result.source[result.source.length - 1].url : "";

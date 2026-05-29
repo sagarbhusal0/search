@@ -57,7 +57,7 @@ async fn main() {
 
     let app = Router::new()
         .nest("/api/v1", routes::api_routes())
-        .nest("/", routes::static_routes())
+        .merge(routes::static_routes())
         .layer(cors)
         .layer(compression)
         .with_state(state.clone());

@@ -10,11 +10,13 @@ use flate2::Compression;
 use rand::RngCore;
 use std::io::{Read, Write};
 
+#[allow(dead_code)]
 pub struct PaginationStore {
     cache: CacheStore,
     cipher: ChaCha20Poly1305,
 }
 
+#[allow(dead_code)]
 impl PaginationStore {
     pub fn new(cache: CacheStore) -> Self {
         let mut key_bytes = [0u8; 32];
@@ -58,7 +60,7 @@ impl PaginationStore {
 
         self.cache.set_with_ttl("pagination", apcu_key.as_bytes(), &store_data, 900)?;
 
-        let mut key_enc = vec![0u8; 32];
+        let key_enc = vec![0u8; 32];
         // We need to store this key for retrieval - but the PHP model
         // encodes the key in the token itself for zero-server-state.
         // We'll derive a key_id and store it.

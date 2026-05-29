@@ -41,35 +41,38 @@ impl Scraper for Brave {
         let document = Html::parse_document(&html);
         let mut response = WebResponse::empty();
 
-        let snippet_sel = Selector::parse("div.snippet").unwrap();
-        let title_sel = Selector::parse("a.snippet-title").unwrap();
-        let desc_sel = Selector::parse("div.snippet-description").unwrap();
-        let url_sel = Selector::parse("span.snippet-url").unwrap();
+        let snippet_sel = Selector::parse("div.snippet[data-type=web]").unwrap();
+        let title_sel = Selector::parse(".search-snippet-title").unwrap();
+        let desc_sel = Selector::parse(".generic-snippet").unwrap();
+        let url_sel = Selector::parse("a.l1").unwrap();
 
         for snippet in document.select(&snippet_sel) {
             let title = snippet
                 .select(&title_sel)
                 .next()
                 .and_then(|e| e.text().collect::<String>().into())
-                .unwrap_or_default();
-
-            let description = snippet
-                .select(&desc_sel)
-                .next()
-                .and_then(|e| e.text().collect::<String>().into())
-                .unwrap_or_default();
+                .unwrap_or_default()
+                .trim()
+                .to_string();
 
             let url_text = snippet
                 .select(&url_sel)
                 .next()
-                .and_then(|e| e.text().collect::<String>().into())
+                .and_then(|e| e.value().attr("href"))
+                .unwrap_or_default()
+                .to_string();
+
+            let description = snippet
+                .select(&desc_sel)
+                .next()
+                .map(|e| e.text().collect::<String>().trim().to_string())
                 .unwrap_or_default();
 
             if !title.is_empty() {
                 response.web.push(WebResult {
-                    title: title.trim().to_string(),
+                    title,
                     url: url_text.trim().to_string(),
-                    description: description.trim().to_string(),
+                    description,
                     date: None,
                     source: Some("brave".into()),
                 });
@@ -110,9 +113,9 @@ impl Scraper for Brave {
         let document = Html::parse_document(&html);
         let mut response = ImageResponse::empty();
 
-        let img_sel = Selector::parse("div.image-card").unwrap();
-        let title_sel = Selector::parse("span.image-title").unwrap();
-        let src_sel = Selector::parse("img.image-img").unwrap();
+        let img_sel = Selector::parse("button.image-result").unwrap();
+        let title_sel = Selector::parse(".image-metadata-title").unwrap();
+        let src_sel = Selector::parse(".image-wrapper img").unwrap();
 
         for card in document.select(&img_sel) {
             let title = card
@@ -137,7 +140,7 @@ impl Scraper for Brave {
 
             let final_url = if !data_src.is_empty() { data_src } else { img_url };
 
-            if !final_url.is_empty() {
+            if !final_url.is_empty() && !title.trim().is_empty() {
                 response.image.push(ImageResult {
                     title,
                     url: final_url.clone(),
@@ -171,10 +174,10 @@ impl Scraper for Brave {
         let document = Html::parse_document(&html);
         let mut response = VideoResponse::empty();
 
-        let vid_sel = Selector::parse("div.video-card").unwrap();
-        let title_sel = Selector::parse("a.video-title").unwrap();
-        let dur_sel = Selector::parse("span.video-duration").unwrap();
-        let _views_sel = Selector::parse("span.video-views").unwrap();
+        let vid_sel = Selector::parse("div.snippet[data-type=videos]").unwrap();
+        let title_sel = Selector::parse("div.title").unwrap();
+        let dur_sel = Selector::parse("div.duration").unwrap();
+        let url_sel = Selector::parse("a.l1").unwrap();
 
         for card in document.select(&vid_sel) {
             let title = card
@@ -184,7 +187,7 @@ impl Scraper for Brave {
                 .unwrap_or_default();
 
             let url = card
-                .select(&title_sel)
+                .select(&url_sel)
                 .next()
                 .and_then(|e| e.value().attr("href"))
                 .unwrap_or("")
@@ -193,7 +196,22 @@ impl Scraper for Brave {
             let duration = card
                 .select(&dur_sel)
                 .next()
-                .and_then(|e| e.text().collect::<String>().into());
+                .map(|e| e.text().collect::<String>())
+                .and_then(|d| {
+                    let parts: Vec<&str> = d.split(':').collect();
+                    let mut secs: i64 = 0;
+                    if parts.len() == 3 {
+                        secs += parts[0].parse::<i64>().unwrap_or(0) * 3600;
+                        secs += parts[1].parse::<i64>().unwrap_or(0) * 60;
+                        secs += parts[2].parse::<i64>().unwrap_or(0);
+                    } else if parts.len() == 2 {
+                        secs += parts[0].parse::<i64>().unwrap_or(0) * 60;
+                        secs += parts[1].parse::<i64>().unwrap_or(0);
+                    } else {
+                        secs = d.parse::<i64>().unwrap_or(0);
+                    }
+                    (secs > 0).then_some(secs)
+                });
 
             if !title.is_empty() {
                 response.video.push(VideoResult {
@@ -231,11 +249,12 @@ impl Scraper for Brave {
         let document = Html::parse_document(&html);
         let mut response = NewsResponse::empty();
 
-        let news_sel = Selector::parse("div.news-card").unwrap();
-        let title_sel = Selector::parse("a.news-title").unwrap();
-        let desc_sel = Selector::parse("div.news-description").unwrap();
-        let src_sel = Selector::parse("span.news-source").unwrap();
-        let _date_sel = Selector::parse("time.news-date").unwrap();
+        let news_sel = Selector::parse("div[data-type=\"news\"]").unwrap();
+        let title_sel = Selector::parse("div.title").unwrap();
+        let url_sel = Selector::parse("a.l1").unwrap();
+        let desc_sel = Selector::parse("div.description").unwrap();
+        let src_sel = Selector::parse("span.desktop-small-semibold").unwrap();
+        let _date_sel = Selector::parse("span.desktop-small-regular.t-tertiary").unwrap();
 
         for card in document.select(&news_sel) {
             let title = card
@@ -245,7 +264,7 @@ impl Scraper for Brave {
                 .unwrap_or_default();
 
             let url = card
-                .select(&title_sel)
+                .select(&url_sel)
                 .next()
                 .and_then(|e| e.value().attr("href"))
                 .unwrap_or("")

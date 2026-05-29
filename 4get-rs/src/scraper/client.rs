@@ -3,6 +3,7 @@ use reqwest::{Client, Proxy};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ProxyConfig {
     pub proxy_type: ProxyType,
     pub address: String,
@@ -12,6 +13,7 @@ pub struct ProxyConfig {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum ProxyType {
     Http,
     Https,
@@ -20,6 +22,7 @@ pub enum ProxyType {
     Socks5Hostname,
 }
 
+#[allow(dead_code)]
 impl ProxyConfig {
     pub fn from_line(line: &str) -> Option<Self> {
         let parts: Vec<&str> = line.splitn(5, ':').collect();
@@ -68,11 +71,13 @@ impl ProxyConfig {
     }
 }
 
+#[allow(dead_code)]
 pub struct ProxyPool {
     pub proxies: Vec<ProxyConfig>,
     counter: AtomicU64,
 }
 
+#[allow(dead_code)]
 impl ProxyPool {
     pub fn new(proxies: Vec<ProxyConfig>) -> Self {
         ProxyPool {
@@ -149,12 +154,14 @@ impl HttpClient {
         })
     }
 
+    #[allow(dead_code)]
     pub fn load_proxy_pool(&mut self, name: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
         let pool = ProxyPool::from_file(path)?;
         self.proxy_pools.push((name.to_string(), pool));
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn get_proxy_pool(&self, name: &str) -> Option<&ProxyPool> {
         self.proxy_pools
             .iter()

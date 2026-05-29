@@ -14,6 +14,7 @@ pub struct MusicSearchParams {
     pub npt: Option<String>,
     pub nsfw: Option<String>,
     #[serde(flatten)]
+    #[allow(dead_code)]
     pub extra: HashMap<String, String>,
 }
 

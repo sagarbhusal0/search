@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Missing search(s) parameter" }, { status: 400 });
     }
 
-    const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
+    const backendUrl = process.env.BACKEND_URL || process.env.PHP_BACKEND_URL || "http://localhost:3001";
 
     try {
         let url = `${backendUrl}/api/v1/ac.php?s=${encodeURIComponent(query)}&scraper=${scraper}`;

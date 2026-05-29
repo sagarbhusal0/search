@@ -108,6 +108,13 @@ a { color: inherit; text-decoration: none; }
   transition: opacity 300ms var(--ease-stand), transform 300ms var(--ease-stand);
 }
 
+mark {
+  background: rgba(94, 106, 210, 0.25);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

@@ -152,13 +152,31 @@ impl Scraper for YahooJapan {
                 .unwrap_or("")
                 .to_string();
             let duration: String = card.select(&dur_sel).next().map(|e| e.text().collect()).unwrap_or_default();
+            let duration_secs = if duration.is_empty() {
+                None
+            } else {
+                let d = duration.trim();
+                let parts: Vec<&str> = d.split(':').collect();
+                let mut secs: i64 = 0;
+                if parts.len() == 3 {
+                    secs += parts[0].parse::<i64>().unwrap_or(0) * 3600;
+                    secs += parts[1].parse::<i64>().unwrap_or(0) * 60;
+                    secs += parts[2].parse::<i64>().unwrap_or(0);
+                } else if parts.len() == 2 {
+                    secs += parts[0].parse::<i64>().unwrap_or(0) * 60;
+                    secs += parts[1].parse::<i64>().unwrap_or(0);
+                } else {
+                    secs = d.parse::<i64>().unwrap_or(0);
+                }
+                (secs > 0).then_some(secs)
+            };
 
             if !title.is_empty() {
                 response.video.push(VideoResult {
                     title,
                     url,
                     views: None,
-                    duration: if duration.is_empty() { None } else { Some(duration.trim().to_string()) },
+                    duration: duration_secs,
                     date: None,
                     description: None,
                     source: Some("yahoo_japan".into()),

@@ -23,6 +23,8 @@ captcha_dataset = []
 google_cx_endpoint = ""
 marginalia_api_key = ""
 yep_use_api = false
+unsplash_api_key = ""
+pixabay_api_key = ""
 
 [oracles]
 enabled = true

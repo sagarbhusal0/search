@@ -13,6 +13,7 @@ pub struct SearchQuery {
     pub extended_search: bool,
 }
 
+#[allow(dead_code)]
 impl SearchQuery {
     pub fn from_params(params: &HashMap<String, String>) -> Self {
         let q = params.get("s").cloned().unwrap_or_default();
@@ -87,7 +88,7 @@ pub struct VideoResult {
     pub title: String,
     pub url: String,
     pub views: Option<i64>,
-    pub duration: Option<String>,
+    pub duration: Option<i64>,
     pub date: Option<i64>,
     pub description: Option<String>,
     pub source: Option<String>,
@@ -247,6 +248,7 @@ pub struct AutocompleteResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct Ami4GetResponse {
     pub status: String,
     pub name: String,
@@ -257,6 +259,7 @@ pub struct Ami4GetResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct HealthzResponse {
     pub status: String,
     pub service: String,

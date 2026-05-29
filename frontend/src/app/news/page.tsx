@@ -26,7 +26,7 @@ function NewsContent() {
     const m = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
     return m ? decodeURIComponent(m.split("=")[1]) : null;
   };
-  const [scraper] = useState(getCookie("scraper_news") || "ddg");
+  const [scraper, setScraper] = useState(getCookie("scraper_news") || "brave");
 
   useEffect(() => {
     if (!query) return;
@@ -101,6 +101,25 @@ function NewsContent() {
             <p className="text-lg font-medium text-[var(--fg)] mb-1">No news for &ldquo;{query}&rdquo;</p>
           </div>
         ) : (
+          <>
+          <div className="flex items-center gap-2 mb-4">
+            <label className="text-[12px] text-[var(--meta)]">Source:</label>
+            <select
+              value={scraper}
+              onChange={e => {
+                setScraper(e.target.value);
+                document.cookie = `scraper_news=${e.target.value};path=/;max-age=31536000`;
+                const p = new URLSearchParams(searchParams.toString());
+                p.set("scraper", e.target.value);
+                p.delete("npt");
+                router.push(`/news?${p.toString()}`);
+              }}
+              className="appearance-none bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[12px] text-[var(--fg-2)] focus:outline-none focus:border-[var(--accent)] cursor-pointer"
+            >
+              <option value="brave">Brave</option>
+            </select>
+          </div>
+
           <div className="space-y-8">
             {results.map((result, i) => {
               const thumbUrl = typeof result.thumb === "string" ? result.thumb : result.thumb?.url || "";
@@ -127,6 +146,7 @@ function NewsContent() {
               );
             })}
           </div>
+          </>
         )}
 
           {!loading && results.length > 0 && (

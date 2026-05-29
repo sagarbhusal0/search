@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const nsfw = cookieStore.get("nsfw")?.value;
 
-    const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
+    const backendUrl = process.env.BACKEND_URL || process.env.PHP_BACKEND_URL || "http://localhost:3001";
 
     let url = `${backendUrl}/api/v1/web.php?s=${encodeURIComponent(query)}&scraper=${encodeURIComponent(scraper)}`;
     const npt = searchParams.get("npt");
@@ -24,29 +24,21 @@ export async function GET(request: NextRequest) {
 
     try {
         const response = await fetch(url, { headers: { "Accept": "application/json" } });
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+            const text = await response.text();
+            console.error("Non-JSON response from PHP backend:", text.slice(0, 200));
+            const res = NextResponse.json({ status: "Backend returned an invalid response. It may be offline or misconfigured." }, { status: 502 });
+            res.cookies.set("scraper_web", "", { maxAge: 0, path: "/" });
+            return res;
+        }
         const data = await response.json();
         const res = NextResponse.json(data);
         res.cookies.set("scraper_web", "", { maxAge: 0, path: "/" });
         return res;
     } catch (error) {
         console.error("Error fetching from PHP backend:", error);
-        const sample = {
-            web: [
-                {
-                    title: "Welcome to Sorvx",
-                    description: "Backend is offline, showing sample result.",
-                    url: "https://example.com/welcome"
-                },
-                {
-                    title: "DuckDuckGo inspiration",
-                    description: "Privacy-first search UI with purple accents.",
-                    url: "https://duckduckgo.com"
-                }
-            ],
-            related: ["privacy search", "duckduckgo", "sorvx demo"],
-            status: "offline-fallback"
-        };
-        const res = NextResponse.json(sample, { status: 200 });
+        const res = NextResponse.json({ status: "Could not connect to the search backend. It may be offline." }, { status: 502 });
         res.cookies.set("scraper_web", "", { maxAge: 0, path: "/" });
         return res;
     }

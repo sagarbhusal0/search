@@ -10,10 +10,23 @@ interface WebResult { title: string; description: string; url: string; favicon?:
 interface ApiResponse { web?: WebResult[]; related?: string[]; npt?: string; status?: string; }
 
 const SCRAPERS = [
-  { value: "ddg", label: "DuckDuckGo" }, { value: "brave", label: "Brave" },
+  { value: "brave", label: "Brave" }, { value: "ddg", label: "DuckDuckGo" },
   { value: "google", label: "Google" }, { value: "yandex", label: "Yandex" },
   { value: "qwant", label: "Qwant" }, { value: "startpage", label: "Startpage" },
 ];
+
+function highlightText(text: string, query: string) {
+  if (!query.trim()) return text;
+  const terms = query.trim().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return text;
+  const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = text.split(pattern);
+  return parts.map((part, i) => {
+    const isMatch = terms.some(t => part.toLowerCase() === t.toLowerCase());
+    return isMatch ? <mark key={i}>{part}</mark> : part;
+  });
+}
 
 function SkeletonBlock() {
   return (
@@ -39,7 +52,7 @@ export default function SearchResults() {
   const queryScraper = searchParams.get("scraper");
   const page = searchParams.get("p") || "1";
 
-  const [scraper, setScraper] = useState(queryScraper || "ddg");
+  const [scraper, setScraper] = useState(queryScraper || "brave");
   const [results, setResults] = useState<WebResult[]>([]);
   const [related, setRelated] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +79,7 @@ export default function SearchResults() {
         const res = await fetch(url);
         const data: ApiResponse = await res.json();
         setTimeTaken((Date.now() - start) / 1000);
-        if (data.status && !data.web) { setError(data.status); setResults([]); }
+        if (data.status) { setError(data.status); setResults([]); }
         else {
           setResults(data.web || []);
           setRelated(data.related || []);
@@ -166,10 +179,10 @@ export default function SearchResults() {
                   </div>
                   <a href={result.url} target="_blank" rel="noopener noreferrer" className="block mb-0.5 group/link">
                     <h2 className="text-[17px] font-medium text-[var(--accent-hover)] leading-snug group-hover/link:underline decoration-1 underline-offset-2">
-                      {result.title}
+                      {highlightText(result.title, query)}
                     </h2>
                   </a>
-                  <p className="text-[14px] text-[var(--fg-2)] leading-relaxed">{result.description}</p>
+                   {result.description && <p className="text-[14px] text-[var(--fg-2)] leading-relaxed">{highlightText(result.description, query)}</p>}
                 </article>
               ))}
             </div>

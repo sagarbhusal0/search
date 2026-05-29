@@ -135,7 +135,7 @@ impl Scraper for Google {
         let img_sel = Selector::parse("div[data-ow], div.isv-r, div.rg_bx").unwrap();
         let title_sel = Selector::parse("a[href*='/imgres']").unwrap();
         let src_sel = Selector::parse("img.rg_i, img.sFlh5c").unwrap();
-        let meta_sel = Selector::parse("div[data-ow]").unwrap();
+        let _meta_sel = Selector::parse("div[data-ow]").unwrap();
 
         for container in document.select(&img_sel) {
             let title = container
@@ -209,7 +209,7 @@ impl Scraper for Google {
 
         let news_sel = Selector::parse("div.SoaBEf, g-card, div.WlydOe").unwrap();
         let title_sel = Selector::parse("div.n0jPhd, h3").unwrap();
-        let desc_sel = Selector::parse("div.GI74Re, div.YSL3");
+        let _desc_sel = Selector::parse("div.GI74Re, div.YSL3");
         let src_sel = Selector::parse("span.CEMjEf, span.wH6SXe").unwrap();
 
         for card in document.select(&news_sel) {

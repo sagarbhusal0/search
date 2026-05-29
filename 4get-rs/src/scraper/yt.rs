@@ -75,7 +75,21 @@ impl Scraper for YouTube {
                                 let duration = video
                                     .pointer("/lengthText/simpleText")
                                     .and_then(|v| v.as_str())
-                                    .map(|s| s.to_string());
+                                    .and_then(|s| {
+                                        let parts: Vec<&str> = s.split(':').collect();
+                                        let mut secs: i64 = 0;
+                                        if parts.len() == 3 {
+                                            secs += parts[0].parse::<i64>().unwrap_or(0) * 3600;
+                                            secs += parts[1].parse::<i64>().unwrap_or(0) * 60;
+                                            secs += parts[2].parse::<i64>().unwrap_or(0);
+                                        } else if parts.len() == 2 {
+                                            secs += parts[0].parse::<i64>().unwrap_or(0) * 60;
+                                            secs += parts[1].parse::<i64>().unwrap_or(0);
+                                        } else {
+                                            secs = s.parse::<i64>().unwrap_or(0);
+                                        }
+                                        (secs > 0).then_some(secs)
+                                    });
 
                                 if !title.is_empty() {
                                     response.video.push(VideoResult {

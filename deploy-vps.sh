@@ -71,7 +71,7 @@ EOF
 # ── build & start ──
 info "Building and starting all services..."
 $COMPOSE_CMD -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
-$COMPOSE_CMD -f "$COMPOSE_FILE" build --pull
+$COMPOSE_CMD -f "$COMPOSE_FILE" build
 $COMPOSE_CMD -f "$COMPOSE_FILE" up -d
 
 # ── health check ──

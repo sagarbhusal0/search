@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const cookieScraper = cookieStore.get("scraper_music")?.value;
 
-    const backendUrl = process.env.PHP_BACKEND_URL || "http://localhost:80";
+    const backendUrl = process.env.BACKEND_URL || process.env.PHP_BACKEND_URL || "http://localhost:3001";
 
     let url = `${backendUrl}/api/v1/music.php?s=${encodeURIComponent(query)}`;
     

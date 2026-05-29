@@ -17,6 +17,7 @@ pub struct WebSearchParams {
     pub spellcheck: Option<String>,
     pub extendedsearch: Option<String>,
     #[serde(flatten)]
+    #[allow(dead_code)]
     pub extra: HashMap<String, String>,
 }
 
@@ -29,7 +30,7 @@ pub async fn web_search(
         return Ok(Json(WebResponse::empty()));
     }
 
-    let scraper_name = params.scraper.as_deref().unwrap_or("ddg");
+    let scraper_name = params.scraper.as_deref().unwrap_or("brave");
     let scraper = state
         .scraper_registry
         .get(scraper_name)
