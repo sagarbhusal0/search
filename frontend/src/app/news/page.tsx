@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, ArrowLeft, ArrowRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
 
