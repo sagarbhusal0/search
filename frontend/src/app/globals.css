@@ -140,7 +140,10 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--radius-sm);
 }
 
-/* ── Focus ring ── */
+/* ── Focus ring (skip elements inside glow-accent — container handles it) ── */
+.glow-accent *:focus-visible {
+  outline: none;
+}
 *:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -150,10 +153,11 @@ a { color: inherit; text-decoration: none; }
 /* ── Glow accent for search bar ── */
 .glow-accent {
   box-shadow: 0 0 0 1px var(--border);
-  transition: box-shadow var(--motion-fast) var(--ease-stand);
+  transition: box-shadow var(--motion-fast) var(--ease-stand), border-color var(--motion-fast) var(--ease-stand);
 }
 .glow-accent:focus-within {
-  box-shadow: 0 0 0 1.5px var(--accent), 0 0 20px -4px var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 /* ── DuckDuckGo-style highlight ── */
