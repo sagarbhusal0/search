@@ -180,9 +180,9 @@ function ImageGrid() {
 
             {results.length > 0 && (
               <div className="mt-8 flex items-center justify-center gap-4 pb-8">
-                <button onClick={handlePrev} disabled={prevNpts.length === 0 || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium hover:bg-white/[0.03] disabled:opacity-25 disabled:pointer-events-none"><ArrowLeft size={14} /> Prev</button>
-                <span className="text-[12px] font-medium text-[var(--meta)]">{currentPage}</span>
-                <button onClick={handleNext} disabled={!npt || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium hover:bg-white/[0.03] disabled:opacity-25 disabled:pointer-events-none">Next <ArrowRight size={14} /></button>
+                <button onClick={handlePrev} disabled={prevNpts.length === 0 || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium text-[var(--fg-2)] hover:bg-white/[0.03] hover:border-[var(--border-accent)] disabled:opacity-25 disabled:pointer-events-none transition-all duration-150"><ChevronLeft size={14} /> Prev</button>
+                <span className="inline-flex items-center justify-center min-w-[28px] h-7 rounded-[var(--radius-sm)] bg-[var(--pagination-orange)]/15 text-[var(--pagination-orange)] text-[13px] font-bold px-2">{currentPage}</span>
+                <button onClick={handleNext} disabled={!npt || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium text-[var(--fg-2)] hover:bg-white/[0.03] hover:border-[var(--border-accent)] disabled:opacity-25 disabled:pointer-events-none transition-all duration-150">Next <ChevronRight size={14} /></button>
               </div>
             )}
           </>

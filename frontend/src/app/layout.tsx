@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "Sorvx — Private Search",
   description: "A high-performance, privacy-focused metasearch engine.",
   icons: { icon: "/favicon.png" },
+  themeColor: "#8b5cf6",
 };
 
 export default function RootLayout({
