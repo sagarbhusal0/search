@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::errors::AppError;
 use crate::scraper::client::HttpClient;
 use crate::scraper::Scraper;
@@ -12,15 +13,17 @@ static EXTRACT_FAILED: AtomicBool = AtomicBool::new(false);
 
 pub struct SoundCloud {
     http: HttpClient,
+    config_client_id: String,
 }
 
 impl SoundCloud {
-    pub fn new(http: HttpClient) -> Self {
-        SoundCloud { http }
-    }
-
-    fn hardcoded_client_id() -> &'static str {
-        "IRnK0myxxLJdwXXjybXQo71mXyDGpaM6"
+    pub fn new(http: HttpClient, config: &Config) -> Self {
+        let config_client_id = config
+            .scrapers
+            .soundcloud_client_id
+            .clone()
+            .unwrap_or_default();
+        SoundCloud { http, config_client_id }
     }
 
     async fn get_client_id(&self) -> Result<String, AppError> {
@@ -29,7 +32,7 @@ impl SoundCloud {
         }
 
         if EXTRACT_FAILED.load(Ordering::Relaxed) {
-            return Ok(Self::hardcoded_client_id().to_string());
+            return Ok(self.config_client_id.clone());
         }
 
         match self.extract_client_id().await {
@@ -38,9 +41,9 @@ impl SoundCloud {
                 Ok(id)
             }
             Err(e) => {
-                tracing::warn!("SoundCloud client_id extraction failed: {}, using hardcoded", e);
+                tracing::warn!("SoundCloud client_id extraction failed: {}, using config fallback", e);
                 EXTRACT_FAILED.store(true, Ordering::Relaxed);
-                Ok(Self::hardcoded_client_id().to_string())
+                Ok(self.config_client_id.clone())
             }
         }
     }
@@ -158,11 +161,7 @@ impl Scraper for SoundCloud {
                         duration,
                         stream: SongStream {
                             endpoint: "sc".to_string(),
-                            url: if !stream_url.is_empty() {
-                                format!("{}?client_id={}", stream_url, client_id)
-                            } else {
-                                String::new()
-                            },
+                            url: String::new(),
                         },
                         url: Some(permalink),
                         thumb: artwork,

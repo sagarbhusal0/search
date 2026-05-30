@@ -3,7 +3,7 @@ name = "Sorvx"
 short_description = "Sorvx — Privacy-focused metasearch engine."
 long_description = ""
 default_theme = "Dark"
-host = "0.0.0.0"
+host = "127.0.0.1"
 port = 3001
 data_dir = "data"
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:151.0) Gecko/20100101 Firefox/151.0"
@@ -13,13 +13,23 @@ instances = []
 alt_addresses = []
 
 [bot_protection]
-enabled = 0
+enabled = 1
 max_searches = 100
 header_regex = "bot|wget|curl|python-requests|scrapy|go-http-client|ruby|yahoo|spider|qwant|meta"
 filtered_header_keys = []
 captcha_dataset = []
 
 [scrapers]
+pixabay_api_key = ""
+flickr_api_key = ""
+google_cse_cx = ""
+soundcloud_client_id = ""
+
+[cors]
+allowed_origins = ["http://localhost:3000", "http://localhost:3001"]
+
+[auth]
+api_key = ""
 
 [oracles]
 enabled = true

@@ -7,12 +7,29 @@ pub struct Config {
     pub server: ServerConfig,
     #[allow(dead_code)]
     pub bot_protection: BotProtectionConfig,
-    #[allow(dead_code)]
     pub scrapers: ScrapersConfig,
     #[allow(dead_code)]
     pub proxies: HashMap<String, Option<String>>,
     #[allow(dead_code)]
     pub oracles: OraclesConfig,
+    #[serde(default)]
+    pub cors: CorsConfig,
+    #[serde(default)]
+    pub auth: AuthConfig,
+}
+
+impl Default for CorsConfig {
+    fn default() -> Self {
+        CorsConfig {
+            allowed_origins: vec![],
+        }
+    }
+}
+
+impl Default for AuthConfig {
+    fn default() -> Self {
+        AuthConfig { api_key: None }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -55,8 +72,22 @@ pub struct CaptchaDatasetEntry {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[allow(dead_code)]
-pub struct ScrapersConfig {}
+pub struct ScrapersConfig {
+    pub pixabay_api_key: Option<String>,
+    pub flickr_api_key: Option<String>,
+    pub google_cse_cx: Option<String>,
+    pub soundcloud_client_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct CorsConfig {
+    pub allowed_origins: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct AuthConfig {
+    pub api_key: Option<String>,
+}
 
 #[derive(Debug, Clone, Deserialize)]
 #[allow(dead_code)]

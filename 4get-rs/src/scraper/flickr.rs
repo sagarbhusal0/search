@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::errors::AppError;
 use crate::scraper::client::HttpClient;
 use crate::scraper::Scraper;
@@ -6,11 +7,17 @@ use async_trait::async_trait;
 
 pub struct Flickr {
     http: HttpClient,
+    api_key: String,
 }
 
 impl Flickr {
-    pub fn new(http: HttpClient) -> Self {
-        Flickr { http }
+    pub fn new(http: HttpClient, config: &Config) -> Self {
+        let api_key = config
+            .scrapers
+            .flickr_api_key
+            .clone()
+            .unwrap_or_default();
+        Flickr { http, api_key }
     }
 }
 
@@ -27,7 +34,7 @@ impl Scraper for Flickr {
             .get("https://api.flickr.com/services/rest/")
             .query(&[
                 ("method", "flickr.photos.search"),
-                ("api_key", "1508443e49213ff84d566777dcf2abe3"),
+                ("api_key", self.api_key.as_str()),
                 ("text", query.q.as_str()),
                 ("format", "json"),
                 ("nojsoncallback", "1"),

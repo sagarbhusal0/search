@@ -43,9 +43,13 @@ fn is_safe_url(url: &str) -> bool {
         || host == "127.0.0.1"
         || host == "0.0.0.0"
         || host == "[::1]"
-        || is_private_ip(host)
-        || host.ends_with(".local")
+        || host == "169.254.169.254"
+        || host == "metadata.google.internal"
+        || host == "metadata.std.internal"
+        || host == "metadata"
         || host.ends_with(".internal")
+        || host.ends_with(".local")
+        || is_private_ip(host)
     {
         return false;
     }

@@ -99,11 +99,11 @@ pub fn build_registry(http: client::HttpClient, _config: &crate::config::Config)
     r.insert("yt", Box::new(yt::YouTube::new(http.clone())));
     r.insert("vimeo", Box::new(vimeo::Vimeo::new(http.clone())));
     r.insert("sepiasearch", Box::new(sepiasearch::SepiaSearch::new(http.clone())));
-    r.insert("sc", Box::new(sc::SoundCloud::new(http.clone())));
+    r.insert("sc", Box::new(sc::SoundCloud::new(http.clone(), _config)));
     r.insert("swisscows", Box::new(swisscows::Swisscows::new(http.clone())));
     r.insert("spotify", Box::new(spotify::Spotify::new(http.clone())));
     r.insert("pinterest", Box::new(pinterest::Pinterest::new(http.clone())));
-    r.insert("flickr", Box::new(flickr::Flickr::new(http.clone())));
+    r.insert("flickr", Box::new(flickr::Flickr::new(http.clone(), _config)));
     r.insert("pexels", Box::new(pexels::Pexels::new(http.clone())));
     r.insert("fivehpx", Box::new(fivehpx::FiveHundredPx::new(http.clone())));
     r.insert("vsco", Box::new(vsco::VSCO::new(http.clone())));

@@ -8,7 +8,9 @@ use flate2::read::DeflateDecoder;
 use flate2::write::DeflateEncoder;
 use flate2::Compression;
 use rand::RngCore;
+use std::fs;
 use std::io::{Read, Write};
+use std::path::Path;
 
 #[allow(dead_code)]
 pub struct PaginationStore {
@@ -18,9 +20,34 @@ pub struct PaginationStore {
 
 #[allow(dead_code)]
 impl PaginationStore {
-    pub fn new(cache: CacheStore) -> Self {
-        let mut key_bytes = [0u8; 32];
-        OsRng.fill_bytes(&mut key_bytes);
+    pub fn new(cache: CacheStore, data_dir: &str) -> Self {
+        let key_path = Path::new(data_dir).join("pagination_key.bin");
+
+        let key_bytes: [u8; 32] = if key_path.exists() {
+            let data = fs::read(&key_path).unwrap_or_else(|_| vec![]);
+            if data.len() == 32 {
+                let mut arr = [0u8; 32];
+                arr.copy_from_slice(&data);
+                arr
+            } else {
+                let mut arr = [0u8; 32];
+                rand::rngs::OsRng.fill_bytes(&mut arr);
+                if let Some(parent) = key_path.parent() {
+                    let _ = fs::create_dir_all(parent);
+                }
+                let _ = fs::write(&key_path, &arr);
+                arr
+            }
+        } else {
+            let mut arr = [0u8; 32];
+            rand::rngs::OsRng.fill_bytes(&mut arr);
+            if let Some(parent) = key_path.parent() {
+                let _ = fs::create_dir_all(parent);
+            }
+            let _ = fs::write(&key_path, &arr);
+            arr
+        };
+
         let key = Key::from_slice(&key_bytes);
         let cipher = ChaCha20Poly1305::new(key);
         PaginationStore { cache, cipher }

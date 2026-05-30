@@ -14,7 +14,7 @@ impl GoogleCse {
     pub fn new(http: HttpClient, config: &Config) -> Self {
         let cx = config
             .scrapers
-            .google_cx_endpoint
+            .google_cse_cx
             .clone()
             .unwrap_or_default();
         GoogleCse { http, cx }
@@ -34,7 +34,7 @@ impl Scraper for GoogleCse {
             .get("https://www.googleapis.com/customsearch/v1")
             .query(&[
                 ("key", self.cx.as_str()),
-                ("cx", "017466674625512407126:d4e68b99b876541f0"),
+                ("cx", self.cx.as_str()),
                 ("q", query.q.as_str()),
                 ("hl", "en"),
             ])

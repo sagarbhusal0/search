@@ -32,13 +32,8 @@ impl Scraper for Pixabay {
         let mut params: HashMap<String, String> = if let Some(npt) = &query.npt {
             serde_json::from_str(npt).unwrap_or_default()
         } else {
-            let api_key = if self.api_key.is_empty() {
-                "44065810-135ef171765e71adba780c5a6".to_string()
-            } else {
-                self.api_key.clone()
-            };
             let mut p = HashMap::new();
-            p.insert("key".to_string(), api_key);
+            p.insert("key".to_string(), self.api_key.clone());
             p.insert("q".to_string(), query.q.clone());
             p.insert("per_page".to_string(), "20".to_string());
             p.insert(
