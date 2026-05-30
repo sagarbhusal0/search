@@ -122,7 +122,6 @@ function VideosContent() {
               }}
               className="appearance-none bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[12px] text-[var(--fg-2)] focus:outline-none focus:border-[var(--accent)] cursor-pointer"
             >
-              <option value="yt">YouTube</option>
               <option value="brave">Brave</option>
               <option value="ddg">DuckDuckGo</option>
             </select>

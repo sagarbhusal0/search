@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
     
     if (scraperParam || cookieScraper) url += `&scraper=${scraperParam || cookieScraper}`;
     if (nsfw) url += `&nsfw=${nsfw}`;
+    const safe = searchParams.get("safe");
+    if (safe) url += `&safe=${encodeURIComponent(safe)}`;
 
     try {
         const response = await fetch(url, { headers: { "Accept": "application/json" } });

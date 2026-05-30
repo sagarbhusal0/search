@@ -22,10 +22,20 @@ impl Scraper for Brave {
     }
 
     async fn web(&self, query: &SearchQuery) -> Result<WebResponse, AppError> {
-        let url = format!(
-            "https://search.brave.com/search?q={}&source=web",
-            urlencoding(&query.q)
-        );
+        let url = if let Some(npt) = &query.npt {
+            // npt format: "brave_<offset>"
+            let offset: u32 = npt.trim_start_matches("brave_").parse().unwrap_or(1);
+            format!(
+                "https://search.brave.com/search?q={}&source=web&offset={}",
+                urlencoding(&query.q),
+                offset
+            )
+        } else {
+            format!(
+                "https://search.brave.com/search?q={}&source=web",
+                urlencoding(&query.q)
+            )
+        };
 
         let html = self
             .http
@@ -33,6 +43,7 @@ impl Scraper for Brave {
             .get(&url)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
             .header("Accept-Language", "en-US,en;q=0.5")
+            .header("User-Agent", self.http.random_ua())
             .send()
             .await?
             .text()
@@ -79,14 +90,24 @@ impl Scraper for Brave {
             }
         }
 
-        // Next page
-        if let Some(npt_input) = document
-            .select(&Selector::parse("input[name=npt]").unwrap())
-            .next()
-        {
-            if let Some(npt) = npt_input.value().attr("value") {
-                if !npt.is_empty() {
-                    response.npt = Some(npt.to_string());
+        // Next page - Brave uses offset= parameter
+        let current_offset: u32 = if let Some(npt) = &query.npt {
+            npt.trim_start_matches("brave_").parse().unwrap_or(0)
+        } else {
+            0
+        };
+
+        // Check if there's a next page link
+        let next_sel = Selector::parse("a[href*='offset=']").unwrap();
+
+        for link in document.select(&next_sel) {
+            if let Some(href) = link.value().attr("href") {
+                if let Some(off_str) = href.split("offset=").nth(1) {
+                    let off: u32 = off_str.split('&').next().unwrap_or("0").parse().unwrap_or(0);
+                    if off > current_offset {
+                        response.npt = Some(format!("brave_{}", off));
+                        break;
+                    }
                 }
             }
         }
@@ -105,6 +126,7 @@ impl Scraper for Brave {
             .client
             .get(&url)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+            .header("User-Agent", self.http.random_ua())
             .send()
             .await?
             .text()
@@ -157,15 +179,25 @@ impl Scraper for Brave {
     }
 
     async fn video(&self, query: &SearchQuery) -> Result<VideoResponse, AppError> {
-        let url = format!(
-            "https://search.brave.com/videos?q={}",
-            urlencoding(&query.q)
-        );
+        let url = if let Some(npt) = &query.npt {
+            let offset: u32 = npt.trim_start_matches("brave_").parse().unwrap_or(1);
+            format!(
+                "https://search.brave.com/videos?q={}&offset={}",
+                urlencoding(&query.q),
+                offset
+            )
+        } else {
+            format!(
+                "https://search.brave.com/videos?q={}",
+                urlencoding(&query.q)
+            )
+        };
 
         let html = self
             .http
             .client
             .get(&url)
+            .header("User-Agent", self.http.random_ua())
             .send()
             .await?
             .text()
@@ -178,6 +210,7 @@ impl Scraper for Brave {
         let title_sel = Selector::parse("div.title").unwrap();
         let dur_sel = Selector::parse("div.duration").unwrap();
         let url_sel = Selector::parse("a.l1").unwrap();
+        let thumb_sel = Selector::parse("div.thumbnail img, div.result-thumbnail-wrapper img").unwrap();
 
         for card in document.select(&vid_sel) {
             let title = card
@@ -213,6 +246,16 @@ impl Scraper for Brave {
                     (secs > 0).then_some(secs)
                 });
 
+            let thumb = card
+                .select(&thumb_sel)
+                .next()
+                .and_then(|e| {
+                    e.value()
+                        .attr("src")
+                        .or_else(|| e.value().attr("data-src"))
+                        .map(|s| s.to_string())
+                });
+
             if !title.is_empty() {
                 response.video.push(VideoResult {
                     title,
@@ -223,8 +266,28 @@ impl Scraper for Brave {
                     description: None,
                     source: Some("brave".into()),
                     author: None,
-                    thumb: None,
+                    thumb,
                 });
+            }
+        }
+
+        // Next page - Brave uses offset= parameter
+        let current_offset: u32 = if let Some(npt) = &query.npt {
+            npt.trim_start_matches("brave_").parse().unwrap_or(0)
+        } else {
+            0
+        };
+
+        let next_sel = Selector::parse("a[href*='offset=']").unwrap();
+        for link in document.select(&next_sel) {
+            if let Some(href) = link.value().attr("href") {
+                if let Some(off_str) = href.split("offset=").nth(1) {
+                    let off: u32 = off_str.split('&').next().unwrap_or("0").parse().unwrap_or(0);
+                    if off > current_offset {
+                        response.npt = Some(format!("brave_{}", off));
+                        break;
+                    }
+                }
             }
         }
 
@@ -232,15 +295,25 @@ impl Scraper for Brave {
     }
 
     async fn news(&self, query: &SearchQuery) -> Result<NewsResponse, AppError> {
-        let url = format!(
-            "https://search.brave.com/news?q={}",
-            urlencoding(&query.q)
-        );
+        let url = if let Some(npt) = &query.npt {
+            let offset: u32 = npt.trim_start_matches("brave_").parse().unwrap_or(1);
+            format!(
+                "https://search.brave.com/news?q={}&offset={}",
+                urlencoding(&query.q),
+                offset
+            )
+        } else {
+            format!(
+                "https://search.brave.com/news?q={}",
+                urlencoding(&query.q)
+            )
+        };
 
         let html = self
             .http
             .client
             .get(&url)
+            .header("User-Agent", self.http.random_ua())
             .send()
             .await?
             .text()
@@ -290,6 +363,26 @@ impl Scraper for Brave {
                     source,
                     thumb: None,
                 });
+            }
+        }
+
+        // Next page
+        let current_offset: u32 = if let Some(npt) = &query.npt {
+            npt.trim_start_matches("brave_").parse().unwrap_or(0)
+        } else {
+            0
+        };
+
+        let next_sel = Selector::parse("a[href*='offset=']").unwrap();
+        for link in document.select(&next_sel) {
+            if let Some(href) = link.value().attr("href") {
+                if let Some(off_str) = href.split("offset=").nth(1) {
+                    let off: u32 = off_str.split('&').next().unwrap_or("0").parse().unwrap_or(0);
+                    if off > current_offset {
+                        response.npt = Some(format!("brave_{}", off));
+                        break;
+                    }
+                }
             }
         }
 

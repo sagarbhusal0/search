@@ -32,9 +32,10 @@ impl Scraper for Google {
             .http
             .client
             .get(&url)
-            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
             .header("Accept-Language", "en-US,en;q=0.5")
-            .header("User-Agent", &self.http.user_agent)
+            .header("User-Agent", self.http.random_ua())
+            .header("Cookie", "CONSENT=YES+")
             .send()
             .await?
             .text()
@@ -123,7 +124,8 @@ impl Scraper for Google {
             .get(&url)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
             .header("Accept-Language", "en-US,en;q=0.5")
-            .header("User-Agent", &self.http.user_agent)
+            .header("User-Agent", self.http.random_ua())
+            .header("Cookie", "CONSENT=YES+")
             .send()
             .await?
             .text()
@@ -199,6 +201,8 @@ impl Scraper for Google {
             .get(&url)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
             .header("Accept-Language", "en-US,en;q=0.5")
+            .header("User-Agent", self.http.random_ua())
+            .header("Cookie", "CONSENT=YES+")
             .send()
             .await?
             .text()
@@ -264,6 +268,10 @@ impl Scraper for Google {
             .http
             .client
             .get(&url)
+            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+            .header("Accept-Language", "en-US,en;q=0.5")
+            .header("User-Agent", self.http.random_ua())
+            .header("Cookie", "CONSENT=YES+")
             .send()
             .await?
             .text()

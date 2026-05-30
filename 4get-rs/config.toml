@@ -31,3 +31,5 @@ enabled = true
 # Example: http:1.2.3.4:8080:user:pass
 # Lines starting with # are comments
 ddg = "data/proxies/ddg.txt"
+yandex = "data/proxies/yandex.txt"
+startpage = "data/proxies/startpage.txt"

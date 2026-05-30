@@ -11,8 +11,6 @@ interface ApiResponse { web?: WebResult[]; related?: string[]; npt?: string; sta
 
 const SCRAPERS = [
   { value: "brave", label: "Brave" }, { value: "ddg", label: "DuckDuckGo" },
-  { value: "google", label: "Google" }, { value: "yandex", label: "Yandex" },
-  { value: "qwant", label: "Qwant" }, { value: "startpage", label: "Startpage" },
 ];
 
 function highlightText(text: string, query: string) {
@@ -55,6 +53,7 @@ export default function SearchResults() {
   const [scraper, setScraper] = useState(queryScraper || "brave");
   const [results, setResults] = useState<WebResult[]>([]);
   const [related, setRelated] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeTaken, setTimeTaken] = useState(0);
@@ -94,6 +93,17 @@ export default function SearchResults() {
       finally { setLoading(false); }
     };
     fetchResults();
+
+    // Fetch search suggestions
+    if (query) {
+      fetch(`/api/autocomplete?s=${encodeURIComponent(query)}`)
+        .then(r => r.json())
+        .then(data => {
+          const items = data.suggestions || (Array.isArray(data) && data[1]) || [];
+          setSuggestions(items.filter((s: string) => s.toLowerCase() !== query.toLowerCase()).slice(0, 6));
+        })
+        .catch(() => setSuggestions([]));
+    }
   }, [query, scraper, page, searchParams]);
 
   const handleNextPage = () => {
@@ -197,6 +207,19 @@ export default function SearchResults() {
                   <a key={i} href={`/search?s=${encodeURIComponent(term)}`} className="flex items-center gap-2.5 px-3 py-2.5 rounded-[var(--radius-sm)] border border-[var(--border)] hover:bg-white/[0.03] transition-colors">
                     <Search size={12} className="text-[var(--meta)]" />
                     <span className="text-[13px] font-medium text-[var(--fg-2)]">{term}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {related.length === 0 && suggestions.length > 0 && !loading && (
+            <div className="mt-10 pt-6 border-t border-[var(--border)]">
+              <h3 className="text-[12px] font-semibold text-[var(--meta)] uppercase tracking-wider mb-3">Search suggestions</h3>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((term, i) => (
+                  <a key={i} href={`/search?s=${encodeURIComponent(term)}&scraper=${scraper}`} className="px-3 py-1.5 rounded-full border border-[var(--border)] text-[13px] text-[var(--fg-2)] hover:bg-white/[0.03] hover:border-[var(--accent)] transition-colors">
+                    {term}
                   </a>
                 ))}
               </div>

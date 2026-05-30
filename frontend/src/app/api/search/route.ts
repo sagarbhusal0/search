@@ -22,6 +22,13 @@ export async function GET(request: NextRequest) {
     else url += `&p=${page}`;
     if (nsfw) url += `&nsfw=${nsfw}`;
 
+    const safe = searchParams.get("safe");
+    if (safe) url += `&safe=${encodeURIComponent(safe)}`;
+    const spellcheck = searchParams.get("spellcheck");
+    if (spellcheck) url += `&spellcheck=${encodeURIComponent(spellcheck)}`;
+    const extendedsearch = searchParams.get("extendedsearch");
+    if (extendedsearch) url += `&extendedsearch=${encodeURIComponent(extendedsearch)}`;
+
     try {
         const response = await fetch(url, { headers: { "Accept": "application/json" } });
         const contentType = response.headers.get("content-type") || "";

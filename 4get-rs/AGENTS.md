@@ -48,7 +48,7 @@ All return JSON. The Next.js frontend proxies through `/api/*` routes to these e
 
 ## Key Decisions
 - **No HTML rendering**: This backend only serves JSON APIs. The Next.js frontend handles all UI.
-- **Default scrapers**: web=ddg, image=pixabay, video=yt, news=ddg, music=sc, autocomplete=brave
+- **Default scrapers**: web=ddg, image=pixabay, video=yt, news=ddg, music=sc, autocomplete=ddg
 - **Config format**: TOML (config.toml), mirrors PHP config.php structure
 - **Image proxy**: Uses `image` crate for resize; supports Bing thumbnail passthrough and local resizing
 - **Favicon proxy**: Scrapes HTML for favicon link tags, downloads, resizes to 16x16 PNG, caches to disk

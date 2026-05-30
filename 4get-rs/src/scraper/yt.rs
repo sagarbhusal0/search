@@ -23,7 +23,7 @@ impl Scraper for YouTube {
 
     async fn video(&self, query: &SearchQuery) -> Result<VideoResponse, AppError> {
         let url = format!(
-            "https://www.youtube.com/results?search_query={}&hl=en",
+            "https://www.youtube.com/results?search_query={}&hl=en&gl=US&aq=f&oq=",
             urlencoding(&query.q)
         );
 
@@ -31,8 +31,17 @@ impl Scraper for YouTube {
             .http
             .client
             .get(&url)
-            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
             .header("Accept-Language", "en-US,en;q=0.5")
+            .header("User-Agent", self.http.random_ua())
+            .header("Cookie", "CONSENT=YES+cb.20210328-17-p0.en+FX+999; SOCS=CAISNQgDEitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjMwODI5LjA3X3AxGgJlbiACGgYIgJnPpwY")
+            .header("DNT", "1")
+            .header("Sec-GPC", "1")
+            .header("Upgrade-Insecure-Requests", "1")
+            .header("Sec-Fetch-Dest", "document")
+            .header("Sec-Fetch-Mode", "navigate")
+            .header("Sec-Fetch-Site", "none")
+            .header("Sec-Fetch-User", "?1")
             .send()
             .await?
             .text()
@@ -68,7 +77,8 @@ impl Scraper for YouTube {
                                     String::new()
                                 };
                                 let views_text = video
-                                    .pointer("/viewCount/simpleText")
+                                    .pointer("/viewCountText/simpleText")
+                                    .or_else(|| video.pointer("/viewCount/simpleText"))
                                     .and_then(|v| v.as_str())
                                     .unwrap_or("")
                                     .to_string();
@@ -91,6 +101,26 @@ impl Scraper for YouTube {
                                         (secs > 0).then_some(secs)
                                     });
 
+                                let thumb = video
+                                    .pointer("/thumbnail/thumbnails/0/url")
+                                    .or_else(|| video.pointer("/thumbnail/thumbnails/2/url"))
+                                    .and_then(|v| v.as_str())
+                                    .filter(|s| !s.is_empty())
+                                    .map(|s| s.to_string());
+
+                                let author = video
+                                    .pointer("/ownerText/runs/0/text")
+                                    .and_then(|v| v.as_str())
+                                    .filter(|s| !s.is_empty())
+                                    .map(|s| s.to_string());
+
+                                let description = video
+                                    .pointer("/detailedMetadataSnippets/0/snippetText/runs/0/text")
+                                    .or_else(|| video.pointer("/descriptionSnippet/runs/0/text"))
+                                    .and_then(|v| v.as_str())
+                                    .filter(|s| !s.is_empty())
+                                    .map(|s| s.to_string());
+
                                 if !title.is_empty() {
                                     response.video.push(VideoResult {
                                         title,
@@ -98,10 +128,10 @@ impl Scraper for YouTube {
                                         views: parse_views(&views_text),
                                         duration,
                                         date: None,
-                                        description: None,
-                    source: Some("yt".into()),
-                    author: None,
-                    thumb: None,
+                                        description,
+                                        source: Some("yt".into()),
+                                        author,
+                                        thumb,
                                     });
                                 }
                             }
@@ -144,9 +174,40 @@ impl Scraper for YouTube {
 }
 
 fn extract_initial_data(html: &str) -> Option<serde_json::Value> {
-    let re = Regex::new(r"var ytInitialData = ({.*?});").ok()?;
-    let caps = re.captures(html)?;
-    serde_json::from_str(caps.get(1)?.as_str()).ok()
+    let marker = "var ytInitialData = ";
+    let start = html.find(marker)?;
+    let json_start = start + marker.len();
+    let bytes = html.as_bytes();
+    let mut depth: i32 = 0;
+    let mut in_string = false;
+    let mut escaped = false;
+
+    for (i, &b) in bytes[json_start..].iter().enumerate() {
+        let idx = json_start + i;
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if b == b'\\' {
+                escaped = true;
+            } else if b == b'"' {
+                in_string = false;
+            }
+            continue;
+        }
+        match b {
+            b'"' => in_string = true,
+            b'{' | b'[' => depth += 1,
+            b'}' | b']' => {
+                depth -= 1;
+                if depth == 0 {
+                    let json_str = &html[json_start..=idx];
+                    return serde_json::from_str(json_str).ok();
+                }
+            }
+            _ => {}
+        }
+    }
+    None
 }
 
 fn parse_views(text: &str) -> Option<i64> {

@@ -5,7 +5,6 @@ pub mod google;
 pub mod yandex;
 pub mod baidu;
 pub mod startpage;
-pub mod qwant;
 pub mod yahoo_japan;
 pub mod ghostery;
 pub mod mwmbl;
@@ -90,7 +89,6 @@ pub fn build_registry(http: client::HttpClient, _config: &crate::config::Config)
     r.insert("yandex", Box::new(yandex::Yandex::new(http.clone())));
     r.insert("baidu", Box::new(baidu::Baidu::new(http.clone())));
     r.insert("startpage", Box::new(startpage::Startpage::new(http.clone())));
-    r.insert("qwant", Box::new(qwant::Qwant::new(http.clone())));
     r.insert("yahoo_japan", Box::new(yahoo_japan::YahooJapan::new(http.clone())));
     r.insert("ghostery", Box::new(ghostery::Ghostery::new(http.clone())));
     r.insert("mwmbl", Box::new(mwmbl::Mwmbl::new(http.clone())));

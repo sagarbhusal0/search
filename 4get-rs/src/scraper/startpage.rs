@@ -226,13 +226,13 @@ impl Startpage {
         url: &str,
         params: &HashMap<String, String>,
     ) -> Result<String, AppError> {
-        let resp = self
-            .http
-            .client
+        let (client, _label) = self.http.get_or_raw_client(Some("startpage"));
+        let resp = client
             .get(url)
             .query(params)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
             .header("Accept-Language", "en-US,en;q=0.5")
+            .header("User-Agent", self.http.random_ua())
             .header("Cookie", Self::PREFERENCES_COOKIE)
             .header("Sec-Fetch-Dest", "document")
             .header("Sec-Fetch-Mode", "navigate")
@@ -252,13 +252,13 @@ impl Startpage {
         url: &str,
         form: &HashMap<String, String>,
     ) -> Result<String, AppError> {
-        let resp = self
-            .http
-            .client
+        let (client, _label) = self.http.get_or_raw_client(Some("startpage"));
+        let resp = client
             .post(url)
             .form(form)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
             .header("Accept-Language", "en-US,en;q=0.5")
+            .header("User-Agent", self.http.random_ua())
             .header("Cookie", Self::PREFERENCES_COOKIE)
             .header("Referer", "https://www.startpage.com/")
             .header("Origin", "https://www.startpage.com/")
@@ -321,7 +321,26 @@ impl Scraper for Startpage {
 
         Self::detect_captcha(&html)?;
 
-        let json = Self::extract_react_json(&html, "AppSerpWeb")?;
+        if html.contains("captcha-block") || html.contains("Redirecting...") {
+            return Err(AppError::ScraperError(
+                "Startpage blocked this request (captcha). Add proxies to data/proxies/startpage.txt".into(),
+            ));
+        }
+
+        if html.contains("theme--device") && !html.contains("AppSerpWeb") && !html.contains("React.createElement") {
+            return Err(AppError::ScraperError(
+                "Startpage returned a client-side only page (no search results in HTML). Add proxies to data/proxies/startpage.txt".into(),
+            ));
+        }
+
+        let json = match Self::extract_react_json(&html, "AppSerpWeb") {
+            Ok(j) => j,
+            Err(_) => {
+                return Err(AppError::ScraperError(
+                    "Failed to extract Startpage results. The page may have changed or blocked this request. Add proxies to data/proxies/startpage.txt".into(),
+                ));
+            }
+        };
 
         let mut response = WebResponse::empty();
 

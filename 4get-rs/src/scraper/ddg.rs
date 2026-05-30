@@ -87,6 +87,63 @@ impl DDG {
             .and_then(|c| c.get(1).map(|m| m.as_str().to_string()))
     }
 
+    fn solve_jsa_challenge(js: &str) -> i64 {
+        let re_jsa = Regex::new(r"let jsa *= *([0-9]+)").unwrap();
+        let mut jsa: i64 = re_jsa
+            .captures(js)
+            .and_then(|c| c.get(1))
+            .and_then(|m| m.as_str().parse().ok())
+            .unwrap_or(0);
+
+        let re_func = Regex::new(r"let ([A-Za-z0-9]+) *= *function\(.*\) *\{(.*)\};").unwrap();
+        let mut functions: std::collections::HashMap<String, (String, String)> =
+            std::collections::HashMap::new();
+
+        for cap in re_func.captures_iter(js) {
+            let name = cap.get(1).unwrap().as_str().to_string();
+            let body = cap.get(2).unwrap().as_str().trim().to_string();
+
+            if let Some(mul) = Regex::new(r"return num *\* *([0-9]+)")
+                .unwrap()
+                .captures(&body)
+                .and_then(|c| c.get(1))
+                .and_then(|m| m.as_str().parse::<i64>().ok())
+            {
+                functions.insert(name, ("multiplication".to_string(), mul.to_string()));
+                continue;
+            }
+
+            if let Some(chal) = Regex::new(r"innerHTML *= *`([^`]+)`")
+                .unwrap()
+                .captures(&body)
+                .and_then(|c| c.get(1))
+            {
+                let text = chal.as_str().replace("</br>", "<br>");
+                functions.insert(name, ("challenge".to_string(), text));
+            }
+        }
+
+        let re_call = Regex::new(r"jsa *= *([A-Za-z0-9]+)\(jsa\)").unwrap();
+        for cap in re_call.captures_iter(js) {
+            let fname = cap.get(1).unwrap().as_str();
+            if let Some((ftype, fval)) = functions.get(fname) {
+                match ftype.as_str() {
+                    "multiplication" => {
+                        if let Some(num) = fval.parse::<i64>().ok() {
+                            jsa = jsa * num;
+                        }
+                    }
+                    "challenge" => {
+                        jsa = jsa + fval.len() as i64;
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        jsa
+    }
+
     async fn web_html(&self, query: &SearchQuery) -> Result<WebResponse, AppError> {
         let kp = match query.nsfw {
             NsfwLevel::Yes => "-2",
@@ -128,9 +185,18 @@ impl DDG {
                 .query(&[("q", query.q.as_str()), ("kl", "wt-wt"), ("kp", kp)])
                 .header(
                     "Accept",
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 )
                 .header("Accept-Language", "en-US,en;q=0.5")
+                .header("User-Agent", self.http.random_ua())
+                .header("DNT", "1")
+                .header("Sec-GPC", "1")
+                .header("Connection", "keep-alive")
+                .header("Upgrade-Insecure-Requests", "1")
+                .header("Sec-Fetch-Dest", "document")
+                .header("Sec-Fetch-Mode", "navigate")
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Sec-Fetch-User", "?1")
                 .send()
                 .await?
                 .text()
@@ -140,6 +206,12 @@ impl DDG {
 
         let mut response = WebResponse::empty();
         let doc = Html::parse_document(&html);
+
+        if html.contains("anomaly-modal") || html.contains("anomaly.js") {
+            return Err(AppError::ScraperError(
+                "DDG blocked this request (anti-bot captcha). Try a different scraper or add DDG proxies.".into(),
+            ));
+        }
 
         let form_sel = Selector::parse("form").unwrap();
         let btn_alt_sel = Selector::parse("input.btn--alt").unwrap();
@@ -233,9 +305,18 @@ impl DDG {
                 .query(&[("q", query.q.as_str()), ("kl", "wt-wt"), ("kp", kp)])
                 .header(
                     "Accept",
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 )
                 .header("Accept-Language", "en-US,en;q=0.5")
+                .header("User-Agent", self.http.random_ua())
+                .header("DNT", "1")
+                .header("Sec-GPC", "1")
+                .header("Connection", "keep-alive")
+                .header("Upgrade-Insecure-Requests", "1")
+                .header("Sec-Fetch-Dest", "document")
+                .header("Sec-Fetch-Mode", "navigate")
+                .header("Sec-Fetch-Site", "same-origin")
+                .header("Sec-Fetch-User", "?1")
                 .send()
                 .await?
                 .text()
@@ -258,13 +339,20 @@ impl DDG {
             }
         };
 
-        let js = self
+        let mut js = self
             .http
             .client
             .get(&js_url)
             .header("Accept", "*/*")
             .header("Accept-Language", "en-US,en;q=0.5")
             .header("Referer", "https://duckduckgo.com/")
+            .header("User-Agent", self.http.random_ua())
+            .header("DNT", "1")
+            .header("Sec-GPC", "1")
+            .header("Connection", "keep-alive")
+            .header("Sec-Fetch-Dest", "script")
+            .header("Sec-Fetch-Mode", "no-cors")
+            .header("Sec-Fetch-Site", "same-site")
             .send()
             .await?
             .text()
@@ -275,6 +363,82 @@ impl DDG {
         let re_layout = Regex::new(r#"DDG\.pageLayout\.load\(\s*'d'\s*,\s*"#).unwrap();
         let parts: Vec<&str> = re_layout.splitn(&js, 2).collect();
         if parts.len() <= 1 {
+            // Detect JS challenge (DDG.deep.initialize)
+            let re_challenge = Regex::new(r"DDG\.deep\.initialize\('([^']+)' *\+ *jsa").unwrap();
+            if let Some(caps) = re_challenge.captures(&js) {
+                let challenge_path = caps.get(1).unwrap().as_str();
+                let jsa = Self::solve_jsa_challenge(&js);
+                let challenged_url = format!(
+                    "https://links.duckduckgo.com{}{}",
+                    challenge_path, jsa
+                );
+                js = self
+                    .http
+                    .client
+                    .get(&challenged_url)
+                    .header("Accept", "*/*")
+                    .header("Accept-Language", "en-US,en;q=0.5")
+                    .header("Referer", "https://duckduckgo.com/")
+                    .header("User-Agent", self.http.random_ua())
+                    .header("DNT", "1")
+                    .header("Sec-GPC", "1")
+                    .header("Connection", "keep-alive")
+                    .header("Sec-Fetch-Dest", "script")
+                    .header("Sec-Fetch-Mode", "no-cors")
+                    .header("Sec-Fetch-Site", "same-site")
+                    .send()
+                    .await?
+                    .text()
+                    .await?;
+
+                let parts2: Vec<&str> = re_layout.splitn(&js, 2).collect();
+                if parts2.len() <= 1 {
+                    if js.contains("anomalyDetectionBlock") {
+                        return Err(AppError::ScraperError(
+                            "DDG blocked this request (anti-bot). Try a different scraper or add DDG proxies.".into(),
+                        ));
+                    }
+                    return Err(AppError::ScraperError(
+                        "Failed to parse pageLayout(d) from challenged d.js".into(),
+                    ));
+                }
+                // Use the challenged response
+                let json_str = Self::extract_json(parts2[1])
+                    .ok_or_else(|| AppError::ScraperError("Failed to extract JSON from challenged d.js".into()))?;
+                let json: Vec<serde_json::Value> = serde_json::from_str(&json_str)?;
+
+                for item in &json {
+                    if let Some(obj) = item.as_object() {
+                        if let Some(n) = obj.get("n").and_then(|v| v.as_str()) {
+                            if !n.is_empty() {
+                                response.npt = Some(format!("1,{}", n));
+                            }
+                            continue;
+                        }
+                        if obj.contains_key("c") {
+                            if let Some(t) = obj.get("t").and_then(|v| v.as_str()) {
+                                if t == "DEEP_ERROR_NO_RESULTS" || t == "DEEP_SIMPLE_NO_RESULTS" {
+                                    if !obj.contains_key("s") { continue; }
+                                }
+                            }
+                            let title = obj.get("t").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            let raw_url = obj.get("c").and_then(|v| v.as_str()).unwrap_or("");
+                            let url = Self::unshiturl(raw_url);
+                            let desc = obj.get("a").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            response.web.push(WebResult {
+                                title, url, description: desc, date: None, source: Some("ddg".into()),
+                            });
+                        }
+                    }
+                }
+                return Ok(response);
+            }
+
+            if js.contains("anomalyDetectionBlock") {
+                return Err(AppError::ScraperError(
+                    "DDG blocked this request (anti-bot). Try a different scraper or add DDG proxies.".into(),
+                ));
+            }
             return Err(AppError::ScraperError(
                 "Failed to parse pageLayout(d) from d.js".into(),
             ));
@@ -366,10 +530,13 @@ impl Scraper for DDG {
             match parts.get(0).copied() {
                 Some("0") => self.web_html(query).await,
                 Some("1") => self.web_full(query).await,
-                _ => self.web_html(query).await,
+                _ => self.web_full(query).await,
             }
         } else {
-            self.web_html(query).await
+            match self.web_full(query).await {
+                Ok(r) if !r.web.is_empty() => Ok(r),
+                _ => self.web_html(query).await,
+            }
         }
     }
 
@@ -406,6 +573,7 @@ impl Scraper for DDG {
                     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 )
                 .header("Accept-Language", "en-US,en;q=0.5")
+                .header("User-Agent", self.http.random_ua())
                 .header("DNT", "1")
                 .header("Sec-GPC", "1")
                 .header("Connection", "keep-alive")
@@ -439,6 +607,7 @@ impl Scraper for DDG {
             .header("Accept", "*/*")
             .header("Accept-Language", "en-US,en;q=0.5")
             .header("Referer", "https://duckduckgo.com/")
+            .header("User-Agent", self.http.random_ua())
             .header("DNT", "1")
             .header("Sec-GPC", "1")
             .header("Connection", "keep-alive")
@@ -545,6 +714,7 @@ impl Scraper for DDG {
                     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 )
                 .header("Accept-Language", "en-US,en;q=0.5")
+                .header("User-Agent", self.http.random_ua())
                 .header("DNT", "1")
                 .header("Sec-GPC", "1")
                 .header("Connection", "keep-alive")
@@ -578,6 +748,7 @@ impl Scraper for DDG {
             .header("Accept", "*/*")
             .header("Accept-Language", "en-US,en;q=0.5")
             .header("Referer", "https://duckduckgo.com/")
+            .header("User-Agent", self.http.random_ua())
             .header("DNT", "1")
             .header("Sec-GPC", "1")
             .header("Connection", "keep-alive")
@@ -738,6 +909,7 @@ impl Scraper for DDG {
             .get(&js_url)
             .header("Accept", "*/*")
             .header("Referer", "https://duckduckgo.com/")
+            .header("User-Agent", self.http.random_ua())
             .send()
             .await?
             .text()
@@ -792,24 +964,30 @@ impl Scraper for DDG {
     }
 
     async fn autocomplete(&self, query: &str) -> Result<Vec<String>, AppError> {
-        let resp = self
+        let resp: serde_json::Value = self
             .http
             .client
             .get("https://duckduckgo.com/ac/")
             .query(&[("q", query), ("type", "list")])
+            .header("User-Agent", self.http.random_ua())
             .send()
             .await?
-            .json::<Vec<serde_json::Value>>()
+            .json()
             .await?;
 
-        let suggestions: Vec<String> = resp
-            .into_iter()
-            .filter_map(|item| {
-                item.get("phrase")
-                    .and_then(|v| v.as_str())
-                    .map(|s| s.to_string())
-            })
-            .collect();
+        // DDG returns [query, [suggestions]]
+        let suggestions = if let Some(arr) = resp.as_array() {
+            if let Some(suggestions_arr) = arr.get(1).and_then(|v| v.as_array()) {
+                suggestions_arr
+                    .iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            } else {
+                vec![]
+            }
+        } else {
+            vec![]
+        };
 
         Ok(suggestions)
     }

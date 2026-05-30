@@ -1,4 +1,5 @@
 use crate::config::Config;
+use rand::Rng;
 use reqwest::{Client, Proxy};
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -136,10 +137,13 @@ pub struct HttpClient {
     pub proxy_pools: Vec<(String, ProxyPool)>,
     pub user_agent: String,
     pub user_agent_friendly: String,
+    user_agents: Vec<String>,
 }
 
 impl HttpClient {
     pub fn new(config: &Config) -> Result<Self, Box<dyn std::error::Error>> {
+        let user_agents = load_user_agents("data/user_agents.txt");
+
         let client = Client::builder()
             .user_agent(&config.server.user_agent)
             .gzip(true)
@@ -156,7 +160,16 @@ impl HttpClient {
             proxy_pools: vec![],
             user_agent: config.server.user_agent.clone(),
             user_agent_friendly: config.server.user_agent_friendly.clone(),
+            user_agents,
         })
+    }
+
+    pub fn random_ua(&self) -> &str {
+        if self.user_agents.is_empty() {
+            return &self.user_agent;
+        }
+        let idx = rand::thread_rng().gen_range(0..self.user_agents.len());
+        &self.user_agents[idx]
     }
 
     pub fn load_proxy_pool(&mut self, name: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -206,6 +219,19 @@ impl Clone for HttpClient {
             proxy_pools: self.proxy_pools.clone(),
             user_agent: self.user_agent.clone(),
             user_agent_friendly: self.user_agent_friendly.clone(),
+            user_agents: self.user_agents.clone(),
         }
     }
+}
+
+fn load_user_agents(path: &str) -> Vec<String> {
+    std::fs::read_to_string(path)
+        .map(|content| {
+            content
+                .lines()
+                .filter(|l| !l.trim().is_empty() && !l.trim().starts_with('#'))
+                .map(|l| l.trim().to_string())
+                .collect()
+        })
+        .unwrap_or_default()
 }
