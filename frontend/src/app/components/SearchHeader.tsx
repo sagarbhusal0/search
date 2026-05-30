@@ -29,7 +29,7 @@ export default function SearchHeader() {
           <a href="/" className="shrink-0 transition-opacity hover:opacity-80">
             <img src="/logo.svg" alt="Sorvx" className="h-7 w-auto" />
           </a>
-          <div className="flex-1 max-w-[600px]">
+          <div className="flex-1 max-w-[720px]">
             <SearchBar initialQuery={query} scoped />
           </div>
         </div>
