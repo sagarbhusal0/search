@@ -11,7 +11,7 @@ function isValidImageUrl(url: string): boolean {
             hostname === "0.0.0.0" ||
             hostname === "[::1]" ||
             hostname.startsWith("10.") ||
-            hostname.startsWith("172.16.") ||
+            (hostname.startsWith("172.") && (() => { const octet = parseInt(hostname.split(".")[1]); return octet >= 16 && octet <= 31; })()) ||
             hostname.startsWith("192.168.") ||
             hostname.endsWith(".local") ||
             hostname.endsWith(".internal")
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         return new NextResponse("Invalid or disallowed URL", { status: 400 });
     }
 
-    const backendUrl = process.env.PHP_BACKEND_URL || "http://127.0.0.1:80";
+    const backendUrl = process.env.BACKEND_URL || process.env.PHP_BACKEND_URL || "http://localhost:3001";
 
     try {
         const proxyUrl = `${backendUrl}/proxy.php?i=${encodeURIComponent(url)}&s=${size}`;

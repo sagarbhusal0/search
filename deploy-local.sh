@@ -1,95 +1,66 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
-FE="$ROOT/frontend"
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$REPO_DIR"
 
-info()  { echo -e "  \e[36m*\e[0m $1"; }
-ok()    { echo -e "  \e[32m\u2713\e[0m $1"; }
-warn()  { echo -e "  \e[33m!\e[0m $1"; }
-err()   { echo -e "  \e[31m\u2717\e[0m $1"; }
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
-clear
-cat << 'EOF'
+info()  { echo -e "${GREEN}[✓]${NC} $1"; }
+warn()  { echo -e "${YELLOW}[!]${NC} $1"; }
+err()   { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 
-  ┌─────────────────────────────────────────────┐
-  │      Sorvx Search  —  Local Test Launcher   │
-  │              WSL Dev Server                 │
-  └─────────────────────────────────────────────┘
+# Build backend
+info "Building Rust backend..."
+cd 4get-rs
+cargo build --release 2>&1 | tail -3
+info "Backend built"
 
-EOF
+# Build frontend
+info "Building Next.js frontend..."
+cd ../frontend
+npm run build 2>&1 | tail -3
+info "Frontend built"
 
-# ── Prerequisites ──────────────────────────────────────────────
-info "Checking prerequisites..."
+# Kill existing processes
+info "Stopping existing services..."
+pkill -f 'sorvx.*config.toml' 2>/dev/null || true
+sleep 1
 
-if ! command -v node &>/dev/null; then
-  err "Node.js not found. Install it:"
-  err "  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -"
-  err "  sudo apt install -y nodejs"
-  exit 1
-fi
-ok "Node.js $(node --version)"
+# Start backend
+info "Starting backend on port 3001..."
+cd ../4get-rs
+nohup target/release/sorvx --config config.toml > /tmp/sorvx-backend.log 2>&1 &
+BACKEND_PID=$!
+echo $BACKEND_PID > /tmp/sorvx-backend.pid
+info "Backend PID: $BACKEND_PID"
 
-# ── Docker check ───────────────────────────────────────────────
-info "Checking PHP backend..."
-USE_DOCKER=false
-if docker --version &>/dev/null 2>&1; then
-  ok "Docker found — will start PHP backend via docker compose"
-  USE_DOCKER=true
+# Wait for backend to be ready
+sleep 3
+if curl -s --max-time 5 http://localhost:3001/healthz.php > /dev/null 2>&1; then
+    info "Backend is healthy"
 else
-  warn "Docker not found — API calls will fail (search, images, etc.)"
-  warn "Install: https://docs.docker.com/engine/install/ubuntu/"
-  echo ""
-  read -rp "  Continue without backend? [Y/n] " choice
-  if [[ "$choice" == "n" || "$choice" == "N" ]]; then exit 0; fi
+    warn "Backend health check failed, check /tmp/sorvx-backend.log"
 fi
 
-# ── Pull latest changes ────────────────────────────────────────
-info "Pulling latest code from git..."
-cd "$ROOT"
-if ! git diff --quiet 2>/dev/null; then
-  warn "Uncommitted changes detected — stashing them before pull"
-  git stash push -m "auto-stash by deploy-local.sh" 2>/dev/null || true
-fi
-if git pull --ff-only origin main 2>/dev/null; then
-  ok "Up to date with origin/main"
-else
-  warn "Git pull failed (offline or no upstream). Continuing with local code."
-fi
+# Start frontend
+info "Starting frontend on port 3000..."
+cd ../frontend
+nohup npm start > /tmp/sorvx-frontend.log 2>&1 &
+FRONTEND_PID=$!
+echo $FRONTEND_PID > /tmp/sorvx-frontend.pid
+info "Frontend PID: $FRONTEND_PID"
 
-# ── Install dependencies ───────────────────────────────────────
-info "Installing frontend dependencies..."
-cd "$FE"
-npm install --silent 2>/dev/null
-ok "Dependencies installed"
-
-# ── Start services ─────────────────────────────────────────────
-if $USE_DOCKER; then
-  info "Starting PHP backend via Docker..."
-  cd "$ROOT"
-  docker compose up --build -d fourget 2>/dev/null
-  if [ $? -eq 0 ]; then
-    ok "PHP backend running at http://localhost:8080"
-  else
-    warn "Docker failed. Try: docker compose up -d --build"
-  fi
-fi
-
-info "Starting Next.js frontend (dev mode)..."
 echo ""
-echo -e "  \e[35m─────────────────────────────────────────────\e[0m"
-echo -e "  \e[36mFrontend : http://localhost:3000\e[0m"
-if $USE_DOCKER; then
-  echo -e "  Backend  : http://localhost:8080"
-fi
-echo -e "  \e[35m─────────────────────────────────────────────\e[0m"
+info "Deployment complete!"
 echo ""
-echo -e "  \e[33mPress Ctrl+C to stop\e[0m"
+echo "  Frontend:  http://$(curl -s ifconfig.me 2>/dev/null || echo 'YOUR_IP'):3000"
+echo "  Backend:   http://localhost:3001"
 echo ""
-
-export NEXT_TELEMETRY_DISABLED=1
-if $USE_DOCKER; then
-  export PHP_BACKEND_URL="http://localhost:8080"
-fi
-cd "$FE"
-npm run dev
+echo "  Stop backend:  kill \$(cat /tmp/sorvx-backend.pid)"
+echo "  Stop frontend: kill \$(cat /tmp/sorvx-frontend.pid)"
+echo "  Logs:          tail -f /tmp/sorvx-backend.log /tmp/sorvx-frontend.log"
+echo ""

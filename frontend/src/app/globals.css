@@ -1,61 +1,110 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #08090a;
-  --surface: #191a1b;
-  --surface-alt: #0f1011;
-  --fg: #f7f8f8;
-  --fg-2: #d0d6e0;
-  --muted: #8a8f98;
-  --meta: #62666d;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-soft: rgba(255, 255, 255, 0.05);
-  --accent: #5e6ad2;
-  --accent-hover: #828fff;
+  /* Core backgrounds */
+  --bg: #0b0c0e;
+  --surface: #17181a;
+  --surface-alt: #0f1012;
+  --surface-raised: #1e1f22;
+
+  /* Text */
+  --fg: #f2f4f8;
+  --fg-2: #c8ced8;
+  --muted: #8a919f;
+  --meta: #5c6370;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.07);
+  --border-soft: rgba(255, 255, 255, 0.04);
+  --border-accent: rgba(94, 106, 210, 0.3);
+
+  /* Brand / Accent — Purple (DDG-inspired) */
+  --accent: #8b5cf6;
+  --accent-hover: #a78bfa;
   --accent-on: #ffffff;
-  --success: #27a644;
+  --accent-subtle: rgba(139, 92, 246, 0.15);
+
+  /* DuckDuckGo signature green for URLs */
+  --url-green: #22c55e;
+  --url-green-hover: #4ade80;
+
+  /* DuckDuckGo orange for pagination */
+  --pagination-orange: #e97316;
+  --pagination-orange-hover: #fb923c;
+
+  /* Semantic */
+  --success: #22c55e;
+  --warning: #e97316;
+  --danger: #ef4444;
+
+  /* Radius */
   --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --radius-pill: 9999px;
+
+  /* Typography */
   --font-display: 'Inter Variable', 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Inter Variable', 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
-  --motion-fast: 150ms;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Motion */
+  --motion-fast: 120ms;
   --motion-base: 200ms;
+  --motion-slow: 300ms;
   --ease-stand: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* Layout */
   --container: 1200px;
+  --results-max: 720px;
 }
 
+/* ── Light theme ── */
 :root[data-theme="light"] {
-  --bg: #f7f8f8;
+  --bg: #f5f6f8;
   --surface: #ffffff;
-  --surface-alt: #f3f4f5;
-  --fg: #111827;
-  --fg-2: #374151;
+  --surface-alt: #eeeef0;
+  --surface-raised: #ffffff;
+  --fg: #1a1c23;
+  --fg-2: #3d424e;
   --muted: #6b7280;
   --meta: #9ca3af;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-soft: rgba(0, 0, 0, 0.05);
-  --accent: #5e6ad2;
-  --accent-hover: #818cf8;
-  --accent-on: #ffffff;
+  --border: rgba(0, 0, 0, 0.07);
+  --border-soft: rgba(0, 0, 0, 0.04);
+  --border-accent: rgba(139, 92, 246, 0.3);
+  --accent-subtle: rgba(139, 92, 246, 0.08);
+  --url-green: #059669;
+  --url-green-hover: #10b981;
+  --pagination-orange: #d4520f;
+  --pagination-orange-hover: #e97316;
 }
 
+/* ── Gruvbox theme ── */
 :root[data-theme="gruvbox"] {
   --bg: #282828;
   --surface: #32302f;
   --surface-alt: #1d2021;
+  --surface-raised: #3c3836;
   --fg: #ebdbb2;
   --fg-2: #d5c4a1;
   --muted: #928374;
   --meta: #7c6f64;
   --border: rgba(235, 219, 178, 0.1);
   --border-soft: rgba(235, 219, 178, 0.06);
+  --border-accent: rgba(177, 98, 134, 0.3);
   --accent: #b16286;
   --accent-hover: #d3869b;
   --accent-on: #ebdbb2;
+  --accent-subtle: rgba(177, 98, 134, 0.12);
+  --url-green: #98971a;
+  --url-green-hover: #b8bb26;
+  --pagination-orange: #d65d0e;
+  --pagination-orange-hover: #fe8019;
 }
 
+/* ── Reset ── */
 * { box-sizing: border-box; }
 
 body {
@@ -67,16 +116,18 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 a { color: inherit; text-decoration: none; }
 
 ::selection { background: var(--accent); color: var(--accent-on); }
 
+/* ── Utilities ── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── Skeleton loader ── */
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -89,28 +140,55 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--radius-sm);
 }
 
+/* ── Focus ring (skip elements inside glow-accent — container handles it) ── */
+.glow-accent *:focus-visible {
+  outline: none;
+}
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Glow accent for search bar ── */
 .glow-accent {
   box-shadow: 0 0 0 1px var(--border);
-  transition: box-shadow var(--motion-fast) var(--ease-stand);
+  transition: box-shadow var(--motion-fast) var(--ease-stand), border-color var(--motion-fast) var(--ease-stand);
 }
-.glow-accent:focus-within,
-.glow-accent:hover {
+.glow-accent:focus-within {
+  border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
 }
 
-.fade-enter {
-  opacity: 0;
-  transform: translateY(4px);
-}
-.fade-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms var(--ease-stand), transform 300ms var(--ease-stand);
+/* ── DuckDuckGo-style highlight ── */
+mark {
+  background: var(--accent-subtle);
+  color: var(--fg);
+  border-radius: 2px;
+  padding: 0 2px;
+  font-weight: 500;
 }
 
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── DDG-style subtle pulse for new results ── */
+@keyframes result-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-enter {
+  animation: result-enter 0.3s var(--ease-out) both;
 }

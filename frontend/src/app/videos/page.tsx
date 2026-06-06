@@ -2,12 +2,12 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, ArrowLeft, ArrowRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
 
 interface VideoResult {
-  title: string; description?: string; url: string; author?: { name: string }; date?: number; duration?: number; thumb?: { url?: string };
+  title: string; description?: string; url: string; author?: { name: string } | string; source?: string; date?: number; duration?: number; thumb?: { url?: string } | string;
 }
 
 function VideosContent() {
@@ -26,7 +26,7 @@ function VideosContent() {
     const m = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
     return m ? decodeURIComponent(m.split("=")[1]) : null;
   };
-  const [scraper] = useState(getCookie("scraper_videos") || "yt");
+  const [scraper, setScraper] = useState(getCookie("scraper_videos") || "brave");
 
   useEffect(() => {
     if (!query) return;
@@ -107,22 +107,44 @@ function VideosContent() {
             <p className="text-lg font-medium text-[var(--fg)] mb-1">No videos for &ldquo;{query}&rdquo;</p>
           </div>
         ) : (
+          <>
+          <div className="flex items-center gap-2 mb-4">
+            <label className="text-[12px] text-[var(--meta)]">Source:</label>
+            <select
+              value={scraper}
+              onChange={e => {
+                setScraper(e.target.value);
+                document.cookie = `scraper_videos=${e.target.value};path=/;max-age=31536000`;
+                const p = new URLSearchParams(searchParams.toString());
+                p.set("scraper", e.target.value);
+                p.delete("npt");
+                router.push(`/videos?${p.toString()}`);
+              }}
+              className="appearance-none bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[12px] text-[var(--fg-2)] focus:outline-none focus:border-[var(--accent)] cursor-pointer"
+            >
+              <option value="brave">Brave</option>
+              <option value="ddg">DuckDuckGo</option>
+            </select>
+          </div>
+
           <div className="space-y-6">
             {results.map((result, i) => {
-              const thumbUrl = result.thumb?.url;
+              const thumbUrl = typeof result.thumb === "string" ? result.thumb : result.thumb?.url || "";
               const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=landscape` : null;
+              const authorName = (typeof result.author === "object" ? result.author?.name : result.author) || result.source || "Video";
+              const durationNum = typeof result.duration === "number" ? result.duration : 0;
               return (
                 <article key={i} className="group flex gap-4">
                   <a href={result.url} target="_blank" rel="noopener noreferrer" className="relative w-48 aspect-video shrink-0 bg-black/30 border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden">
                     {proxied ? <img src={proxied} alt="" className="size-full object-cover" loading="lazy" /> : <div className="flex items-center justify-center h-full"><Search size={20} className="text-[var(--meta)]" /></div>}
-                    {result.duration ? <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded-[2px]">{fmtDur(result.duration)}</div> : null}
+                    {durationNum > 0 ? <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 bg-black/80 text-white text-[10px] font-bold rounded-[2px]">{fmtDur(durationNum)}</div> : null}
                   </a>
                   <div className="flex-1 min-w-0">
                     <a href={result.url} target="_blank" rel="noopener noreferrer" className="block mb-0.5">
                       <h2 className="text-[15px] font-medium text-[var(--fg)] leading-snug line-clamp-2 group-hover:text-[var(--accent-hover)]">{result.title}</h2>
                     </a>
                     <div className="text-[11px] text-[var(--meta)] mb-1.5">
-                      {result.author?.name || "Video"} {result.date ? `\u00b7 ${new Date(result.date * 1000).toLocaleDateString()}` : ""}
+                      {authorName} {result.date ? `\u00b7 ${new Date(result.date * 1000).toLocaleDateString()}` : ""}
                     </div>
                     <p className="text-[12px] text-[var(--fg-2)] leading-relaxed line-clamp-2">{result.description}</p>
                   </div>
@@ -130,16 +152,17 @@ function VideosContent() {
               );
             })}
           </div>
+          </>
         )}
 
           {!loading && results.length > 0 && (
-            <div className="mt-8 flex items-center gap-4 pb-8">
-              <button onClick={handlePreviousPage} disabled={prevNpts.length === 0 || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium hover:bg-white/[0.03] disabled:opacity-25 disabled:pointer-events-none transition-colors" aria-label="Previous page">
-                <ArrowLeft size={14} /> Prev
+            <div className="mt-8 flex items-center justify-center gap-4 pb-8">
+              <button onClick={handlePreviousPage} disabled={prevNpts.length === 0 || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium text-[var(--fg-2)] hover:bg-white/[0.03] hover:border-[var(--border-accent)] disabled:opacity-25 disabled:pointer-events-none transition-all duration-150" aria-label="Previous page">
+                <ChevronLeft size={14} /> Prev
               </button>
-              <span className="text-[12px] font-medium text-[var(--meta)]">Page {currentPage}</span>
-              <button onClick={handleNextPage} disabled={!npt || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium hover:bg-white/[0.03] disabled:opacity-25 disabled:pointer-events-none transition-colors" aria-label="Next page">
-                Next <ArrowRight size={14} />
+              <span className="inline-flex items-center justify-center min-w-[28px] h-7 rounded-[var(--radius-sm)] bg-[var(--pagination-orange)]/15 text-[var(--pagination-orange)] text-[13px] font-bold px-2">{currentPage}</span>
+              <button onClick={handleNextPage} disabled={!npt || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium text-[var(--fg-2)] hover:bg-white/[0.03] hover:border-[var(--border-accent)] disabled:opacity-25 disabled:pointer-events-none transition-all duration-150" aria-label="Next page">
+                Next <ChevronRight size={14} />
               </button>
             </div>
           )}
