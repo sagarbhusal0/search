@@ -34,16 +34,16 @@ impl DDG {
     }
 
     fn strip_html(s: &str) -> String {
-        let re = Regex::new(r"<[^>]+>").unwrap();
-        let no_tags = re.replace_all(s, "");
-        let decoded = no_tags
+        let decoded = s
             .replace("&quot;", "\"")
             .replace("&amp;", "&")
             .replace("&lt;", "<")
             .replace("&gt;", ">")
             .replace("&#39;", "'")
             .replace("&apos;", "'");
-        decoded.trim().to_string()
+        let re = Regex::new(r"<[^>]+>").unwrap();
+        let no_tags = re.replace_all(&decoded, "");
+        no_tags.trim().to_string()
     }
 
     fn extract_json(s: &str) -> Option<String> {
