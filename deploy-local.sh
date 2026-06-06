@@ -16,7 +16,7 @@ err()   { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 # Build backend
 info "Building Rust backend..."
 cd 4get-rs
-cargo build --release 2>&1 | tail -3
+cargo build 2>&1 | tail -3
 info "Backend built"
 
 # Build frontend
@@ -33,7 +33,7 @@ sleep 1
 # Start backend
 info "Starting backend on port 3001..."
 cd ../4get-rs
-nohup target/release/sorvx --config config.toml > /tmp/sorvx-backend.log 2>&1 &
+nohup target/debug/sorvx --config config.toml > /tmp/sorvx-backend.log 2>&1 &
 BACKEND_PID=$!
 echo $BACKEND_PID > /tmp/sorvx-backend.pid
 info "Backend PID: $BACKEND_PID"
