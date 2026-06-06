@@ -35,7 +35,15 @@ impl DDG {
 
     fn strip_html(s: &str) -> String {
         let re = Regex::new(r"<[^>]+>").unwrap();
-        re.replace_all(s, "").trim().to_string()
+        let no_tags = re.replace_all(s, "");
+        let decoded = no_tags
+            .replace("&quot;", "\"")
+            .replace("&amp;", "&")
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&#39;", "'")
+            .replace("&apos;", "'");
+        decoded.trim().to_string()
     }
 
     fn extract_json(s: &str) -> Option<String> {
@@ -421,10 +429,10 @@ impl DDG {
                                     if !obj.contains_key("s") { continue; }
                                 }
                             }
-                            let title = obj.get("t").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            let title = Self::strip_html(obj.get("t").and_then(|v| v.as_str()).unwrap_or(""));
                             let raw_url = obj.get("c").and_then(|v| v.as_str()).unwrap_or("");
                             let url = Self::unshiturl(raw_url);
-                            let desc = obj.get("a").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            let desc = Self::strip_html(obj.get("a").and_then(|v| v.as_str()).unwrap_or(""));
                             response.web.push(WebResult {
                                 title, url, description: desc, date: None, source: Some("ddg".into()),
                             });
@@ -466,18 +474,10 @@ impl DDG {
                         }
                     }
 
-                    let title = obj
-                        .get("t")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string();
+                    let title = Self::strip_html(obj.get("t").and_then(|v| v.as_str()).unwrap_or(""));
                     let raw_url = obj.get("c").and_then(|v| v.as_str()).unwrap_or("");
                     let url = Self::unshiturl(raw_url);
-                    let desc = obj
-                        .get("a")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("")
-                        .to_string();
+                    let desc = Self::strip_html(obj.get("a").and_then(|v| v.as_str()).unwrap_or(""));
 
                     response.web.push(WebResult {
                         title,
