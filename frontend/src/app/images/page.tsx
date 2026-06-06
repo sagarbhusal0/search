@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X, ExternalLink, Maximize2, Download, ChevronLeft, ChevronRight, Minus, Plus, RotateCcw } from "lucide-react";
+import { Search, ArrowLeft, ArrowRight, X, ExternalLink, Maximize2, Download, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
 
@@ -22,13 +22,8 @@ function ImageGrid() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [zoom, setZoom] = useState(1);
-  const [zoomOrigin, setZoomOrigin] = useState("center center");
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [zoomed, setZoomed] = useState(false);
   const filmstripRef = useRef<HTMLDivElement>(null);
-  const imgContainerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
@@ -37,7 +32,7 @@ function ImageGrid() {
     const m = document.cookie.split(";").map(c => c.trim()).find(c => c.startsWith(`${name}=`));
     return m ? decodeURIComponent(m.split("=")[1]) : null;
   };
-  const [scraper, setScraper] = useState(getCookie("scraper_images") || "brave");
+  const [scraper] = useState(getCookie("scraper_images") || "ddg");
 
   useEffect(() => {
     if (!query) return;
@@ -60,70 +55,9 @@ function ImageGrid() {
     fetchImages();
   }, [query, scraper, page, searchParams]);
 
-  const nextImage = useCallback(() => { if (selectedIdx !== null && selectedIdx < results.length - 1) { setSelectedIdx(selectedIdx + 1); setImgLoaded(false); setZoom(1); setPanOffset({ x: 0, y: 0 }); } }, [selectedIdx, results.length]);
-  const prevImage = useCallback(() => { if (selectedIdx !== null && selectedIdx > 0) { setSelectedIdx(selectedIdx - 1); setImgLoaded(false); setZoom(1); setPanOffset({ x: 0, y: 0 }); } }, [selectedIdx]);
-  const closePreview = useCallback(() => { setSelectedIdx(null); setImgLoaded(false); setZoom(1); setPanOffset({ x: 0, y: 0 }); document.body.style.overflow = "auto"; }, []);
-
-  const zoomIn = useCallback(() => {
-    setZoom(z => Math.min(z + 0.5, 5));
-  }, []);
-
-  const zoomOut = useCallback(() => {
-    setZoom(z => {
-      const next = z - 0.5;
-      return next <= 0.5 ? 1 : next; // Snap to 1 when going below
-    });
-    setPanOffset({ x: 0, y: 0 });
-  }, []);
-
-  const resetZoom = useCallback(() => {
-    setZoom(1);
-    setPanOffset({ x: 0, y: 0 });
-  }, []);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.deltaY < 0) {
-      setZoom(z => Math.min(z + 0.25, 5));
-    } else {
-      setZoom(z => {
-        const next = z - 0.25;
-        return next <= 0.5 ? 1 : next;
-      });
-    }
-  }, []);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (zoom > 1) {
-      e.preventDefault();
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
-    }
-  }, [zoom, panOffset]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPanning && zoom > 1) {
-      setPanOffset({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
-    }
-  }, [isPanning, zoom, panStart]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsPanning(false);
-  }, []);
-
-  const handleImgClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (zoom > 1) return; // Let panning handle it
-    // Click to zoom in at cursor position
-    if (imgContainerRef.current) {
-      const rect = imgContainerRef.current.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      setZoomOrigin(`${x}% ${y}%`);
-    }
-    zoomIn();
-  }, [zoom, zoomIn]);
+  const nextImage = useCallback(() => { if (selectedIdx !== null && selectedIdx < results.length - 1) { setSelectedIdx(selectedIdx + 1); setImgLoaded(false); setZoomed(false); } }, [selectedIdx, results.length]);
+  const prevImage = useCallback(() => { if (selectedIdx !== null && selectedIdx > 0) { setSelectedIdx(selectedIdx - 1); setImgLoaded(false); setZoomed(false); } }, [selectedIdx]);
+  const closePreview = useCallback(() => { setSelectedIdx(null); setImgLoaded(false); setZoomed(false); document.body.style.overflow = "auto"; }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -131,13 +65,10 @@ function ImageGrid() {
       if (e.key === "ArrowRight") nextImage();
       else if (e.key === "ArrowLeft") prevImage();
       else if (e.key === "Escape") closePreview();
-      else if (e.key === "+" || e.key === "=") zoomIn();
-      else if (e.key === "-") zoomOut();
-      else if (e.key === "0") resetZoom();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [selectedIdx, nextImage, prevImage, closePreview, zoomIn, zoomOut, resetZoom]);
+  }, [selectedIdx, nextImage, prevImage, closePreview]);
 
   useEffect(() => {
     if (selectedIdx !== null) {
@@ -205,31 +136,12 @@ function ImageGrid() {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 mb-4">
-              <label className="text-[12px] text-[var(--meta)]">Scraper:</label>
-              <select
-                value={scraper}
-                onChange={e => {
-                  setScraper(e.target.value);
-                  document.cookie = `scraper_images=${e.target.value};path=/;max-age=31536000`;
-                  const p = new URLSearchParams(searchParams.toString());
-                  p.set("scraper", e.target.value);
-                  p.delete("npt");
-                  router.push(`/images?${p.toString()}`);
-                }}
-                className="appearance-none bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] px-2.5 py-1.5 text-[12px] text-[var(--fg-2)] focus:outline-none focus:border-[var(--accent)] cursor-pointer"
-              >
-                <option value="brave">Brave</option>
-                <option value="ddg">DuckDuckGo</option>
-              </select>
-            </div>
-
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {results.map((result, i) => {
                 const thumbUrl = result.source?.length > 0 ? result.source[result.source.length - 1].url : "";
                 const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
                 return (
-                  <div key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoom(1); setPanOffset({ x: 0, y: 0 }); document.body.style.overflow = "hidden"; }}
+                  <div key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoomed(false); document.body.style.overflow = "hidden"; }}
                     className="group relative aspect-square bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden cursor-pointer transition-all hover:border-[var(--accent)] hover:shadow-[0_0_0_1px_var(--accent)]"
                   >
                     {proxied && <img src={proxied} alt={result.title || ""} className="size-full object-cover" loading="lazy" />}
@@ -249,9 +161,9 @@ function ImageGrid() {
 
             {results.length > 0 && (
               <div className="mt-8 flex items-center justify-center gap-4 pb-8">
-                <button onClick={handlePrev} disabled={prevNpts.length === 0 || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium text-[var(--fg-2)] hover:bg-white/[0.03] hover:border-[var(--border-accent)] disabled:opacity-25 disabled:pointer-events-none transition-all duration-150"><ChevronLeft size={14} /> Prev</button>
-                <span className="inline-flex items-center justify-center min-w-[28px] h-7 rounded-[var(--radius-sm)] bg-[var(--pagination-orange)]/15 text-[var(--pagination-orange)] text-[13px] font-bold px-2">{currentPage}</span>
-                <button onClick={handleNext} disabled={!npt || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium text-[var(--fg-2)] hover:bg-white/[0.03] hover:border-[var(--border-accent)] disabled:opacity-25 disabled:pointer-events-none transition-all duration-150">Next <ChevronRight size={14} /></button>
+                <button onClick={handlePrev} disabled={prevNpts.length === 0 || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium hover:bg-white/[0.03] disabled:opacity-25 disabled:pointer-events-none"><ArrowLeft size={14} /> Prev</button>
+                <span className="text-[12px] font-medium text-[var(--meta)]">{currentPage}</span>
+                <button onClick={handleNext} disabled={!npt || isNavigating} className="flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-sm)] border border-[var(--border)] text-[13px] font-medium hover:bg-white/[0.03] disabled:opacity-25 disabled:pointer-events-none">Next <ArrowRight size={14} /></button>
               </div>
             )}
           </>
@@ -277,24 +189,10 @@ function ImageGrid() {
             <span className="text-[13px] font-medium text-white/60 tabular-nums">
               {selectedIdx! + 1} / {results.length}
             </span>
-            <div className="flex items-center gap-0.5">
-              {/* Zoom controls */}
-              <div className="flex items-center gap-0.5 mr-2 bg-white/10 rounded-[var(--radius-sm)] px-1.5 py-0.5">
-                <button onClick={e => { e.stopPropagation(); zoomOut(); }} disabled={zoom <= 1} className="p-1 text-white/70 hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none" aria-label="Zoom out">
-                  <Minus size={14} />
-                </button>
-                <span className="text-[11px] text-white/70 font-medium tabular-nums min-w-[36px] text-center select-none">
-                  {zoom === 1 ? "Fit" : `${Math.round(zoom * 100)}%`}
-                </span>
-                <button onClick={e => { e.stopPropagation(); zoomIn(); }} disabled={zoom >= 5} className="p-1 text-white/70 hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none" aria-label="Zoom in">
-                  <Plus size={14} />
-                </button>
-              </div>
-              {zoom > 1 && (
-                <button onClick={e => { e.stopPropagation(); resetZoom(); }} className="p-2 text-white/70 hover:text-white transition-colors" aria-label="Reset zoom">
-                  <RotateCcw size={15} />
-                </button>
-              )}
+            <div className="flex items-center gap-1">
+              <button onClick={e => { e.stopPropagation(); setZoomed(!zoomed); }} className="p-2 text-white/80 hover:text-white transition-colors" aria-label={zoomed ? "Zoom out" : "Zoom in"}>
+                {zoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
+              </button>
               <button onClick={e => { e.stopPropagation(); download(); }} className="p-2 text-white/80 hover:text-white transition-colors" aria-label="Download">
                 <Download size={18} />
               </button>
@@ -319,35 +217,23 @@ function ImageGrid() {
 
           {/* Image area */}
           <div
-            ref={imgContainerRef}
-            className={`flex-1 flex items-center justify-center overflow-hidden relative ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
-            onClick={handleImgClick}
-            onWheel={handleWheel}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+            className="flex-1 flex items-center justify-center overflow-hidden relative"
+            onClick={e => e.stopPropagation()}
           >
-            {!imgLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="size-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
-              </div>
-            )}
-            <img
-              key={selected.source[0]?.url}
-              src={`/api/proxy?i=${encodeURIComponent(selected.source[0]?.url)}`}
-              alt={selected.title || ""}
-              onLoad={() => setImgLoaded(true)}
-              draggable={false}
-              style={{
-                transform: zoom > 1
-                  ? `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`
-                  : `scale(1)`,
-                transformOrigin: zoom > 1 ? zoomOrigin : "center center",
-                transition: isPanning ? "none" : "transform 0.2s ease-out",
-              }}
-              className={`max-h-[calc(100dvh-13rem)] max-w-full object-contain ${imgLoaded ? "opacity-100" : "opacity-0"}`}
-            />
+            <div className={`relative transition-all duration-300 ${zoomed ? "overflow-auto cursor-zoom-out" : "overflow-hidden cursor-zoom-in"}`}>
+              {!imgLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="size-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+                </div>
+              )}
+              <img
+                key={selected.source[0]?.url}
+                src={`/api/proxy?i=${encodeURIComponent(selected.source[0]?.url)}`}
+                alt={selected.title || ""}
+                onLoad={() => setImgLoaded(true)}
+                className={`transition-all duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"} ${zoomed ? "max-w-none" : "max-h-[calc(100dvh-13rem)] max-w-full"} object-contain`}
+              />
+            </div>
           </div>
 
           {/* Filmstrip */}
@@ -357,7 +243,7 @@ function ImageGrid() {
                 const thumbUrl = result.source?.length > 0 ? result.source[result.source.length - 1].url : "";
                 const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
                 return (
-                  <button key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoom(1); setPanOffset({ x: 0, y: 0 }); }}
+                  <button key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoomed(false); }}
                     className={`size-14 shrink-0 rounded-[var(--radius-sm)] overflow-hidden border-2 transition-all ${i === selectedIdx ? "border-white opacity-100 scale-105" : "border-transparent opacity-50 hover:opacity-80"}`}
                   >
                     {proxied && <img src={proxied} alt="" className="size-full object-cover" />}

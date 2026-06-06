@@ -1,0 +1,25 @@
+:root {
+	/* background */
+	--1d2021: #232a2e;
+	--282828: #2b3337;
+	--3c3836: #374145;
+	--504945: #4a585c;
+
+	/* font */
+	--928374: #839e9a;
+	--a89984: #adc9bc;
+	--bdae93: #f8f9e8;
+	--8ec07c: #cbe3b3;
+	--ebdbb2: #adc9bc;
+
+	/* code highlighter */
+	--comment: #839e9a;
+	--default: #f8f9e8;
+	--keyword: #6f8788;
+	--string: #cbe3b3;
+
+	/* color codes for instance list */
+	--green: #cbe3b3;
+	--yellow: #f5d098;
+	--red: #f57f82;
+}

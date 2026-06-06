@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+Host: search.sorvx.com
+Sitemap: https://search.sorvx.com/sitemap.xml

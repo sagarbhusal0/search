@@ -23,17 +23,17 @@ export default function SearchHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--border)]">
+    <header className="sticky top-0 z-40 bg-[var(--bg)] border-b border-[var(--border)]">
       <div className="max-w-[var(--container)] mx-auto px-4">
         <div className="flex items-center gap-4 py-2.5">
-          <a href="/" className="shrink-0 transition-opacity hover:opacity-80">
+          <a href="/" className="shrink-0">
             <img src="/logo.svg" alt="Sorvx" className="h-7 w-auto" />
           </a>
-          <div className="flex-1 max-w-[720px]">
+          <div className="flex-1 max-w-xl">
             <SearchBar initialQuery={query} scoped />
           </div>
         </div>
-        <nav className="flex items-center gap-1 -mb-px" role="tablist">
+        <nav className="flex items-center gap-1 -mb-px">
           {tabs.map(tab => {
             const isActive = pathname === tab.href.split("?")[0];
             const Icon = tab.icon;
@@ -41,15 +41,12 @@ export default function SearchHeader() {
               <a
                 key={tab.href}
                 href={tab.href}
-                role="tab"
-                aria-selected={isActive}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 text-[13px] font-medium border-b-2 transition-all duration-150 ${
-                  isActive
-                    ? "border-[var(--accent)] text-[var(--fg)]"
-                    : "border-transparent text-[var(--meta)] hover:text-[var(--fg-2)] hover:border-[var(--border)]"
+                className={`flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium border-b-2 transition-all duration-150 ${isActive
+                  ? "border-[var(--accent)] text-[var(--fg)]"
+                  : "border-transparent text-[var(--meta)] hover:text-[var(--fg-2)] hover:border-[var(--border)]"
                 }`}
               >
-                <Icon size={13} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={13} />
                 {tab.label}
               </a>
             );

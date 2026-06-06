@@ -22,19 +22,19 @@ const CATEGORIES = [
     settings: [
       {
         param: "scraper_ac" as keyof Settings, label: "Autocomplete",
-        options: [{ v: "disabled", t: "Disabled" }, { v: "auto", t: "Auto" }, { v: "brave", t: "Brave" }, { v: "ddg", t: "DuckDuckGo" }],
+        options: [{ v: "disabled", t: "Disabled" }, { v: "auto", t: "Auto" }, { v: "brave", t: "Brave" }, { v: "ddg", t: "DuckDuckGo" }, { v: "google", t: "Google" }, { v: "yandex", t: "Yandex" }, { v: "qwant", t: "Qwant" }, { v: "startpage", t: "Startpage" }, { v: "kagi", t: "Kagi" }, { v: "marginalia", t: "Marginalia" }],
       },
       {
         param: "scraper_images" as keyof Settings, label: "Images",
-        options: [{ v: "ddg", t: "DuckDuckGo" }, { v: "brave", t: "Brave" }],
+        options: [{ v: "ddg", t: "DuckDuckGo" }, { v: "google", t: "Google" }, { v: "yandex", t: "Yandex" }, { v: "brave", t: "Brave" }, { v: "pixabay", t: "Pixabay" }, { v: "unsplash", t: "Unsplash" }],
       },
       {
         param: "scraper_videos" as keyof Settings, label: "Videos",
-        options: [{ v: "brave", t: "Brave" }, { v: "ddg", t: "DuckDuckGo" }],
+        options: [{ v: "yt", t: "YouTube" }, { v: "google", t: "Google" }, { v: "brave", t: "Brave" }, { v: "ddg", t: "DuckDuckGo" }, { v: "vimeo", t: "Vimeo" }],
       },
       {
         param: "scraper_news" as keyof Settings, label: "News",
-        options: [{ v: "brave", t: "Brave" }, { v: "ddg", t: "DuckDuckGo" }],
+        options: [{ v: "google", t: "Google" }, { v: "brave", t: "Brave" }, { v: "ddg", t: "DuckDuckGo" }, { v: "qwant", t: "Qwant" }],
       },
       {
         param: "scraper_music" as keyof Settings, label: "Music",
@@ -47,7 +47,7 @@ const CATEGORIES = [
 const DEFAULTS: Settings = {
   nsfw: "no", theme: "dark", bg_noclick: "no",
   scraper_ac: "ddg", scraper_images: "ddg",
-  scraper_videos: "brave", scraper_news: "brave", scraper_music: "sc",
+  scraper_videos: "yt", scraper_news: "google", scraper_music: "sc",
 };
 
 function readCookies(): Partial<Settings> {

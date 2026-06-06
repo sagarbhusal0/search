@@ -8,12 +8,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "pixabay.com" },
-      { protocol: "https", hostname: "live.staticflickr.com" },
-      { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "i.imgur.com" },
-      { protocol: "https", hostname: "imgur.com" },
-      { protocol: "https", hostname: "pek.li" },
+      {
+        protocol: "https",
+        hostname: "**",
+      },
     ],
   },
 };

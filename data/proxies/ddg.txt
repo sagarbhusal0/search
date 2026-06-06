@@ -1,8 +1,0 @@
-# DuckDuckGo proxy list
-# Format: type:address:port:username:password
-# Supported types: http, https, socks4, socks5, socks5h
-# Lines starting with # are comments
-# Add your proxies below, one per line
-# Example:
-# http:1.2.3.4:8080
-# socks5:5.6.7.8:1080:user:pass
