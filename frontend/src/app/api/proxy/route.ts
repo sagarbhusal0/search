@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         return new NextResponse("Invalid or disallowed URL", { status: 400 });
     }
 
-    const backendUrl = process.env.BACKEND_URL || process.env.PHP_BACKEND_URL || "http://localhost:3001";
+    const backendUrl = process.env.BACKEND_URL  || "http://localhost:3001";
 
     try {
         const proxyUrl = `${backendUrl}/proxy.php?i=${encodeURIComponent(url)}&s=${size}`;

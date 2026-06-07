@@ -5,7 +5,8 @@ import SearchResults from "./SearchResults";
 type Props = { searchParams: Promise<{ s?: string }> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const q = (await searchParams).s ? decodeURIComponent((await searchParams).s!) : null;
+  const params = await searchParams;
+  const q = params.s ? decodeURIComponent(params.s) : null;
   if (!q) return { title: "Search — Sorvx", description: "Private metasearch." };
   return {
     title: `${q} — Sorvx Search`,

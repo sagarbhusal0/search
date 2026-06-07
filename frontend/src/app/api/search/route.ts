@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies();
     const nsfw = cookieStore.get("nsfw")?.value;
 
-    const backendUrl = process.env.BACKEND_URL || process.env.PHP_BACKEND_URL || "http://localhost:3001";
+    const backendUrl = process.env.BACKEND_URL  || "http://localhost:3001";
 
     let url = `${backendUrl}/api/v1/web.php?s=${encodeURIComponent(query)}&scraper=${encodeURIComponent(scraper)}`;
     const npt = searchParams.get("npt");
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         const contentType = response.headers.get("content-type") || "";
         if (!contentType.includes("application/json")) {
             const text = await response.text();
-            console.error("Non-JSON response from PHP backend:", text.slice(0, 200));
+            console.error("Non-JSON response from search backend:", text.slice(0, 200));
             const res = NextResponse.json({ status: "Backend returned an invalid response. It may be offline or misconfigured." }, { status: 502 });
             res.cookies.set("scraper_web", "", { maxAge: 0, path: "/" });
             return res;
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         res.cookies.set("scraper_web", "", { maxAge: 0, path: "/" });
         return res;
     } catch (error) {
-        console.error("Error fetching from PHP backend:", error);
+        console.error("Error fetching from search backend:", error);
         const res = NextResponse.json({ status: "Could not connect to the search backend. It may be offline." }, { status: 502 });
         res.cookies.set("scraper_web", "", { maxAge: 0, path: "/" });
         return res;

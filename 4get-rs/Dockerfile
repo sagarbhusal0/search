@@ -18,6 +18,7 @@ RUN apt-get update -qq && apt-get install -y -qq ca-certificates wget && rm -rf 
 WORKDIR /app
 COPY --from=builder /app/target/release/sorvx /app/sorvx
 COPY config.toml /app/config.toml
+COPY data /app/data
 RUN mkdir -p /app/data/cache /app/data/icons
 EXPOSE 3001
 CMD ["/app/sorvx", "--config", "/app/config.toml"]

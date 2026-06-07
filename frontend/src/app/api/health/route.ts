@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-    const backendUrl = process.env.BACKEND_URL || process.env.PHP_BACKEND_URL || "http://localhost:3001";
+    const backendUrl = process.env.BACKEND_URL  || "http://localhost:3001";
 
     try {
         const backendResp = await fetch(`${backendUrl}/healthz.php`, {

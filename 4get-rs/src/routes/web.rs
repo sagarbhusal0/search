@@ -30,7 +30,7 @@ pub async fn web_search(
         return Ok(Json(WebResponse::empty()));
     }
 
-    let scraper_name = params.scraper.as_deref().unwrap_or("brave");
+    let scraper_name = params.scraper.as_deref().unwrap_or("ddg");
     let scraper = state
         .scraper_registry
         .get(scraper_name)

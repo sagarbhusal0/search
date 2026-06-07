@@ -28,7 +28,9 @@ scraper/curlie.html
 icons/*
 data/api_keys/
 data/cache/
-4get-rs/data/
+4get-rs/data/cache/
+4get-rs/data/icons/
+4get-rs/data/api_keys/
 brave_test.html
 dev.sh
 php-api/
