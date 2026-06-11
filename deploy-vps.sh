@@ -26,10 +26,7 @@ cd "$REPO_DIR"
 if [ ! -x /usr/bin/docker ]; then
     warn "Docker not found — installing..."
     apt-get update -qq
-    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq docker.io docker-cli docker-compose
-    if [ ! -x /usr/bin/docker ] && [ -x /usr/bin/docker-cli ]; then
-        ln -sf /usr/bin/docker-cli /usr/bin/docker
-    fi
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq docker.io docker-compose
     [ -x /usr/bin/docker ] || err "docker CLI still missing after install"
     info "Docker installed"
 fi
