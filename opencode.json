@@ -10,7 +10,6 @@
   },
   "agent": {
     "open-design": {
-      "model": "anthropic/claude-sonnet-4-6",
       "mode": "primary",
       "description": "UI design agent powered by Open Design (151 design systems, 132 skills). Generates landing pages, decks, dashboards, mobile prototypes, and visual artifacts following a structured discovery→direction→generate→critique workflow."
     }

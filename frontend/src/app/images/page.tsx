@@ -6,7 +6,7 @@ import {
   ArrowLeft, ArrowRight, X, ExternalLink, Maximize2,
   Download, ChevronLeft, ChevronRight, ZoomIn, ZoomOut,
   RotateCcw, RotateCw, Copy, Play, Pause, Loader2,
-  Minus, Plus, Maximize
+  Minus, Plus, Maximize, Keyboard
 } from "lucide-react";
 import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
@@ -28,17 +28,23 @@ function ImageGrid() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [lightboxPhase, setLightboxPhase] = useState<"closed" | "entering" | "open" | "exiting">("closed");
   const [imgLoaded, setImgLoaded] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null); // null = fit-to-screen, 1=100%, 1.5, 2, 3, 5
   const [rotation, setRotation] = useState(0);
   const [slideshowActive, setSlideshowActive] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [preloaded, setPreloaded] = useState<Set<string>>(new Set());
+  const [slideDir, setSlideDir] = useState<"left" | "right">("right");
   const filmstripRef = useRef<HTMLDivElement>(null);
   const slideshowRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
   const touchEndX = useRef(0);
   const pinchDist = useRef(0);
+  const pullTranslateY = useRef(0);
 
   /* ── Zoom levels (null = fit to screen) ── */
   const zoomLevels: (number | null)[] = [null, 1, 1.5, 2, 3, 5];
@@ -126,26 +132,55 @@ function ImageGrid() {
 
   const nextImage = useCallback(() => {
     if (selectedIdx !== null && selectedIdx < results.length - 1) {
+      setSlideDir("right");
       setSelectedIdx(selectedIdx + 1); setImgLoaded(false); setZoom(null); setRotation(0);
     }
   }, [selectedIdx, results.length]);
   const prevImage = useCallback(() => {
     if (selectedIdx !== null && selectedIdx > 0) {
+      setSlideDir("left");
       setSelectedIdx(selectedIdx - 1); setImgLoaded(false); setZoom(null); setRotation(0);
     }
   }, [selectedIdx]);
+
+  /* ── Lightbox open/close with animation ── */
+  const openPreview = useCallback((idx: number) => {
+    setSelectedIdx(idx);
+    setImgLoaded(false);
+    setZoom(null);
+    setRotation(0);
+    setLightboxPhase("entering");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => setLightboxPhase("open"), 30);
+  }, []);
   const closePreview = useCallback(() => {
-    setSelectedIdx(null); setImgLoaded(false); setZoom(null); setRotation(0);
-    setSlideshowActive(false); document.body.style.overflow = "auto";
+    setLightboxPhase("exiting");
+    setSlideshowActive(false);
+    setTimeout(() => {
+      setSelectedIdx(null); setImgLoaded(false); setZoom(null); setRotation(0);
+      setLightboxPhase("closed");
+      document.body.style.overflow = "auto";
+    }, 200);
+  }, []);
+
+  /* ── Fullscreen API ── */
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
   }, []);
 
   /* ── Keyboard ── */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (selectedIdx === null) return;
-      if (e.key === "ArrowRight") nextImage();
-      else if (e.key === "ArrowLeft") prevImage();
-      else if (e.key === "Escape") closePreview();
+      if (e.key === "ArrowRight") { e.preventDefault(); setSlideDir("right"); nextImage(); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); setSlideDir("left"); prevImage(); }
+      else if (e.key === "Escape") { if (showShortcuts) setShowShortcuts(false); else closePreview(); }
+      else if (e.key === "?") { setShowShortcuts(s => !s); }
+      else if (e.key === "f" || e.key === "F") toggleFullscreen();
       else if (e.key === "r") setRotation(r => (r + 90) % 360);
       else if (e.key === "R") setRotation(r => (r - 90 + 360) % 360);
       else if (e.key === "+" || e.key === "=") zoomIn();
@@ -153,9 +188,9 @@ function ImageGrid() {
       else if (e.key === "0") resetZoom();
       else if (e.key === " " || e.key === "Spacebar") { e.preventDefault(); setSlideshowActive(s => !s); }
     };
-    window.addEventListener("keydown", handler, { passive: true });
+    window.addEventListener("keydown", handler, { passive: false });
     return () => window.removeEventListener("keydown", handler);
-  }, [selectedIdx, nextImage, prevImage, closePreview, zoomIn, zoomOut, resetZoom]);
+  }, [selectedIdx, nextImage, prevImage, closePreview, zoomIn, zoomOut, resetZoom, toggleFullscreen, showShortcuts]);
 
   /* ── Lock scroll & scroll filmstrip ── */
   useEffect(() => {
@@ -168,16 +203,12 @@ function ImageGrid() {
 
   /* ── Touch handlers ── */
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) pinchDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    touchStartX.current = e.touches[0].clientX;
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    touchEndX.current = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 60) {
-      if (diff > 0) nextImage();
-      else prevImage();
+    if (e.touches.length === 2) {
+      pinchDist.current = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     }
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    pullTranslateY.current = 0;
   };
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
@@ -188,11 +219,61 @@ function ImageGrid() {
         else zoomOut();
         pinchDist.current = d;
       }
+      return;
+    }
+    // Pull-to-close: only if swiping down on image area
+    const dy = e.touches[0].clientY - touchStartY.current;
+    if (zoom !== null) return; // disable pull when zoomed in
+    if (dy > 0) {
+      pullTranslateY.current = dy;
+      if (lightboxRef.current) {
+        lightboxRef.current.style.transform = `translateY(${dy * 0.5}px)`;
+        lightboxRef.current.style.opacity = `${Math.max(0, 1 - dy / 500)}`;
+        lightboxRef.current.style.transition = "none";
+      }
+    }
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const dx = touchStartX.current - e.changedTouches[0].clientX;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Pull-to-close: if dragged down past threshold
+    if (dy > 120 && zoom === null) {
+      document.body.style.overflow = "auto";
+      setLightboxPhase("exiting");
+      setSlideshowActive(false);
+      if (lightboxRef.current) {
+        lightboxRef.current.style.transform = `translateY(${dy}px)`;
+        lightboxRef.current.style.opacity = "0";
+        lightboxRef.current.style.transition = "all 0.25s ease";
+      }
+      setTimeout(() => {
+        setSelectedIdx(null); setImgLoaded(false); setZoom(null); setRotation(0);
+        setLightboxPhase("closed");
+        if (lightboxRef.current) {
+          lightboxRef.current.style.transform = "";
+          lightboxRef.current.style.opacity = "";
+          lightboxRef.current.style.transition = "";
+        }
+      }, 250);
+      return;
+    }
+    // Reset pull position
+    if (lightboxRef.current) {
+      lightboxRef.current.style.transform = "";
+      lightboxRef.current.style.opacity = "";
+      lightboxRef.current.style.transition = "all 0.3s ease";
+    }
+
+    // Horizontal swipe for navigation
+    if (Math.abs(dx) > 60 && Math.abs(dy) < 80) {
+      if (dx > 0) { setSlideDir("right"); nextImage(); }
+      else { setSlideDir("left"); prevImage(); }
     }
   };
 
   const getDomain = (u: string) => { try { return new URL(u).hostname.replace("www.", ""); } catch { return u; } };
-  const selected = selectedIdx !== null ? results[selectedIdx] : null;
+  const selected = selectedIdx !== null && lightboxPhase !== "closed" ? results[selectedIdx] : null;
 
   /* ── Copy image URL ── */
   const copyUrl = useCallback(() => {
@@ -256,7 +337,7 @@ function ImageGrid() {
                 const isWide = result.source?.[0]?.width && result.source[0].height &&
                   (result.source[0].width / result.source[0].height) > 1.6;
                 return (
-                  <div key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoom(null); setRotation(0); document.body.style.overflow = "hidden"; }}
+                  <div key={i} onClick={() => openPreview(i)}
                     className="masonry-item group relative bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden cursor-pointer transition-all duration-200 hover:border-[var(--accent)] hover:shadow-[0_0_0_1px_var(--accent)]"
                   >
                     {proxied && (
@@ -303,7 +384,15 @@ function ImageGrid() {
       {/* ═══════════════════ LIGHTBOX ═══════════════════ */}
       {selected && (
         <div
-          className="fixed inset-0 z-50 flex flex-col bg-black/95 animate-in"
+          ref={lightboxRef}
+          className="fixed inset-0 z-50 flex flex-col bg-black/95"
+          style={{
+            opacity: lightboxPhase === "entering" || lightboxPhase === "open" ? 1 : 0,
+            transform: lightboxPhase === "exiting" ? "scale(0.96)" : "scale(1)",
+            transition: lightboxPhase === "exiting"
+              ? "opacity 0.2s ease, transform 0.25s ease"
+              : "opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Image preview"
@@ -312,62 +401,79 @@ function ImageGrid() {
           onTouchMove={handleTouchMove}
           onClick={closePreview}
         >
+          {/* ── Dark gradient vignette ── */}
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_transparent_50%,_rgba(0,0,0,0.3))]" />
+
           {/* ── Top bar ── */}
-          <div className="relative z-10 flex items-center justify-between px-3 sm:px-4 py-2.5 shrink-0 bg-black/40 backdrop-blur-sm">
-            <div className="flex items-center gap-1">
+          <div className="relative z-10 flex items-center justify-between px-3 sm:px-5 py-2.5 shrink-0 bg-gradient-to-b from-black/60 to-transparent">
+            <div className="flex items-center gap-2">
               <button onClick={e => { e.stopPropagation(); closePreview(); }}
-                className="p-1.5 -ml-1 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Close">
+                className="p-1.5 -ml-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90" aria-label="Close">
                 <X size={20} />
               </button>
-              <span className="text-[12px] font-medium text-white/50 tabular-nums ml-1 select-none">
-                {selectedIdx! + 1} / {results.length}
+              <span className="text-[12px] font-semibold text-white/40 tabular-nums select-none tracking-tight">
+                <span className="text-white/80">{selectedIdx! + 1}</span>
+                <span className="mx-1">/</span>
+                {results.length}
               </span>
             </div>
 
             <div className="flex items-center gap-0.5">
+              {/* Fullscreen */}
+              <button onClick={e => { e.stopPropagation(); toggleFullscreen(); }}
+                className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90" aria-label="Toggle fullscreen">
+                <Maximize size={16} />
+              </button>
+              {/* Keyboard shortcuts help */}
+              <button onClick={e => { e.stopPropagation(); setShowShortcuts(s => !s); }}
+                className={`p-1.5 rounded-xl transition-all active:scale-90 ${showShortcuts ? "text-[var(--accent)] bg-white/10" : "text-white/70 hover:text-white hover:bg-white/10"}`}
+                aria-label="Keyboard shortcuts">
+                <Keyboard size={16} />
+              </button>
               {/* Slideshow */}
               <button onClick={e => { e.stopPropagation(); setSlideshowActive(s => !s); }}
-                className={`p-1.5 rounded-lg transition-colors ${slideshowActive ? "text-[var(--accent)] bg-white/10" : "text-white/70 hover:text-white hover:bg-white/10"}`}
+                className={`p-1.5 rounded-xl transition-all active:scale-90 ${slideshowActive ? "text-[var(--accent)] bg-white/10" : "text-white/70 hover:text-white hover:bg-white/10"}`}
                 aria-label={slideshowActive ? "Stop slideshow" : "Start slideshow"}>
                 {slideshowActive ? <Pause size={16} /> : <Play size={16} />}
               </button>
               {/* Rotate */}
               <button onClick={e => { e.stopPropagation(); setRotation(r => (r - 90 + 360) % 360); }}
-                className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Rotate left">
+                className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90" aria-label="Rotate left">
                 <RotateCcw size={16} />
               </button>
               <button onClick={e => { e.stopPropagation(); setRotation(r => (r + 90) % 360); }}
-                className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Rotate right">
+                className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90" aria-label="Rotate right">
                 <RotateCw size={16} />
               </button>
               {/* Zoom controls */}
-              <div className="flex items-center gap-0.5 border-r border-white/10 pr-1.5 mr-0.5">
+              <div className="flex items-center gap-0.5 border-l border-white/10 pl-1.5 ml-0.5">
                 <button onClick={e => { e.stopPropagation(); zoomIn(); }}
-                  className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Zoom in">
+                  className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90" aria-label="Zoom in">
                   <Plus size={16} />
                 </button>
                 <span
                   onClick={e => { e.stopPropagation(); resetZoom(); }}
-                  className="text-[11px] font-medium tabular-nums cursor-pointer select-none min-w-[3ch] text-center
-                    text-white/60 hover:text-white/90 transition-colors"
+                  className="text-[11px] font-semibold tabular-nums cursor-pointer select-none min-w-[3.2ch] text-center text-white/50 hover:text-white/90 transition-colors"
                   title="Click to reset zoom"
-                  aria-label="Current zoom level"
+                  aria-label="Zoom level"
                 >
                   {zoom === null ? "Fit" : `${Math.round(zoom * 100)}%`}
                 </span>
                 <button onClick={e => { e.stopPropagation(); zoomOut(); }}
-                  className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Zoom out">
+                  className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90" aria-label="Zoom out">
                   <Minus size={16} />
                 </button>
               </div>
               {/* Copy URL */}
               <button onClick={e => { e.stopPropagation(); copyUrl(); }}
-                className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors relative" aria-label="Copy image URL">
-                {copied ? <span className="text-[10px] font-medium px-0.5 text-[var(--accent)]">Copied</span> : <Copy size={16} />}
+                className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90 relative" aria-label="Copy image URL">
+                {copied
+                  ? <span className="text-[10px] font-semibold px-0.5 text-[var(--accent)]">Copied</span>
+                  : <Copy size={16} />}
               </button>
               {/* Download */}
               <button onClick={e => { e.stopPropagation(); download(); }}
-                className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Download">
+                className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90" aria-label="Download">
                 <Download size={16} />
               </button>
             </div>
@@ -375,11 +481,11 @@ function ImageGrid() {
 
           {/* ── Navigation arrows ── */}
           <button onClick={e => { e.stopPropagation(); prevImage(); }} disabled={selectedIdx === 0}
-            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-2.5 bg-black/40 hover:bg-black/70 text-white/80 hover:text-white rounded-full transition-all disabled:opacity-0 disabled:pointer-events-none">
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-2.5 bg-black/50 hover:bg-black/80 text-white/80 hover:text-white rounded-full transition-all disabled:opacity-0 disabled:pointer-events-none backdrop-blur-sm active:scale-90">
             <ChevronLeft size={22} />
           </button>
           <button onClick={e => { e.stopPropagation(); nextImage(); }} disabled={selectedIdx === results.length - 1}
-            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-2.5 bg-black/40 hover:bg-black/70 text-white/80 hover:text-white rounded-full transition-all disabled:opacity-0 disabled:pointer-events-none">
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 p-2 sm:p-2.5 bg-black/50 hover:bg-black/80 text-white/80 hover:text-white rounded-full transition-all disabled:opacity-0 disabled:pointer-events-none backdrop-blur-sm active:scale-90">
             <ChevronRight size={22} />
           </button>
 
@@ -389,7 +495,7 @@ function ImageGrid() {
 
           {/* ── Image area ── */}
           <div
-            className="flex-1 flex relative"
+            className="flex-1 flex relative select-none"
             onClick={e => e.stopPropagation()}
             onWheel={e => {
               e.preventDefault();
@@ -400,41 +506,65 @@ function ImageGrid() {
           >
             {/* Scroll container when zoomed */}
             <div
-              className={`flex-1 flex items-start justify-center relative ${zoom !== null ? "overflow-auto" : "overflow-hidden items-center"}`}
+              className={`flex-1 flex relative ${zoom !== null ? "overflow-auto items-start" : "overflow-hidden items-center justify-center"}`}
               onClick={() => toggleFitZoom()}
             >
+              {/* Loading shimmer */}
               {!imgLoaded && (
-                <div className="flex items-center justify-center p-12 absolute inset-0">
-                  <Loader2 size={32} className="text-white/40 animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="size-8 rounded-full border-2 border-white/10 border-t-white/40 animate-spin" />
+                    <span className="text-[11px] text-white/30 font-medium tracking-widest uppercase">Loading</span>
+                  </div>
                 </div>
               )}
-              <img
-                key={selected.source[0]?.url}
-                src={`/api/proxy?i=${encodeURIComponent(selected.source[0]?.url)}`}
-                alt={selected.title || ""}
-                onLoad={() => setImgLoaded(true)}
-                onError={() => setImgLoaded(true)}
-                className={`transition-opacity duration-250 ease-out ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+
+              {/* Artifact frame — subtle shadow behind the image */}
+              <div
+                className={`transition-all duration-300 ease-out ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                 style={{
                   transform: `rotate(${rotation}deg) scale(${zoom ?? 1})`,
-                  transition: "transform 0.3s ease, opacity 0.25s ease",
+                  transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease",
                   ...(zoom === null
-                    ? { maxHeight: "calc(100dvh - 14rem)", maxWidth: "100%", objectFit: "contain" as const }
-                    : { width: "auto", height: "auto", minWidth: 0, minHeight: 0 }),
+                    ? { maxHeight: "calc(100dvh - 14rem)", maxWidth: "100%", display: "flex", alignItems: "center", justifyContent: "center" }
+                    : { display: "inline-flex" }),
                 }}
-              />
+              >
+                <div className="relative" style={{ boxShadow: zoom === null ? "0 8px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)" : "none" }}>
+                  <img
+                    key={selected.source[0]?.url}
+                    src={`/api/proxy?i=${encodeURIComponent(selected.source[0]?.url)}`}
+                    alt={selected.title || ""}
+                    onLoad={() => setImgLoaded(true)}
+                    onError={() => setImgLoaded(true)}
+                    className="block"
+                    draggable={false}
+                    style={{
+                      maxHeight: zoom === null ? "calc(100dvh - 14rem)" : undefined,
+                      maxWidth: zoom === null ? "100%" : undefined,
+                      width: zoom !== null ? "auto" : undefined,
+                      height: zoom !== null ? "auto" : undefined,
+                      objectFit: zoom === null ? "contain" as const : undefined,
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* ── Filmstrip ── */}
-          <div className="shrink-0 bg-black/60 border-t border-white/[0.04]" onClick={e => e.stopPropagation()}>
-            <div ref={filmstripRef} className="flex gap-1.5 overflow-x-auto px-4 py-3 scroll-smooth" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.15) transparent" }}>
+          <div className="shrink-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent pt-6 -mt-4 relative z-10" onClick={e => e.stopPropagation()}>
+            <div ref={filmstripRef} className="flex gap-1.5 overflow-x-auto px-4 pb-3 scroll-smooth"
+              style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.1) transparent" }}>
               {results.map((result, i) => {
                 const thumbUrl = result.source?.length > 0 ? result.source[result.source.length - 1].url : "";
                 const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
                 return (
-                  <button key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoom(null); setRotation(0); }}
-                    className={`size-12 sm:size-14 shrink-0 rounded-[var(--radius-sm)] overflow-hidden border-2 transition-all duration-200 ${i === selectedIdx ? "border-white opacity-100 scale-105 shadow-[0_0_8px_rgba(255,255,255,0.15)]" : "border-transparent opacity-40 hover:opacity-80"}`}
+                  <button key={i} onClick={() => { setSlideDir(i > selectedIdx! ? "right" : "left"); setSelectedIdx(i); setImgLoaded(false); setZoom(null); setRotation(0); }}
+                    className={`size-12 sm:size-14 shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-200 active:scale-90
+                      ${i === selectedIdx
+                        ? "border-white/90 opacity-100 scale-105 shadow-[0_0_12px_rgba(255,255,255,0.12)]"
+                        : "border-white/0 opacity-40 hover:opacity-80 hover:border-white/20"}`}
                   >
                     {proxied && <img src={proxied} alt="" className="size-full object-cover" />}
                   </button>
@@ -444,23 +574,26 @@ function ImageGrid() {
           </div>
 
           {/* ── Info bar ── */}
-          <div className="shrink-0 bg-black/80 border-t border-white/[0.04] px-3 sm:px-4 py-2.5 flex items-center gap-3 overflow-hidden" onClick={e => e.stopPropagation()}>
+          <div className="shrink-0 bg-black/70 backdrop-blur-md border-t border-white/[0.04] px-3 sm:px-5 py-2.5 flex items-center gap-3 overflow-hidden relative z-10" onClick={e => e.stopPropagation()}>
             <div className="flex-1 min-w-0">
-              {selected.title && <p className="text-white text-[12px] font-medium truncate">{selected.title}</p>}
-              <div className="flex items-center gap-2 text-[11px] text-white/50">
+              {selected.title && <p className="text-white text-[12px] font-medium truncate leading-tight">{selected.title}</p>}
+              <div className="flex items-center gap-2 text-[11px] text-white/40 mt-0.5">
                 <span className="truncate">{getDomain(selected.url)}</span>
                 {selected.source[0]?.width && (
-                  <span className="shrink-0">{selected.source[0].width}&times;{selected.source[0].height}</span>
+                  <>
+                    <span className="shrink-0 text-white/20">&middot;</span>
+                    <span className="shrink-0 tabular-nums">{selected.source[0].width}&times;{selected.source[0].height}</span>
+                  </>
                 )}
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <a href={selected.source[0]?.url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--radius-sm)] bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-[11px] font-medium transition-colors">
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] text-white/70 hover:text-white text-[11px] font-medium transition-all active:scale-95">
                 <Maximize2 size={12} /> <span className="hidden sm:inline">View</span>
               </a>
               <a href={selected.url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-[var(--radius-sm)] bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-[11px] font-medium transition-colors">
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/[0.08] hover:bg-white/[0.15] text-white/70 hover:text-white text-[11px] font-medium transition-all active:scale-95">
                 <ExternalLink size={12} /> <span className="hidden sm:inline">Site</span>
               </a>
             </div>
@@ -468,8 +601,48 @@ function ImageGrid() {
 
           {/* Slideshow indicator */}
           {slideshowActive && (
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/5 z-30">
-              <div className="h-full bg-[var(--accent)] animate-slide-progress" />
+            <div className="absolute top-0 left-0 right-0 h-0.5 z-30">
+              <div className="h-full bg-gradient-to-r from-[var(--accent)] to-purple-400 animate-slide-progress" />
+            </div>
+          )}
+
+          {/* ── Keyboard shortcuts overlay ── */}
+          {showShortcuts && (
+            <div
+              className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+              onClick={e => e.stopPropagation()}
+            >
+              <div
+                className="bg-zinc-900/95 border border-white/[0.06] rounded-2xl p-5 sm:p-6 max-w-xs w-full mx-4 shadow-2xl"
+                onClick={e => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-white text-sm font-semibold tracking-tight">Keyboard Shortcuts</h3>
+                  <button onClick={() => setShowShortcuts(false)}
+                    className="p-1 text-white/40 hover:text-white rounded-lg hover:bg-white/10 transition-colors">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    ["← / →", "Navigate images"],
+                    ["Esc", "Close preview"],
+                    ["Space", "Toggle slideshow"],
+                    ["+ / -", "Zoom in / out"],
+                    ["0", "Reset zoom"],
+                    ["r / R", "Rotate right / left"],
+                    ["f", "Fullscreen"],
+                    ["?", "Toggle shortcuts"],
+                  ].map(([key, desc]) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <kbd className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-white/8 text-white/80 border border-white/[0.06] min-w-[5rem] text-center">
+                        {key}
+                      </kbd>
+                      <span className="text-[12px] text-white/50 ml-3">{desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -484,9 +657,6 @@ export default function ImagesPage() {
   return (
     <>
       <style>{`
-        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-        .animate-in { animation: fadeIn .15s ease-out }
-
         /* Masonry grid */
         .masonry-grid {
           column-count: 2;
@@ -507,6 +677,37 @@ export default function ImagesPage() {
         }
         .animate-slide-progress {
           animation: slideProgress 3.5s linear forwards;
+        }
+
+        /* Smooth image loading with blur-up */
+        .img-loading {
+          filter: blur(8px);
+          transform: scale(1.02);
+        }
+
+        /* Custom scrollbar for lightbox image area */
+        .lightbox-scroll::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .lightbox-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .lightbox-scroll::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.15);
+          border-radius: 3px;
+        }
+        .lightbox-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,255,255,0.25);
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+          .masonry-item,
+          .animate-slide-progress {
+            animation: none !important;
+            transition: none !important;
+          }
         }
       `}</style>
       <Suspense fallback={<div className="min-h-screen bg-[var(--bg)]" />}>

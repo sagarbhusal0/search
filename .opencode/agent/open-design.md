@@ -6,7 +6,6 @@ description: >-
   asks for brand guidelines, color palette, typography system, or design
   critique. NOT for coding backend logic or writing server-side code.
 mode: primary
-model: anthropic/claude-sonnet-4-6
 permission:
   read: allow
   edit: allow
