@@ -40,6 +40,7 @@ function ImageGrid() {
   const filmstripRef = useRef<HTMLDivElement>(null);
   const slideshowRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lightboxRef = useRef<HTMLDivElement>(null);
+  const imageAreaRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const touchEndX = useRef(0);
@@ -202,6 +203,24 @@ function ImageGrid() {
     window.addEventListener("keydown", handler, { passive: false });
     return () => window.removeEventListener("keydown", handler);
   }, [selectedIdx, nextImage, prevImage, closePreview, zoomIn, zoomOut, resetZoom, toggleFullscreen, showShortcuts]);
+
+  /* ── Non-passive wheel zoom (use ref to avoid re-attaching on every zoom change) ── */
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
+  useEffect(() => {
+    const el = imageAreaRef.current;
+    if (!el || selectedIdx === null) return;
+    const handler = (e: WheelEvent) => {
+      const isZoomed = zoomRef.current !== null;
+      // When zoomed in, let scroll pass through unless Ctrl/Meta is held
+      if (isZoomed && !e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      if (e.deltaY < 0) zoomInSmooth();
+      else zoomOutSmooth();
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, [selectedIdx, zoomInSmooth, zoomOutSmooth]);
 
   /* ── Lock scroll & scroll filmstrip ── */
   useEffect(() => {
@@ -504,16 +523,11 @@ function ImageGrid() {
           <div className="absolute inset-y-0 left-0 w-1/4 z-10 sm:hidden" onClick={e => { e.stopPropagation(); prevImage(); }} />
           <div className="absolute inset-y-0 right-0 w-1/4 z-10 sm:hidden" onClick={e => { e.stopPropagation(); nextImage(); }} />
 
-          {/* ── Image area ── */}
+          {/* ── Image area (wheel zoom via non-passive listener in useEffect) ── */}
           <div
+            ref={imageAreaRef}
             className="flex-1 flex relative select-none"
             onClick={e => e.stopPropagation()}
-            onWheel={e => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (e.deltaY < 0) zoomInSmooth();
-              else zoomOutSmooth();
-            }}
             style={{ touchAction: "pan-x pan-y" }}
           >
             {/* Scroll container when zoomed */}
@@ -640,8 +654,10 @@ function ImageGrid() {
                     ["← / →", "Navigate images"],
                     ["Esc", "Close preview"],
                     ["Space", "Toggle slideshow"],
-                    ["+ / -", "Zoom in / out"],
-                    ["0", "Reset zoom"],
+                    ["Scroll", "Zoom in / out"],
+                    ["Ctrl+Scroll", "Zoom when zoomed in"],
+                    ["+ / -", "Step zoom ±50%"],
+                    ["0", "Reset to fit"],
                     ["r / R", "Rotate right / left"],
                     ["f", "Fullscreen"],
                     ["?", "Toggle shortcuts"],
