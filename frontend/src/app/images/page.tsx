@@ -204,13 +204,15 @@ function ImageGrid() {
     return () => window.removeEventListener("keydown", handler);
   }, [selectedIdx, nextImage, prevImage, closePreview, zoomIn, zoomOut, resetZoom, toggleFullscreen, showShortcuts]);
 
-  /* ── Non-passive wheel zoom (use ref to avoid re-attaching on every zoom change) ── */
+  /* ── Wheel zoom via window (non-passive, scoped to image area) ── */
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
   useEffect(() => {
-    const el = imageAreaRef.current;
-    if (!el || selectedIdx === null) return;
+    if (selectedIdx === null) return;
     const handler = (e: WheelEvent) => {
+      // Only zoom when cursor is over the image area (not filmstrip / top bar)
+      const area = imageAreaRef.current;
+      if (!area || !area.contains(e.target as Node)) return;
       const isZoomed = zoomRef.current !== null;
       // When zoomed in, let scroll pass through unless Ctrl/Meta is held
       if (isZoomed && !e.ctrlKey && !e.metaKey) return;
@@ -218,8 +220,8 @@ function ImageGrid() {
       if (e.deltaY < 0) zoomInSmooth();
       else zoomOutSmooth();
     };
-    el.addEventListener("wheel", handler, { passive: false });
-    return () => el.removeEventListener("wheel", handler);
+    window.addEventListener("wheel", handler, { passive: false });
+    return () => window.removeEventListener("wheel", handler);
   }, [selectedIdx, zoomInSmooth, zoomOutSmooth]);
 
   /* ── Lock scroll & scroll filmstrip ── */
