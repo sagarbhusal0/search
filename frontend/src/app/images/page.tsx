@@ -37,6 +37,9 @@ function ImageGrid() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [preloaded, setPreloaded] = useState<Set<string>>(new Set());
   const [slideDir, setSlideDir] = useState<"left" | "right">("right");
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const filmstripRef = useRef<HTMLDivElement>(null);
   const slideshowRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lightboxRef = useRef<HTMLDivElement>(null);
@@ -60,7 +63,8 @@ function ImageGrid() {
   const zoomOut = useCallback(() => setZoom(z => {
     if (z === null) return null;
     const next = z - 0.5;
-    return next < ZOOM_FIT_THRESHOLD ? null : zoomClamp(next);
+    if (next < ZOOM_FIT_THRESHOLD) { setPanOffset({ x: 0, y: 0 }); return null; }
+    return zoomClamp(next);
   }), []);
   const zoomInSmooth = useCallback(() => setZoom(z => {
     if (z === null) return 1;
@@ -69,9 +73,10 @@ function ImageGrid() {
   const zoomOutSmooth = useCallback(() => setZoom(z => {
     if (z === null) return null;
     const next = z - 0.15;
-    return next < ZOOM_FIT_THRESHOLD ? null : zoomClamp(next);
+    if (next < ZOOM_FIT_THRESHOLD) { setPanOffset({ x: 0, y: 0 }); return null; }
+    return zoomClamp(next);
   }), []);
-  const resetZoom = useCallback(() => setZoom(null), []);
+  const resetZoom = useCallback(() => { setZoom(null); setPanOffset({ x: 0, y: 0 }); }, []);
   const toggleFitZoom = useCallback(() => setZoom(z => z === null ? 1 : null), []);
   const displayZoom = zoom === null ? "Fit" : `${Math.round(zoom * 100)}%`;
 
@@ -204,18 +209,34 @@ function ImageGrid() {
     return () => window.removeEventListener("keydown", handler);
   }, [selectedIdx, nextImage, prevImage, closePreview, zoomIn, zoomOut, resetZoom, toggleFullscreen, showShortcuts]);
 
+  /* ── Mouse panning (click-and-drag when zoomed) ── */
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (zoom !== null) {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+    }
+  }, [zoom, panOffset]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isPanning && zoom !== null) {
+      setPanOffset({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
+    }
+  }, [isPanning, zoom, panStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
   /* ── Wheel zoom via window (non-passive, scoped to image area) ── */
-  const zoomRef = useRef(zoom);
-  zoomRef.current = zoom;
   useEffect(() => {
     if (selectedIdx === null) return;
     const handler = (e: WheelEvent) => {
       // Only zoom when cursor is over the image area (not filmstrip / top bar)
       const area = imageAreaRef.current;
       if (!area || !area.contains(e.target as Node)) return;
-      const isZoomed = zoomRef.current !== null;
-      // When zoomed in, let scroll pass through unless Ctrl/Meta is held
-      if (isZoomed && !e.ctrlKey && !e.metaKey) return;
+      // Always zoom on scroll, regardless of zoom state
       e.preventDefault();
       if (e.deltaY < 0) zoomInSmooth();
       else zoomOutSmooth();
@@ -528,9 +549,13 @@ function ImageGrid() {
           {/* ── Image area (wheel zoom via non-passive listener in useEffect) ── */}
           <div
             ref={imageAreaRef}
-            className="flex-1 flex relative select-none"
+            className={`flex-1 flex relative ${zoom !== null ? (isPanning ? "cursor-grabbing" : "cursor-grab") : ""}`}
             onClick={e => e.stopPropagation()}
             style={{ touchAction: "pan-x pan-y" }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
           >
             {/* Scroll container when zoomed */}
             <div
@@ -549,10 +574,10 @@ function ImageGrid() {
 
               {/* Artifact frame — subtle shadow behind the image */}
               <div
-                className={`transition-all duration-300 ease-out ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+                className={`${imgLoaded ? "opacity-100" : "opacity-0"} ${isPanning ? "" : "transition-all duration-300 ease-out"}`}
                 style={{
-                  transform: `rotate(${rotation}deg) scale(${zoom ?? 1})`,
-                  transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease",
+                  transform: `translate(${zoom !== null ? panOffset.x : 0}px, ${zoom !== null ? panOffset.y : 0}px) rotate(${rotation}deg) scale(${zoom ?? 1})`,
+                  transition: isPanning ? "none" : "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease",
                   ...(zoom === null
                     ? { maxHeight: "calc(100dvh - 14rem)", maxWidth: "100%", display: "flex", alignItems: "center", justifyContent: "center" }
                     : { display: "inline-flex" }),
@@ -657,7 +682,7 @@ function ImageGrid() {
                     ["Esc", "Close preview"],
                     ["Space", "Toggle slideshow"],
                     ["Scroll", "Zoom in / out"],
-                    ["Ctrl+Scroll", "Zoom when zoomed in"],
+                    ["Drag", "Pan when zoomed"],
                     ["+ / -", "Step zoom ±50%"],
                     ["0", "Reset to fit"],
                     ["r / R", "Rotate right / left"],
