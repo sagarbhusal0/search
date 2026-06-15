@@ -8,7 +8,7 @@ set -e
 
 # Navigate to the project directory
 # MATCHES your server path: ~/search
-PROJECT_DIR="/root/search"
+PROJECT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 
 echo "🚀 Starting deployment..."
 
