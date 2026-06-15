@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, ArrowRight, X, ExternalLink, Maximize2,
   Download, ChevronLeft, ChevronRight, ZoomIn, ZoomOut,
-  RotateCcw, RotateCw, Copy, Play, Pause, Loader2
+  RotateCcw, RotateCw, Copy, Play, Pause, Loader2,
+  Minus, Plus, Maximize
 } from "lucide-react";
 import SearchHeader from "../components/SearchHeader";
 import BackToTop from "../components/BackToTop";
@@ -28,7 +29,7 @@ function ImageGrid() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [zoomed, setZoomed] = useState(false);
+  const [zoom, setZoom] = useState<number | null>(null); // null = fit-to-screen, 1=100%, 1.5, 2, 3, 5
   const [rotation, setRotation] = useState(0);
   const [slideshowActive, setSlideshowActive] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -38,6 +39,23 @@ function ImageGrid() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const pinchDist = useRef(0);
+
+  /* ── Zoom levels (null = fit to screen) ── */
+  const zoomLevels: (number | null)[] = [null, 1, 1.5, 2, 3, 5];
+  const zoomIn = useCallback(() => {
+    const current = zoom ?? 0.5;
+    const next = zoomLevels.find(z => z !== null && z > current);
+    if (next) setZoom(next);
+    else setZoom(5);
+  }, [zoom]);
+  const zoomOut = useCallback(() => {
+    if (zoom === null) return;
+    const prev = [...zoomLevels].reverse().find(z => (z === null ? 0.5 : z) < zoom);
+    if (prev === undefined) setZoom(null);
+    else setZoom(prev);
+  }, [zoom]);
+  const resetZoom = useCallback(() => setZoom(null), []);
+  const toggleFitZoom = useCallback(() => { setZoom(z => z === null ? 1 : null); }, []);
 
   const getCookie = (name: string) => {
     if (typeof document === "undefined") return null;
@@ -97,7 +115,7 @@ function ImageGrid() {
             return prev;
           }
           setImgLoaded(false);
-          setZoomed(false);
+          setZoom(null);
           setRotation(0);
           return prev + 1;
         });
@@ -108,16 +126,16 @@ function ImageGrid() {
 
   const nextImage = useCallback(() => {
     if (selectedIdx !== null && selectedIdx < results.length - 1) {
-      setSelectedIdx(selectedIdx + 1); setImgLoaded(false); setZoomed(false); setRotation(0);
+      setSelectedIdx(selectedIdx + 1); setImgLoaded(false); setZoom(null); setRotation(0);
     }
   }, [selectedIdx, results.length]);
   const prevImage = useCallback(() => {
     if (selectedIdx !== null && selectedIdx > 0) {
-      setSelectedIdx(selectedIdx - 1); setImgLoaded(false); setZoomed(false); setRotation(0);
+      setSelectedIdx(selectedIdx - 1); setImgLoaded(false); setZoom(null); setRotation(0);
     }
   }, [selectedIdx]);
   const closePreview = useCallback(() => {
-    setSelectedIdx(null); setImgLoaded(false); setZoomed(false); setRotation(0);
+    setSelectedIdx(null); setImgLoaded(false); setZoom(null); setRotation(0);
     setSlideshowActive(false); document.body.style.overflow = "auto";
   }, []);
 
@@ -130,11 +148,14 @@ function ImageGrid() {
       else if (e.key === "Escape") closePreview();
       else if (e.key === "r") setRotation(r => (r + 90) % 360);
       else if (e.key === "R") setRotation(r => (r - 90 + 360) % 360);
+      else if (e.key === "+" || e.key === "=") zoomIn();
+      else if (e.key === "-" || e.key === "_") zoomOut();
+      else if (e.key === "0") resetZoom();
       else if (e.key === " " || e.key === "Spacebar") { e.preventDefault(); setSlideshowActive(s => !s); }
     };
-    window.addEventListener("keydown", handler);
+    window.addEventListener("keydown", handler, { passive: true });
     return () => window.removeEventListener("keydown", handler);
-  }, [selectedIdx, nextImage, prevImage, closePreview]);
+  }, [selectedIdx, nextImage, prevImage, closePreview, zoomIn, zoomOut, resetZoom]);
 
   /* ── Lock scroll & scroll filmstrip ── */
   useEffect(() => {
@@ -161,7 +182,12 @@ function ImageGrid() {
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      if (Math.abs(d - pinchDist.current) > 30) { setZoomed(true); }
+      const diff = d - pinchDist.current;
+      if (Math.abs(diff) > 40) {
+        if (diff > 0) zoomIn();
+        else zoomOut();
+        pinchDist.current = d;
+      }
     }
   };
 
@@ -230,7 +256,7 @@ function ImageGrid() {
                 const isWide = result.source?.[0]?.width && result.source[0].height &&
                   (result.source[0].width / result.source[0].height) > 1.6;
                 return (
-                  <div key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoomed(false); setRotation(0); document.body.style.overflow = "hidden"; }}
+                  <div key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoom(null); setRotation(0); document.body.style.overflow = "hidden"; }}
                     className="masonry-item group relative bg-[var(--surface-alt)] border border-[var(--border)] rounded-[var(--radius-sm)] overflow-hidden cursor-pointer transition-all duration-200 hover:border-[var(--accent)] hover:shadow-[0_0_0_1px_var(--accent)]"
                   >
                     {proxied && (
@@ -314,11 +340,26 @@ function ImageGrid() {
                 className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Rotate right">
                 <RotateCw size={16} />
               </button>
-              {/* Zoom */}
-              <button onClick={e => { e.stopPropagation(); setZoomed(!zoomed); }}
-                className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label={zoomed ? "Zoom out" : "Zoom in"}>
-                {zoomed ? <ZoomOut size={16} /> : <ZoomIn size={16} />}
-              </button>
+              {/* Zoom controls */}
+              <div className="flex items-center gap-0.5 border-r border-white/10 pr-1.5 mr-0.5">
+                <button onClick={e => { e.stopPropagation(); zoomIn(); }}
+                  className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Zoom in">
+                  <Plus size={16} />
+                </button>
+                <span
+                  onClick={e => { e.stopPropagation(); resetZoom(); }}
+                  className="text-[11px] font-medium tabular-nums cursor-pointer select-none min-w-[3ch] text-center
+                    text-white/60 hover:text-white/90 transition-colors"
+                  title="Click to reset zoom"
+                  aria-label="Current zoom level"
+                >
+                  {zoom === null ? "Fit" : `${Math.round(zoom * 100)}%`}
+                </span>
+                <button onClick={e => { e.stopPropagation(); zoomOut(); }}
+                  className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors" aria-label="Zoom out">
+                  <Minus size={16} />
+                </button>
+              </div>
               {/* Copy URL */}
               <button onClick={e => { e.stopPropagation(); copyUrl(); }}
                 className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors relative" aria-label="Copy image URL">
@@ -347,10 +388,23 @@ function ImageGrid() {
           <div className="absolute inset-y-0 right-0 w-1/4 z-10 sm:hidden" onClick={e => { e.stopPropagation(); nextImage(); }} />
 
           {/* ── Image area ── */}
-          <div className="flex-1 flex items-center justify-center overflow-hidden relative" onClick={e => e.stopPropagation()}>
-            <div className={`relative flex items-center justify-center transition-all duration-300 ${zoomed ? "overflow-auto cursor-zoom-out" : "overflow-hidden cursor-zoom-in"}`}>
+          <div
+            className="flex-1 flex relative"
+            onClick={e => e.stopPropagation()}
+            onWheel={e => {
+              e.preventDefault();
+              if (e.deltaY < 0) zoomIn();
+              else zoomOut();
+            }}
+            style={{ touchAction: "pan-x pan-y" }}
+          >
+            {/* Scroll container when zoomed */}
+            <div
+              className={`flex-1 flex items-start justify-center relative ${zoom !== null ? "overflow-auto" : "overflow-hidden items-center"}`}
+              onClick={() => toggleFitZoom()}
+            >
               {!imgLoaded && (
-                <div className="flex items-center justify-center p-12">
+                <div className="flex items-center justify-center p-12 absolute inset-0">
                   <Loader2 size={32} className="text-white/40 animate-spin" />
                 </div>
               )}
@@ -360,10 +414,13 @@ function ImageGrid() {
                 alt={selected.title || ""}
                 onLoad={() => setImgLoaded(true)}
                 onError={() => setImgLoaded(true)}
-                className={`transition-all duration-300 ease-out ${imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"} ${zoomed ? "max-w-none max-h-none" : "max-h-[calc(100dvh-14rem)] max-w-full"} object-contain`}
+                className={`transition-opacity duration-250 ease-out ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                 style={{
-                  transform: `rotate(${rotation}deg)`,
-                  transition: "transform 0.3s ease, opacity 0.25s ease, scale 0.25s ease",
+                  transform: `rotate(${rotation}deg) scale(${zoom ?? 1})`,
+                  transition: "transform 0.3s ease, opacity 0.25s ease",
+                  ...(zoom === null
+                    ? { maxHeight: "calc(100dvh - 14rem)", maxWidth: "100%", objectFit: "contain" as const }
+                    : { width: "auto", height: "auto", minWidth: 0, minHeight: 0 }),
                 }}
               />
             </div>
@@ -376,7 +433,7 @@ function ImageGrid() {
                 const thumbUrl = result.source?.length > 0 ? result.source[result.source.length - 1].url : "";
                 const proxied = thumbUrl ? `/api/proxy?i=${encodeURIComponent(thumbUrl)}&s=thumb` : "";
                 return (
-                  <button key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoomed(false); setRotation(0); }}
+                  <button key={i} onClick={() => { setSelectedIdx(i); setImgLoaded(false); setZoom(null); setRotation(0); }}
                     className={`size-12 sm:size-14 shrink-0 rounded-[var(--radius-sm)] overflow-hidden border-2 transition-all duration-200 ${i === selectedIdx ? "border-white opacity-100 scale-105 shadow-[0_0_8px_rgba(255,255,255,0.15)]" : "border-transparent opacity-40 hover:opacity-80"}`}
                   >
                     {proxied && <img src={proxied} alt="" className="size-full object-cover" />}
