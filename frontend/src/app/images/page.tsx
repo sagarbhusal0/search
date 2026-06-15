@@ -46,22 +46,33 @@ function ImageGrid() {
   const pinchDist = useRef(0);
   const pullTranslateY = useRef(0);
 
-  /* ── Zoom levels (null = fit to screen) ── */
-  const zoomLevels: (number | null)[] = [null, 1, 1.5, 2, 3, 5];
-  const zoomIn = useCallback(() => {
-    const current = zoom ?? 0.5;
-    const next = zoomLevels.find(z => z !== null && z > current);
-    if (next) setZoom(next);
-    else setZoom(5);
-  }, [zoom]);
-  const zoomOut = useCallback(() => {
-    if (zoom === null) return;
-    const prev = [...zoomLevels].reverse().find(z => (z === null ? 0.5 : z) < zoom);
-    if (prev === undefined) setZoom(null);
-    else setZoom(prev);
-  }, [zoom]);
+  /* ── Smooth zoom (null = fit to screen, 0.25–10 continuous) ── */
+  const ZOOM_MIN = 0.25;
+  const ZOOM_MAX = 10;
+  const ZOOM_FIT_THRESHOLD = 0.5; // below this snaps back to fit
+  const zoomClamp = (v: number) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, v));
+
+  const zoomIn = useCallback(() => setZoom(z => {
+    if (z === null) return 1;
+    return zoomClamp(z + 0.5);
+  }), []);
+  const zoomOut = useCallback(() => setZoom(z => {
+    if (z === null) return null;
+    const next = z - 0.5;
+    return next < ZOOM_FIT_THRESHOLD ? null : zoomClamp(next);
+  }), []);
+  const zoomInSmooth = useCallback(() => setZoom(z => {
+    if (z === null) return 1;
+    return zoomClamp(z + 0.15);
+  }), []);
+  const zoomOutSmooth = useCallback(() => setZoom(z => {
+    if (z === null) return null;
+    const next = z - 0.15;
+    return next < ZOOM_FIT_THRESHOLD ? null : zoomClamp(next);
+  }), []);
   const resetZoom = useCallback(() => setZoom(null), []);
-  const toggleFitZoom = useCallback(() => { setZoom(z => z === null ? 1 : null); }, []);
+  const toggleFitZoom = useCallback(() => setZoom(z => z === null ? 1 : null), []);
+  const displayZoom = zoom === null ? "Fit" : `${Math.round(zoom * 100)}%`;
 
   const getCookie = (name: string) => {
     if (typeof document === "undefined") return null;
@@ -457,7 +468,7 @@ function ImageGrid() {
                   title="Click to reset zoom"
                   aria-label="Zoom level"
                 >
-                  {zoom === null ? "Fit" : `${Math.round(zoom * 100)}%`}
+                  {displayZoom}
                 </span>
                 <button onClick={e => { e.stopPropagation(); zoomOut(); }}
                   className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-all active:scale-90" aria-label="Zoom out">
@@ -499,8 +510,9 @@ function ImageGrid() {
             onClick={e => e.stopPropagation()}
             onWheel={e => {
               e.preventDefault();
-              if (e.deltaY < 0) zoomIn();
-              else zoomOut();
+              e.stopPropagation();
+              if (e.deltaY < 0) zoomInSmooth();
+              else zoomOutSmooth();
             }}
             style={{ touchAction: "pan-x pan-y" }}
           >
